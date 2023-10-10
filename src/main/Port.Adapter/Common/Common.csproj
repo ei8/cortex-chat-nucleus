@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>ei8.Cortex.Chat.Nucleus.Port.Adapter.Common</AssemblyName>
+    <RootNamespace>ei8.Cortex.Chat.Nucleus.Port.Adapter.Common</RootNamespace>
+  </PropertyGroup>
+
+</Project>

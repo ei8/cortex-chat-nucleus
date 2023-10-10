@@ -1,0 +1,17 @@
+version: '3.4'
+
+services:
+  cortex.chat.nucleus.in.api:
+    env_file:
+      - ./var1.env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+  cortex.chat.nucleus.out.api:
+    env_file: 
+      - ./var1.env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+networks:
+    default:
+        external:
+            name: sample_default
