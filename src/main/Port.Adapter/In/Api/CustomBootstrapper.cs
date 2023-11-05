@@ -2,15 +2,12 @@
 using CQRSlite.Domain;
 using CQRSlite.Routing;
 using ei8.Cortex.Chat.Nucleus.Application;
-// TODO: using ei8.Cortex.Chat.Nucleus.Application.Access;
 using ei8.Cortex.Chat.Nucleus.Application.Messages;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
-// TODO: using ei8.Cortex.Chat.Nucleus.Application.Subscriptions;
+using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services;
 using ei8.Cortex.Graph.Client;
-using ei8.Cortex.IdentityAccess.Client.In;
 using ei8.Cortex.IdentityAccess.Client.Out;
-using ei8.Cortex.Subscriptions.Client.In;
 using ei8.EventSourcing.Client;
 using ei8.EventSourcing.Client.Out;
 using Nancy;
@@ -24,6 +21,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
 {
     public class CustomBootstrapper : DefaultNancyBootstrapper
     {
+        private const string NeuronTransaction = "neuronTransaction";
+        private const string TerminalTransaction = "terminalTransaction";
+
         public CustomBootstrapper()
         {
         }
@@ -45,14 +45,13 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                 });
             container.Register<ISettingsService, SettingsService>();
             container.Register<IValidationClient, HttpValidationClient>();
-            container.Register<IAccessRequestClient, HttpAccessRequestClient>();
             container.Register<INeuronGraphQueryClient, HttpNeuronGraphQueryClient>();
             container.Register<INotificationClient, HttpNotificationClient>();
-            // TODO: container.Register<IAuthorClient, HttpAuthorClient>();
 
             // data
             container.Register<IEventStoreUrlService>(
-                (tic, npo) => {
+                (tic, npo) =>
+                {
                     var ss = container.Resolve<ISettingsService>();
                     return new EventStoreUrlService(
                                     ss.EventSourcingInBaseUrl + "/",
@@ -60,36 +59,60 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                                     );
                 });
             container.Register<IEventSerializer, EventSerializer>();
-            container.Register<IAuthoredEventStore, HttpEventStoreClient>();
-            container.Register<IInMemoryAuthoredEventStore, InMemoryEventStore>();
-            container.Register<IRepository>((tic, npo) => new Repository(container.Resolve<IInMemoryAuthoredEventStore>()));
-            container.Register<ISession, Session>();
-            container.Register<ISubscriptionsClient, HttpSubscriptionsClient>();
-            // TODO: container.Register<IAccessApplicationService, AccessApplicationService>();
+
+            #region NeuronTransaction
+            CustomBootstrapper.CreateTransactionRegistrations(container, CustomBootstrapper.NeuronTransaction);
+
             // neuron
             container.Register<INeuronAdapter, NeuronAdapter>();
-            container.Register((tic, npo) => new neurUL.Cortex.Application.Neurons.NeuronCommandHandlers(container.Resolve<IInMemoryAuthoredEventStore>(), container.Resolve<ISession>()));
-            container.Register<ITerminalAdapter, TerminalAdapter>();
-            container.Register((tic, npo) => new neurUL.Cortex.Application.Neurons.TerminalCommandHandlers(container.Resolve<IInMemoryAuthoredEventStore>(), container.Resolve<ISession>()));
+            container.Register((tic, npo) => new neurUL.Cortex.Application.Neurons.NeuronCommandHandlers(
+                container.Resolve<IInMemoryAuthoredEventStore>(CustomBootstrapper.NeuronTransaction), 
+                container.Resolve<ISession>(CustomBootstrapper.NeuronTransaction)
+                ));
             // tag
             container.Register<ei8.Data.Tag.Port.Adapter.In.InProcess.IItemAdapter, ei8.Data.Tag.Port.Adapter.In.InProcess.ItemAdapter>();
-            container.Register((tic, npo) => new Data.Tag.Application.ItemCommandHandlers(container.Resolve<IInMemoryAuthoredEventStore>(), container.Resolve<ISession>()));
+            container.Register((tic, npo) => new Data.Tag.Application.ItemCommandHandlers(container.Resolve<IInMemoryAuthoredEventStore>(CustomBootstrapper.NeuronTransaction), container.Resolve<ISession>(CustomBootstrapper.NeuronTransaction)));
             // aggregate
             container.Register<ei8.Data.Aggregate.Port.Adapter.In.InProcess.IItemAdapter, ei8.Data.Aggregate.Port.Adapter.In.InProcess.ItemAdapter>();
-            container.Register((tic, npo) => new Data.Aggregate.Application.ItemCommandHandlers(container.Resolve<IInMemoryAuthoredEventStore>(), container.Resolve<ISession>()));
+            container.Register((tic, npo) => new Data.Aggregate.Application.ItemCommandHandlers(container.Resolve<IInMemoryAuthoredEventStore>(CustomBootstrapper.NeuronTransaction), container.Resolve<ISession>(CustomBootstrapper.NeuronTransaction)));
             // external reference
             container.Register<ei8.Data.ExternalReference.Port.Adapter.In.InProcess.IItemAdapter, ei8.Data.ExternalReference.Port.Adapter.In.InProcess.ItemAdapter>();
-            container.Register((tic, npo) => new Data.ExternalReference.Application.ItemCommandHandlers(container.Resolve<IInMemoryAuthoredEventStore>(), container.Resolve<ISession>()));
+            container.Register((tic, npo) => new Data.ExternalReference.Application.ItemCommandHandlers(container.Resolve<IInMemoryAuthoredEventStore>(CustomBootstrapper.NeuronTransaction), container.Resolve<ISession>(CustomBootstrapper.NeuronTransaction)));
+            #endregion
 
-            container.Register<MessageCommandHandlers>();
-            // TODO: container.Register<TerminalCommandHandlers>();
-            // TODO: container.Register<SubscriptionCommandHandlers>();
+            #region TerminalTransaction
+            CustomBootstrapper.CreateTransactionRegistrations(container, CustomBootstrapper.TerminalTransaction);
+
+            container.Register<ITerminalAdapter, TerminalAdapter>();
+            container.Register((tic, npo) => new neurUL.Cortex.Application.Neurons.TerminalCommandHandlers(container.Resolve<IInMemoryAuthoredEventStore>(CustomBootstrapper.TerminalTransaction), container.Resolve<ISession>(CustomBootstrapper.TerminalTransaction)));
+            #endregion
+
+            container.Register<IMessageWriteRepository>((tic, npo) => new HttpMessageWriteRepository(
+                container.Resolve<ITransaction>(CustomBootstrapper.NeuronTransaction),
+                container.Resolve<ITransaction>(CustomBootstrapper.TerminalTransaction),
+                container.Resolve<IAuthoredEventStore>(CustomBootstrapper.NeuronTransaction),
+                container.Resolve<IInMemoryAuthoredEventStore>(CustomBootstrapper.NeuronTransaction),
+                container.Resolve<INeuronAdapter>(),
+                container.Resolve<ITerminalAdapter>(),
+                container.Resolve<ei8.Data.Tag.Port.Adapter.In.InProcess.IItemAdapter>(),
+                container.Resolve<ei8.Data.Aggregate.Port.Adapter.In.InProcess.IItemAdapter>(),
+                container.Resolve<ei8.Data.ExternalReference.Port.Adapter.In.InProcess.IItemAdapter>(),
+                container.Resolve<INeuronGraphQueryClient>(),
+                container.Resolve<ISettingsService>()
+                ));
+            container.Register((tic, npo) => new MessageCommandHandlers(
+                container.Resolve<ITransaction>(CustomBootstrapper.NeuronTransaction),
+                container.Resolve<ITransaction>(CustomBootstrapper.TerminalTransaction),
+                container.Resolve<IMessageWriteRepository>(),
+                container.Resolve<IValidationClient>(),
+                container.Resolve<ISettingsService>()
+                ));
 
             var ticl = new TinyIoCServiceLocator(container);
             container.Register<IServiceProvider, TinyIoCServiceLocator>(ticl);
             var registrar = new RouteRegistrar(ticl);
             registrar.Register(typeof(MessageCommandHandlers));
-            // neuron
+            // neuron - only one type from an assembly is needed to register all handlers
             registrar.Register(typeof(neurUL.Cortex.Application.Neurons.NeuronCommandHandlers));
             // tag
             registrar.Register(typeof(ei8.Data.Tag.Application.ItemCommandHandlers));
@@ -99,6 +122,15 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             registrar.Register(typeof(ei8.Data.ExternalReference.Application.ItemCommandHandlers));
 
             ((TinyIoCServiceLocator)container.Resolve<IServiceProvider>()).SetRequestContainer(container);
+        }
+
+        private static void CreateTransactionRegistrations(TinyIoCContainer container, string transactionName)
+        {
+            container.Register<IAuthoredEventStore, HttpEventStoreClient>(transactionName);
+            container.Register<IInMemoryAuthoredEventStore, InMemoryEventStore>(transactionName);
+            container.Register<IRepository>((tic, npo) => new Repository(container.Resolve<IInMemoryAuthoredEventStore>(transactionName)), transactionName);
+            container.Register<ISession>((tic, npo) => new Session(container.Resolve<IRepository>(transactionName)), transactionName);
+            container.Register<ITransaction>(new Transaction(container.Resolve<IAuthoredEventStore>(transactionName), container.Resolve<IInMemoryAuthoredEventStore>(transactionName)), transactionName);
         }
     }
 }

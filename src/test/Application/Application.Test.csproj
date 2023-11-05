@@ -135,16 +135,6 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
-    <Compile Include="Neurons\Commands\CreateAuthorNeuronFixture.cs" />
-    <Compile Include="Neurons\Commands\ChangeNeuronTagFixture.cs" />
-    <Compile Include="Neurons\Commands\CreateNeuronFixture.cs" />
-    <Compile Include="Neurons\Commands\CreateTerminalFixture.cs" />
-    <Compile Include="Neurons\Commands\DeactivateNeuronFixture.cs" />
-    <Compile Include="Neurons\Commands\DeactivateTerminalFixture.cs" />
-    <Compile Include="Neurons\NeuronCommandHandlersFixture.cs" />
-    <Compile Include="Neurons\TerminalCommandHandlersFixture.cs" />
-    <Compile Include="Neurons\Types.cs" />
-    <Compile Include="Notification\NotificationApplicationServiceFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

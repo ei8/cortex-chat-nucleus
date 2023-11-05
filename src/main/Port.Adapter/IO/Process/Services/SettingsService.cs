@@ -16,10 +16,6 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services
         public string IdentityAccessInBaseUrl => Environment.GetEnvironmentVariable(EnvironmentVariableKeys.IdentityAccessInBaseUrl);
 
         public string IdentityAccessOutBaseUrl => Environment.GetEnvironmentVariable(EnvironmentVariableKeys.IdentityAccessOutBaseUrl);
-        
-        public string SubscriptionsInBaseUrl => Environment.GetEnvironmentVariable(EnvironmentVariableKeys.SubscriptionsInBaseUrl);
-        
-        public string SubscriptionsOutBaseUrl => Environment.GetEnvironmentVariable(EnvironmentVariableKeys.SubscriptionsOutBaseUrl);
 
         public string InstantiatesMessageExternalReferenceUrl => Environment.GetEnvironmentVariable(EnvironmentVariableKeys.InstantiatesMessageExternalReferenceUrl);
 

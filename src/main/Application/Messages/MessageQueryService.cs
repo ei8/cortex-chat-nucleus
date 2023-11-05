@@ -10,16 +10,16 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
 {
     public class MessageQueryService : IMessageQueryService
     {
-        private readonly IMessageRepository messageRetrievalService;
+        private readonly IMessageReadRepository messageRepository;
 
-        public MessageQueryService(IMessageRepository messageRetrievalService)
+        public MessageQueryService(IMessageReadRepository messageRepository)
         {
-            this.messageRetrievalService = messageRetrievalService;
+            this.messageRepository = messageRepository;
         }
 
         public async Task<IEnumerable<MessageData>> GetMessages(DateTimeOffset? maxTimestamp, int? pageSize, CancellationToken token = default)
         {
-            return (await this.messageRetrievalService.GetAll(maxTimestamp, pageSize, token)).Select(m =>
+            return (await this.messageRepository.GetAll(maxTimestamp, pageSize, token)).Select(m =>
                 new MessageData()
                 {
                     Id = m.Id,

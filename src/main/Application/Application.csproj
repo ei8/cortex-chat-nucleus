@@ -7,8 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CqrsLite" Version="0.18.1" />
-    <PackageReference Include="ei8.Cortex.Chat.Common" Version="0.1.5" />
+    <PackageReference Include="ei8.Cortex.Chat.Common" Version="0.1.7" />
     <PackageReference Include="ei8.Cortex.Graph.Client" Version="0.3.0" />
     <PackageReference Include="ei8.Cortex.IdentityAccess.Client" Version="0.1.14" />
     <PackageReference Include="ei8.Cortex.Subscriptions.Client" Version="0.1.7" />
@@ -16,7 +15,7 @@
     <PackageReference Include="ei8.Data.Aggregate.Port.Adapter.In.InProcess" Version="0.1.4" />
     <PackageReference Include="ei8.Data.ExternalReference.Port.Adapter.In.InProcess" Version="0.1.0" />
     <PackageReference Include="ei8.Data.Tag.Port.Adapter.In.InProcess" Version="0.1.11" />
-    <PackageReference Include="ei8.EventSourcing.Client" Version="0.2.9" />
+    <PackageReference Include="ei8.EventSourcing.Client" Version="0.2.10" />
     <PackageReference Include="Neurul.Common" Version="0.1.19" />
     <PackageReference Include="Neurul.Cortex.Common" Version="0.1.4" />
     <PackageReference Include="neurUL.Cortex.Port.Adapter.In.InProcess" Version="0.1.1" />

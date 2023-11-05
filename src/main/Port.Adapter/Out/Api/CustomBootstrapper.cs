@@ -1,19 +1,14 @@
-﻿using CQRSlite.Events;
-using CQRSlite.Routing;
+﻿using ei8.Cortex.Chat.Nucleus.Application;
+using ei8.Cortex.Chat.Nucleus.Application.Messages;
+using ei8.Cortex.Chat.Nucleus.Domain.Model;
+using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote;
+using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services;
+using ei8.Cortex.Graph.Client;
+using ei8.Cortex.IdentityAccess.Client.Out;
 using Nancy;
 using Nancy.TinyIoc;
 using neurUL.Common.Http;
-using ei8.Cortex.Chat.Nucleus.Application;
-using ei8.Cortex.Chat.Nucleus.Application.Messages;
-using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services;
-using ei8.Cortex.Graph.Client;
-using ei8.EventSourcing.Client;
-using ei8.EventSourcing.Client.Out;
-using ei8.Cortex.IdentityAccess.Client.Out;
-using ei8.Cortex.Subscriptions.Client.Out;
 using System.Net.Http;
-using ei8.Cortex.Chat.Nucleus.Domain.Model;
-// TODO: using ei8.Cortex.Chat.Nucleus.Application.Subscriptions;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
 {
@@ -38,11 +33,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
             container.Register<INeuronGraphQueryClient, HttpNeuronGraphQueryClient>();
             container.Register<ISettingsService, SettingsService>();
             container.Register<IValidationClient, HttpValidationClient>();
-            container.Register<IEventSerializer, EventSerializer>();
-            container.Register<IMessageRepository, HttpMessageRepository>();
+            container.Register<IMessageReadRepository, HttpMessageReadRepository>();
             container.Register<IMessageQueryService, MessageQueryService>();
-            // TODO: container.Register<ISubscriptionConfigurationQueryService, SubscriptionConfigurationQueryService>();
-            container.Register<ISubscriptionsConfigurationClient, HttpSubscriptionConfigurationClient>();
         }
     }
 }

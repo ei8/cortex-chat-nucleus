@@ -52,60 +52,6 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                     );
             }
             );
-
-            // TODO: this.Patch("/{neuronId}", async (parameters) =>
-            //{
-            //    return await this.Request.ProcessCommand(
-            //            async (bodyAsObject, bodyAsDictionary, expectedVersion) =>
-            //            {
-            //                ICommand result = null;
-            //                if (bodyAsDictionary.ContainsKey("Tag"))
-            //                    result = new ChangeNeuronTag(
-            //                        Guid.Parse(parameters.neuronId),
-            //                        bodyAsObject.Tag.ToString(),
-            //                        bodyAsObject.UserId.ToString(),
-            //                        expectedVersion
-            //                        );
-            //                else if (bodyAsDictionary.ContainsKey("RegionId"))
-            //                    result = new ChangeNeuronRegionId(
-            //                        Guid.Parse(parameters.neuronId),
-            //                        bodyAsObject.RegionId == null ? null : bodyAsObject.RegionId.ToString(),
-            //                        bodyAsObject.UserId.ToString(),
-            //                        expectedVersion
-            //                        );
-            //                else if (bodyAsDictionary.ContainsKey("ExternalReferenceUrl"))
-            //                    result = new ChangeNeuronExternalReferenceUrl(
-            //                        Guid.Parse(parameters.neuronId),
-            //                        bodyAsObject.ExternalReferenceUrl.ToString(),
-            //                        bodyAsObject.UserId.ToString(),
-            //                        expectedVersion
-            //                        );
-            //                await commandSender.Send(result);
-            //            },
-            //            ConcurrencyExceptionSetter,
-            //            new string[] { "Tag", "RegionId", "ExternalReferenceUrl" },
-            //            "UserId"
-            //        );
-            //}
-            //);
-
-            // TODO: this.Delete("/{neuronId}", async (parameters) =>
-            //{
-            //    return await this.Request.ProcessCommand(
-            //            async (bodyAsObject, bodyAsDictionary, expectedVersion) =>
-            //            {
-            //                await commandSender.Send(new DeactivateNeuron(
-            //                    Guid.Parse(parameters.neuronId),
-            //                    bodyAsObject.UserId.ToString(),
-            //                    expectedVersion
-            //                    ));
-            //            },
-            //            ConcurrencyExceptionSetter,
-            //            new string[0],
-            //            "UserId"
-            //        );
-            //}
-            //);
         }
     }
 }

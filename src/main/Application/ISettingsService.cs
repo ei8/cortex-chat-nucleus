@@ -11,8 +11,6 @@ namespace ei8.Cortex.Chat.Nucleus.Application
         string EventSourcingOutBaseUrl { get; }
         string IdentityAccessInBaseUrl { get; }
         string IdentityAccessOutBaseUrl { get; }
-        string SubscriptionsInBaseUrl { get; }
-        string SubscriptionsOutBaseUrl { get; }
         string InstantiatesMessageExternalReferenceUrl { get; }
         int PageSize { get; }
     }

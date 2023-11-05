@@ -6,4 +6,14 @@
     <RootNamespace>ei8.Cortex.Chat.Nucleus.Port.Adapter.Common</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="ei8.EventSourcing.Client" Version="0.2.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="mscorlib">
+      <HintPath>..\..\..\..\..\..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.2\mscorlib.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
