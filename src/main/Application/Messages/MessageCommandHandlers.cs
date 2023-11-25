@@ -63,11 +63,11 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                     Content = message.Content,
                     RegionId = message.RegionId,
                     SenderId = validationResult.UserNeuronId,
-                    TerminalId = Guid.NewGuid()
+                    InstantiatesMessageTerminalId = Guid.NewGuid()
                 };
                 
                 await this.neuronTransaction.Begin(dMessage.Id, validationResult.UserNeuronId);
-                await this.terminalTransaction.Begin(dMessage.TerminalId, validationResult.UserNeuronId);
+                await this.terminalTransaction.Begin(dMessage.InstantiatesMessageTerminalId, validationResult.UserNeuronId);
 
                 await this.messageRepository.Save(dMessage);
 

@@ -22,6 +22,6 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model
 
         public DateTimeOffset? LastModificationTimestamp { get; set; }
 
-        public Guid TerminalId { get; set; }
+        public Guid InstantiatesMessageTerminalId { get; set; }
     }
 }

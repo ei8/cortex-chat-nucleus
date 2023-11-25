@@ -88,7 +88,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             await this.terminalTransaction.InvokeAdapter(
                 typeof(TerminalCreated).Assembly,
                 async (ev) => await this.terminalAdapter.CreateTerminal(
-                    message.TerminalId,
+                    message.InstantiatesMessageTerminalId,
                     message.Id,
                     await this.GetValidateInstantiatesMessageId(),
                     neurUL.Cortex.Common.NeurotransmitterEffect.Excite,
