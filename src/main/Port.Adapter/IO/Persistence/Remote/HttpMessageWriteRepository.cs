@@ -1,16 +1,13 @@
-﻿using ei8.Cortex.Chat.Common;
-using ei8.Cortex.Chat.Nucleus.Application;
+﻿using ei8.Cortex.Chat.Nucleus.Application;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
-using ei8.Cortex.Graph.Client;
-using ei8.Cortex.Graph.Common;
+using ei8.Cortex.Library.Client.Out;
+using ei8.Cortex.Library.Common;
 using ei8.EventSourcing.Client;
 using neurUL.Common.Domain.Model;
 using neurUL.Cortex.Domain.Model.Neurons;
 using neurUL.Cortex.Port.Adapter.In.InProcess;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,7 +24,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         private readonly ei8.Data.Tag.Port.Adapter.In.InProcess.IItemAdapter tagItemAdapter;
         private readonly ei8.Data.Aggregate.Port.Adapter.In.InProcess.IItemAdapter aggregateItemAdapter;
         private readonly ei8.Data.ExternalReference.Port.Adapter.In.InProcess.IItemAdapter externalReferenceAdapter;
-        private readonly INeuronGraphQueryClient neuronGraphQueryClient; 
+        private readonly INeuronQueryClient neuronQueryClient; 
         private readonly ISettingsService settingsService;
         private static Guid? instantiatesMessageId;
 
@@ -41,7 +38,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             ei8.Data.Tag.Port.Adapter.In.InProcess.IItemAdapter tagItemAdapter,
             ei8.Data.Aggregate.Port.Adapter.In.InProcess.IItemAdapter aggregateItemAdapter,
             ei8.Data.ExternalReference.Port.Adapter.In.InProcess.IItemAdapter externalReferenceAdapter,
-            INeuronGraphQueryClient neuronGraphQueryClient,            
+            INeuronQueryClient neuronQueryClient,            
             ISettingsService settingsService
             )
         {
@@ -54,7 +51,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             AssertionConcern.AssertArgumentNotNull(tagItemAdapter, nameof(tagItemAdapter));
             AssertionConcern.AssertArgumentNotNull(aggregateItemAdapter, nameof(aggregateItemAdapter));
             AssertionConcern.AssertArgumentNotNull(externalReferenceAdapter, nameof(externalReferenceAdapter));
-            AssertionConcern.AssertArgumentNotNull(neuronGraphQueryClient, nameof(neuronGraphQueryClient));
+            AssertionConcern.AssertArgumentNotNull(neuronQueryClient, nameof(neuronQueryClient));
             AssertionConcern.AssertArgumentNotNull(settingsService, nameof(settingsService));
 
             this.neuronTransaction = neuronTransaction;
@@ -66,7 +63,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             this.tagItemAdapter = tagItemAdapter;
             this.aggregateItemAdapter = aggregateItemAdapter;
             this.externalReferenceAdapter = externalReferenceAdapter;
-            this.neuronGraphQueryClient = neuronGraphQueryClient;
+            this.neuronQueryClient = neuronQueryClient;
             this.settingsService = settingsService;
         }
 
@@ -82,7 +79,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 
             // TODO: remove once terminalAdapter no longer requires otherAggregateEvents
             var otherAggregateEvents =
-               (await this.neuronTransactionEventStore.Get(await this.GetValidateInstantiatesMessageId(), -1)).Concat(
+               (await this.neuronTransactionEventStore.Get(await this.GetValidateInstantiatesMessageId(message.UserId), -1)).Concat(
                await this.neuronTransactionInMemoryEventStore.Get(message.Id, -1));
 
             await this.terminalTransaction.InvokeAdapter(
@@ -90,7 +87,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 async (ev) => await this.terminalAdapter.CreateTerminal(
                     message.InstantiatesMessageTerminalId,
                     message.Id,
-                    await this.GetValidateInstantiatesMessageId(),
+                    await this.GetValidateInstantiatesMessageId(message.UserId),
                     neurUL.Cortex.Common.NeurotransmitterEffect.Excite,
                     1f,
                     message.SenderId
@@ -126,20 +123,24 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             }
         }
 
-        private async Task<Guid> GetValidateInstantiatesMessageId()
+        private async Task<Guid> GetValidateInstantiatesMessageId(string userId)
         {
             if (!HttpMessageWriteRepository.instantiatesMessageId.HasValue)
             {
                 if (
                     Guid.TryParse(
-                        (await this.neuronGraphQueryClient.GetNeurons(
-                        this.settingsService.CortexGraphOutBaseUrl + "/",
-                        new NeuronQuery()
-                        {
-                            ExternalReferenceUrl = new string[] { this.settingsService.InstantiatesMessageExternalReferenceUrl },
-                            SortBy = SortByValue.NeuronCreationTimestamp,
-                            SortOrder = SortOrderValue.Descending
-                        })).Neurons.SingleOrDefault()?.Id, 
+                        (
+                            await this.neuronQueryClient.GetNeuronsInternal(
+                                this.settingsService.CortexLibraryOutBaseUrl + "/",
+                                new NeuronQuery()
+                                {
+                                    ExternalReferenceUrl = new string[] { this.settingsService.InstantiatesMessageExternalReferenceUrl },
+                                    SortBy = SortByValue.NeuronCreationTimestamp,
+                                    SortOrder = SortOrderValue.Descending
+                                },
+                                userId
+                            )
+                        ).Items.SingleOrDefault()?.Id, 
                         out Guid result
                     )
                 )

@@ -9,6 +9,6 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
 {
     public interface IMessageQueryService
     {
-        Task<IEnumerable<MessageData>> GetMessages(DateTimeOffset? maxTimestamp, int? pageSize, CancellationToken token = default(CancellationToken));
+        Task<IEnumerable<MessageData>> GetMessages(DateTimeOffset? maxTimestamp, int? pageSize, string userId, CancellationToken token = default(CancellationToken));
     }
 }

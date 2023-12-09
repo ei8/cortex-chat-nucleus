@@ -6,8 +6,8 @@ using ei8.Cortex.Chat.Nucleus.Application.Messages;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services;
-using ei8.Cortex.Graph.Client;
 using ei8.Cortex.IdentityAccess.Client.Out;
+using ei8.Cortex.Library.Client.Out;
 using ei8.EventSourcing.Client;
 using ei8.EventSourcing.Client.Out;
 using Nancy;
@@ -45,7 +45,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                 });
             container.Register<ISettingsService, SettingsService>();
             container.Register<IValidationClient, HttpValidationClient>();
-            container.Register<INeuronGraphQueryClient, HttpNeuronGraphQueryClient>();
+            container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
             container.Register<INotificationClient, HttpNotificationClient>();
 
             // data
@@ -97,7 +97,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                 container.Resolve<ei8.Data.Tag.Port.Adapter.In.InProcess.IItemAdapter>(),
                 container.Resolve<ei8.Data.Aggregate.Port.Adapter.In.InProcess.IItemAdapter>(),
                 container.Resolve<ei8.Data.ExternalReference.Port.Adapter.In.InProcess.IItemAdapter>(),
-                container.Resolve<INeuronGraphQueryClient>(),
+                container.Resolve<INeuronQueryClient>(),
                 container.Resolve<ISettingsService>()
                 ));
             container.Register((tic, npo) => new MessageCommandHandlers(

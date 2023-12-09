@@ -63,6 +63,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                     Content = message.Content,
                     RegionId = message.RegionId,
                     SenderId = validationResult.UserNeuronId,
+                    UserId = message.UserId,
                     InstantiatesMessageTerminalId = Guid.NewGuid()
                 };
                 

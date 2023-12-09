@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ei8.Cortex.Chat.Common" Version="0.1.8" />
+    <PackageReference Include="ei8.Cortex.Graph.Client" Version="0.3.0" />
+    <PackageReference Include="ei8.Cortex.Library.Client" Version="0.3.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\..\Application\Application.csproj" />
     <ProjectReference Include="..\..\..\..\Domain.Model\Domain.Model.csproj" />
   </ItemGroup>

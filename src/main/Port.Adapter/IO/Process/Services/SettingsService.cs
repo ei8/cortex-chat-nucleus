@@ -7,7 +7,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services
 {
     public class SettingsService : ISettingsService
     {
-        public string CortexGraphOutBaseUrl => Environment.GetEnvironmentVariable(EnvironmentVariableKeys.CortexGraphOutBaseUrl);
+        public string CortexLibraryOutBaseUrl => Environment.GetEnvironmentVariable(EnvironmentVariableKeys.CortexLibraryOutBaseUrl);
 
         public string EventSourcingInBaseUrl => Environment.GetEnvironmentVariable(EnvironmentVariableKeys.EventSourcingInBaseUrl);
 

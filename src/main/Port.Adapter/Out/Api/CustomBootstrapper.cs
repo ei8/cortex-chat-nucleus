@@ -3,8 +3,8 @@ using ei8.Cortex.Chat.Nucleus.Application.Messages;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services;
-using ei8.Cortex.Graph.Client;
 using ei8.Cortex.IdentityAccess.Client.Out;
+using ei8.Cortex.Library.Client.Out;
 using Nancy;
 using Nancy.TinyIoc;
 using neurUL.Common.Http;
@@ -30,7 +30,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
                    return rp;
                });
 
-            container.Register<INeuronGraphQueryClient, HttpNeuronGraphQueryClient>();
+            container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
             container.Register<ISettingsService, SettingsService>();
             container.Register<IValidationClient, HttpValidationClient>();
             container.Register<IMessageReadRepository, HttpMessageReadRepository>();

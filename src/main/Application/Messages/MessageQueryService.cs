@@ -17,9 +17,9 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             this.messageRepository = messageRepository;
         }
 
-        public async Task<IEnumerable<MessageData>> GetMessages(DateTimeOffset? maxTimestamp, int? pageSize, CancellationToken token = default)
+        public async Task<IEnumerable<MessageData>> GetMessages(DateTimeOffset? maxTimestamp, int? pageSize, string userId, CancellationToken token = default)
         {
-            return (await this.messageRepository.GetAll(maxTimestamp, pageSize, token)).Select(m =>
+            return (await this.messageRepository.GetAll(maxTimestamp, pageSize, userId, token)).Select(m =>
                 new MessageData()
                 {
                     Id = m.Id,
@@ -29,7 +29,8 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                     Sender = m.Sender,
                     SenderId = m.SenderId,
                     CreationTimestamp = m.CreationTimestamp,
-                    LastModificationTimestamp = m.LastModificationTimestamp
+                    UnifiedLastModificationTimestamp = m.UnifiedLastModificationTimestamp,
+                    IsCurrentUserCreationAuthor = m.IsCurrentUserCreationAuthor
                 }
             );
         }

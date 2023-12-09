@@ -8,6 +8,6 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model
 {
     public interface IMessageReadRepository
     {
-        Task<IEnumerable<Message>> GetAll(DateTimeOffset? maxTimestamp, int? pageSize, CancellationToken token = default(CancellationToken));
+        Task<IEnumerable<Message>> GetAll(DateTimeOffset? maxTimestamp, int? pageSize, string userId, CancellationToken token = default(CancellationToken));
     }
 }

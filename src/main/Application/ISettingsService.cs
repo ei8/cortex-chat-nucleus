@@ -6,7 +6,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application
 {
     public interface ISettingsService
     {
-        string CortexGraphOutBaseUrl { get; }
+        string CortexLibraryOutBaseUrl { get; }
         string EventSourcingInBaseUrl { get; }
         string EventSourcingOutBaseUrl { get; }
         string IdentityAccessInBaseUrl { get; }

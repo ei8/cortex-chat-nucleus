@@ -18,10 +18,14 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model
 
         public Guid SenderId { get; set; }
 
+        public string UserId { get; set; }
+
         public DateTimeOffset? CreationTimestamp { get; set; }
 
-        public DateTimeOffset? LastModificationTimestamp { get; set; }
+        public DateTimeOffset? UnifiedLastModificationTimestamp { get; set; }
 
         public Guid InstantiatesMessageTerminalId { get; set; }
+
+        public bool IsCurrentUserCreationAuthor { get; set; }
     }
 }
