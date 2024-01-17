@@ -1,13 +1,16 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application;
+using ei8.Cortex.Chat.Nucleus.Client.In;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Library.Client.Out;
 using ei8.Cortex.Library.Common;
 using ei8.EventSourcing.Client;
+using IdentityModel.Client;
 using neurUL.Common.Domain.Model;
 using neurUL.Cortex.Domain.Model.Neurons;
 using neurUL.Cortex.Port.Adapter.In.InProcess;
 using System;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,8 +27,10 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         private readonly ei8.Data.Tag.Port.Adapter.In.InProcess.IItemAdapter tagItemAdapter;
         private readonly ei8.Data.Aggregate.Port.Adapter.In.InProcess.IItemAdapter aggregateItemAdapter;
         private readonly ei8.Data.ExternalReference.Port.Adapter.In.InProcess.IItemAdapter externalReferenceAdapter;
-        private readonly INeuronQueryClient neuronQueryClient; 
+        private readonly INeuronQueryClient neuronQueryClient;
+        private readonly IMessageClient messageClient;
         private readonly ISettingsService settingsService;
+        private readonly IHttpClientFactory httpClientFactory;
         private static Guid? instantiatesMessageId;
 
         public HttpMessageWriteRepository(
@@ -38,8 +43,10 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             ei8.Data.Tag.Port.Adapter.In.InProcess.IItemAdapter tagItemAdapter,
             ei8.Data.Aggregate.Port.Adapter.In.InProcess.IItemAdapter aggregateItemAdapter,
             ei8.Data.ExternalReference.Port.Adapter.In.InProcess.IItemAdapter externalReferenceAdapter,
-            INeuronQueryClient neuronQueryClient,            
-            ISettingsService settingsService
+            INeuronQueryClient neuronQueryClient,
+            IMessageClient messageClient,
+            ISettingsService settingsService,
+            IHttpClientFactory httpClientFactory
             )
         {
             AssertionConcern.AssertArgumentNotNull(neuronTransaction, nameof(neuronTransaction));
@@ -52,7 +59,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             AssertionConcern.AssertArgumentNotNull(aggregateItemAdapter, nameof(aggregateItemAdapter));
             AssertionConcern.AssertArgumentNotNull(externalReferenceAdapter, nameof(externalReferenceAdapter));
             AssertionConcern.AssertArgumentNotNull(neuronQueryClient, nameof(neuronQueryClient));
+            AssertionConcern.AssertArgumentNotNull(messageClient, nameof(messageClient));
             AssertionConcern.AssertArgumentNotNull(settingsService, nameof(settingsService));
+            AssertionConcern.AssertArgumentNotNull(httpClientFactory, nameof(httpClientFactory));
 
             this.neuronTransaction = neuronTransaction;
             this.terminalTransaction = terminalTransaction;
@@ -64,7 +73,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             this.aggregateItemAdapter = aggregateItemAdapter;
             this.externalReferenceAdapter = externalReferenceAdapter;
             this.neuronQueryClient = neuronQueryClient;
+            this.messageClient = messageClient;
             this.settingsService = settingsService;
+            this.httpClientFactory=httpClientFactory;
         }
 
         public async Task Save(Message message, CancellationToken token = default)
@@ -120,6 +131,40 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                     ),
                     expectedVersion
                     );
+            }
+
+            var client = this.httpClientFactory.CreateClient("ignoreSSL");
+
+            var avatarUrl = "http://192.168.1.110:65111";
+            var authority = this.settingsService.Authorities.SingleOrDefault(au => au.Avatars.SingleOrDefault(av => av == avatarUrl) != null);
+
+            if (authority != null)
+            { 
+                var response = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
+                {
+                    Address = authority.Address + "/connect/token",
+                    ClientId = authority.ClientId,
+                    ClientSecret = authority.ClientSecret
+                });
+
+                try
+                {
+                    await this.messageClient.CreateMessage(
+                        avatarUrl + "/",
+                        message.Id.ToString(),
+                        message.Content,
+                        message.RegionId.HasValue ? message.RegionId.Value.ToString() : string.Empty,
+                        response.AccessToken
+                        );
+                }
+                catch (Exception ex)
+                {
+                    var e = ex;
+                }                
+            }
+            else
+            {
+                // TODO: log if authority for avatarurl was not found
             }
         }
 

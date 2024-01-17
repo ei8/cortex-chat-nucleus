@@ -19,20 +19,14 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
 
         public async Task<IEnumerable<MessageData>> GetMessages(DateTimeOffset? maxTimestamp, int? pageSize, string userId, CancellationToken token = default)
         {
-            return (await this.messageRepository.GetAll(maxTimestamp, pageSize, userId, token)).Select(m =>
-                new MessageData()
-                {
-                    Id = m.Id,
-                    Content = m.Content,
-                    Region = m.Region,
-                    RegionId = m.RegionId,
-                    Sender = m.Sender,
-                    SenderId = m.SenderId,
-                    CreationTimestamp = m.CreationTimestamp,
-                    UnifiedLastModificationTimestamp = m.UnifiedLastModificationTimestamp,
-                    IsCurrentUserCreationAuthor = m.IsCurrentUserCreationAuthor
-                }
-            );
+            return (
+                await this.messageRepository.GetAll(
+                    maxTimestamp, 
+                    pageSize, 
+                    userId, 
+                    token
+                )
+            ).Select(m => m.ToCommon());
         }
     }
 }

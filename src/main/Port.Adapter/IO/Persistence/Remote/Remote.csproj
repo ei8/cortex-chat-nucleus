@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -8,8 +8,10 @@
 
   <ItemGroup>
     <PackageReference Include="ei8.Cortex.Chat.Common" Version="0.1.8" />
+    <PackageReference Include="ei8.Cortex.Chat.Nucleus.Client" Version="0.1.2" />
     <PackageReference Include="ei8.Cortex.Graph.Client" Version="0.3.0" />
     <PackageReference Include="ei8.Cortex.Library.Client" Version="0.3.3" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>

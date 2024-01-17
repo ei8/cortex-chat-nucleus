@@ -6,11 +6,15 @@ services:
       - ./var1.env
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - ./customsettings.json:/app/appsettings.json
   cortex.chat.nucleus.out.api:
     env_file: 
       - ./var1.env
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - ./customsettings.json:/app/appsettings.json
 networks:
     default:
         external:

@@ -3,6 +3,7 @@ using CQRSlite.Domain;
 using CQRSlite.Routing;
 using ei8.Cortex.Chat.Nucleus.Application;
 using ei8.Cortex.Chat.Nucleus.Application.Messages;
+using ei8.Cortex.Chat.Nucleus.Client.In;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services;
@@ -10,11 +11,13 @@ using ei8.Cortex.IdentityAccess.Client.Out;
 using ei8.Cortex.Library.Client.Out;
 using ei8.EventSourcing.Client;
 using ei8.EventSourcing.Client.Out;
+using Microsoft.Extensions.DependencyInjection;
 using Nancy;
 using Nancy.TinyIoc;
 using neurUL.Common.Http;
 using neurUL.Cortex.Port.Adapter.In.InProcess;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
@@ -24,8 +27,11 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
         private const string NeuronTransaction = "neuronTransaction";
         private const string TerminalTransaction = "terminalTransaction";
 
-        public CustomBootstrapper()
+        private readonly IServiceProvider serviceProvider;
+
+        public CustomBootstrapper(IServiceProvider serviceProvider)
         {
+            this.serviceProvider = serviceProvider;
         }
 
         protected override void ConfigureRequestContainer(TinyIoCContainer container, NancyContext context)
@@ -44,9 +50,12 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                     return rp;
                 });
             container.Register<ISettingsService, SettingsService>();
+            container.Register<IMessageClient, HttpMessageClient>();
             container.Register<IValidationClient, HttpValidationClient>();
             container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
             container.Register<INotificationClient, HttpNotificationClient>();
+
+            container.Resolve<ISettingsService>().Authorities = this.serviceProvider.GetRequiredService<IEnumerable<Authority>>();
 
             // data
             container.Register<IEventStoreUrlService>(
@@ -98,7 +107,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                 container.Resolve<ei8.Data.Aggregate.Port.Adapter.In.InProcess.IItemAdapter>(),
                 container.Resolve<ei8.Data.ExternalReference.Port.Adapter.In.InProcess.IItemAdapter>(),
                 container.Resolve<INeuronQueryClient>(),
-                container.Resolve<ISettingsService>()
+                container.Resolve<IMessageClient>(),
+                container.Resolve<ISettingsService>(),
+                this.serviceProvider.GetService<IHttpClientFactory>()
                 ));
             container.Register((tic, npo) => new MessageCommandHandlers(
                 container.Resolve<ITransaction>(CustomBootstrapper.NeuronTransaction),

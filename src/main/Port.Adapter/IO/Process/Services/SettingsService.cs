@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using ei8.Cortex.Chat.Nucleus.Application;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.Common;
@@ -20,5 +22,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services
         public string InstantiatesMessageExternalReferenceUrl => Environment.GetEnvironmentVariable(EnvironmentVariableKeys.InstantiatesMessageExternalReferenceUrl);
 
         public int PageSize => int.TryParse(Environment.GetEnvironmentVariable(EnvironmentVariableKeys.PageSize), out int size) ? size : Default.PageSize;
+
+        public IEnumerable<Authority> Authorities { get; set; }
     }
 }
