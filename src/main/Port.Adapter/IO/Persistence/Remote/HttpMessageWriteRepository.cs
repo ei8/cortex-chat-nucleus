@@ -1,6 +1,6 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application;
 using ei8.Cortex.Chat.Nucleus.Client.In;
-using ei8.Cortex.Chat.Nucleus.Domain.Model;
+using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Library.Client.Out;
 using ei8.Cortex.Library.Common;
 using ei8.EventSourcing.Client;
@@ -11,6 +11,7 @@ using neurUL.Cortex.Port.Adapter.In.InProcess;
 using System;
 using System.Linq;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,6 +33,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         private readonly ISettingsService settingsService;
         private readonly IHttpClientFactory httpClientFactory;
         private static Guid? instantiatesMessageId;
+        private static string currentAvatarUrl;
 
         public HttpMessageWriteRepository(
             ITransaction neuronTransaction,
@@ -121,7 +123,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             if (message.RegionId.HasValue)
             {
                 // assign region value to id
-                await this.neuronTransaction.InvokeAdapter(
+                expectedVersion = await this.neuronTransaction.InvokeAdapter(
                     typeof(ei8.Data.Aggregate.Domain.Model.AggregateChanged).Assembly,
                     async (ev) => await this.aggregateItemAdapter.ChangeAggregate(
                         message.Id,
@@ -133,48 +135,98 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                     );
             }
 
-            var client = this.httpClientFactory.CreateClient("ignoreSSL");
-
-            var avatarUrl = "http://192.168.1.110:65111";
-            var authority = this.settingsService.Authorities.SingleOrDefault(au => au.Avatars.SingleOrDefault(av => av == avatarUrl) != null);
-
-            if (authority != null)
-            { 
-                var response = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
-                {
-                    Address = authority.Address + "/connect/token",
-                    ClientId = authority.ClientId,
-                    ClientSecret = authority.ClientSecret
-                });
-
-                try
-                {
-                    await this.messageClient.CreateMessage(
-                        avatarUrl + "/",
-                        message.Id.ToString(),
-                        message.Content,
-                        message.RegionId.HasValue ? message.RegionId.Value.ToString() : string.Empty,
-                        response.AccessToken
-                        );
-                }
-                catch (Exception ex)
-                {
-                    var e = ex;
-                }                
-            }
-            else
+            if (!string.IsNullOrWhiteSpace(message.ExternalReferenceUrl))
             {
-                // TODO: log if authority for avatarurl was not found
+                expectedVersion = await this.neuronTransaction.InvokeAdapter(
+                    typeof(ei8.Data.ExternalReference.Domain.Model.UrlChanged).Assembly,
+                    async (ev) => await this.externalReferenceAdapter.ChangeUrl(
+                        message.Id,
+                        message.ExternalReferenceUrl,
+                        message.SenderId,
+                        ev
+                    ),
+                    expectedVersion
+                    );
             }
+
+            if (message.DestinationRegionIds.Any())
+            {
+                var client = this.httpClientFactory.CreateClient("ignoreSSL");
+
+                foreach (var ri in message.DestinationRegionIds)
+                {
+                    // TODO: transfer region retrieval to a repository?
+                    var exRefUrl = (
+                            await this.neuronQueryClient.GetNeuronsInternal(
+                                this.settingsService.CortexLibraryOutBaseUrl + "/",
+                                new NeuronQuery()
+                                {
+                                    Id = new string[] { ri.ToString() },
+                                    SortBy = SortByValue.NeuronCreationTimestamp,
+                                    SortOrder = SortOrderValue.Descending
+                                },
+                                message.UserId
+                            )
+                        ).Items.SingleOrDefault()?.ExternalReferenceUrl;
+
+                    if (!string.IsNullOrWhiteSpace (exRefUrl))
+                    {
+                        HttpMessageWriteRepository.ExtractParts(exRefUrl, out string avatarUrl, out string externalRegionId);
+
+                        var authority = this.settingsService.Authorities.SingleOrDefault(au => au.Avatars.SingleOrDefault(av => av == avatarUrl) != null);
+
+                        if (authority != null)
+                        {
+                            var response = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
+                            {
+                                Address = authority.Address + "/connect/token",
+                                ClientId = authority.ClientId,
+                                ClientSecret = authority.ClientSecret
+                            });
+
+                            try
+                            {
+                                await this.messageClient.CreateMessage(
+                                    avatarUrl + "/",
+                                    Guid.NewGuid().ToString(),
+                                    message.Content,
+                                    externalRegionId,
+                                    $"{HttpMessageWriteRepository.currentAvatarUrl}/cortex/neurons/{message.Id}",
+                                    null,
+                                    response.AccessToken
+                                    );
+                            }
+                            catch (Exception ex)
+                            {
+                                var e = ex;
+                                // TODO: log any error while invoking destination
+                            }
+                        }
+                        else
+                        {
+                            // TODO: log if authority for avatarurl was not found
+                        }
+                    }
+                    else
+                    {
+                        // TODO: log exrefurl of local version of remote region was not found
+                    }
+                }
+            }
+        }
+
+        private static void ExtractParts(string neuronUrl, out string avatarUrl, out string externalRegionId)
+        {
+            var match = Regex.Match(neuronUrl, "(?<AvatarUrl>.*)\\/cortex\\/neurons\\/(?<ExternalRegionId>.*)?");
+            avatarUrl = match.Groups["AvatarUrl"].Value;
+            externalRegionId = match.Groups["ExternalRegionId"].Value;
         }
 
         private async Task<Guid> GetValidateInstantiatesMessageId(string userId)
         {
             if (!HttpMessageWriteRepository.instantiatesMessageId.HasValue)
             {
-                if (
-                    Guid.TryParse(
-                        (
+                var instantiatesMessage = (
                             await this.neuronQueryClient.GetNeuronsInternal(
                                 this.settingsService.CortexLibraryOutBaseUrl + "/",
                                 new NeuronQuery()
@@ -185,12 +237,16 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                                 },
                                 userId
                             )
-                        ).Items.SingleOrDefault()?.Id, 
-                        out Guid result
-                    )
-                )
+                        ).Items.SingleOrDefault();
+
+                if (instantiatesMessage != null)
                 {
-                    HttpMessageWriteRepository.instantiatesMessageId = result;
+                    HttpMessageWriteRepository.ExtractParts(instantiatesMessage.Url, out string avatarUrl, out string externalRegionId);
+                    HttpMessageWriteRepository.currentAvatarUrl = avatarUrl;
+                    if (Guid.TryParse(instantiatesMessage.Id, out Guid result))
+                    {
+                        HttpMessageWriteRepository.instantiatesMessageId = result;
+                    }
                 }
 
                 AssertionConcern.AssertStateTrue(HttpMessageWriteRepository.instantiatesMessageId.HasValue, "'Instantiates, Message' neuron was not found.");

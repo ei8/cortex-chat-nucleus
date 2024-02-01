@@ -4,6 +4,8 @@ using ei8.Cortex.Chat.Nucleus.Application.Messages.Commands;
 using System;
 using neurUL.Common.Api;
 using CQRSlite.Domain.Exception;
+using Newtonsoft.Json.Linq;
+using System.Linq;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
 {
@@ -24,15 +26,26 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                         async (bodyAsObject, bodyAsDictionary, expectedVersion) =>
                         {
                             Guid? regionId = null;
+                            string externalReferenceUrl = null;
+                            var destinationRegionIds = Array.Empty<string>();
 
-                            if (bodyAsDictionary.ContainsKey("RegionId"))
+                            if (bodyAsDictionary.ContainsKey(nameof(CreateMessage.RegionId)))
                                 if (Guid.TryParse(bodyAsObject.RegionId.ToString(), out Guid tempRegionId))
                                     regionId = tempRegionId;
+
+                            if (bodyAsDictionary.ContainsKey(nameof(CreateMessage.ExternalReferenceUrl)))
+                                externalReferenceUrl = bodyAsObject.ExternalReferenceUrl.ToString();
+
+                            if (bodyAsDictionary.ContainsKey(nameof(CreateMessage.DestinationRegionIds)) &&
+                                bodyAsDictionary[nameof(CreateMessage.DestinationRegionIds)] != null)
+                                destinationRegionIds = ((JArray) bodyAsDictionary[nameof(CreateMessage.DestinationRegionIds)]).ToObject<string[]>();
 
                             await commandSender.Send(new CreateMessage(
                                 Guid.Parse(bodyAsObject.Id.ToString()),
                                 bodyAsObject.Content.ToString(),
                                 regionId,
+                                externalReferenceUrl,
+                                destinationRegionIds.Select(dri => Guid.Parse(dri)),
                                 bodyAsObject.UserId.ToString()
                                 )
                             );

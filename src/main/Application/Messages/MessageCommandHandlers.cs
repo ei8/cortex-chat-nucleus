@@ -1,11 +1,9 @@
 using CQRSlite.Commands;
 using ei8.Cortex.Chat.Nucleus.Application.Messages.Commands;
-using ei8.Cortex.Chat.Nucleus.Domain.Model;
+using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.IdentityAccess.Client.Out;
 using ei8.EventSourcing.Client;
 using neurUL.Common.Domain.Model;
-using neurUL.Cortex.Domain.Model.Neurons;
-using neurUL.Cortex.Port.Adapter.In.InProcess;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -64,6 +62,8 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                     RegionId = message.RegionId,
                     SenderId = validationResult.UserNeuronId,
                     UserId = message.UserId,
+                    ExternalReferenceUrl = message.ExternalReferenceUrl,
+                    DestinationRegionIds = message.DestinationRegionIds,
                     InstantiatesMessageTerminalId = Guid.NewGuid()
                 };
                 

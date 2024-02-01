@@ -21,6 +21,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services
 
         public string InstantiatesMessageExternalReferenceUrl => Environment.GetEnvironmentVariable(EnvironmentVariableKeys.InstantiatesMessageExternalReferenceUrl);
 
+        public string InstantiatesRegionExternalReferenceUrl => Environment.GetEnvironmentVariable(EnvironmentVariableKeys.InstantiatesRegionExternalReferenceUrl);
+
         public int PageSize => int.TryParse(Environment.GetEnvironmentVariable(EnvironmentVariableKeys.PageSize), out int size) ? size : Default.PageSize;
 
         public IEnumerable<Authority> Authorities { get; set; }

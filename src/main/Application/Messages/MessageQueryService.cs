@@ -1,5 +1,5 @@
 ﻿using ei8.Cortex.Chat.Common;
-using ei8.Cortex.Chat.Nucleus.Domain.Model;
+using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +17,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             this.messageRepository = messageRepository;
         }
 
-        public async Task<IEnumerable<MessageData>> GetMessages(DateTimeOffset? maxTimestamp, int? pageSize, string userId, CancellationToken token = default)
+        public async Task<IEnumerable<Common.MessageResult>> GetMessages(DateTimeOffset? maxTimestamp, int? pageSize, string userId, CancellationToken token = default)
         {
             return (
                 await this.messageRepository.GetAll(

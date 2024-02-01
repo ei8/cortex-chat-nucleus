@@ -11,11 +11,11 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
 {
     public class Startup
     {
-        public IConfiguration Configuration { get; }
+        private readonly IConfiguration configuration;
 
         public Startup(IConfiguration configuration)
         {
-            this.Configuration = configuration;
+            this.configuration = configuration;
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -31,7 +31,6 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
 #else
             services.AddHttpClient("ignoreSSL");
 #endif
-            services.AddSingleton(this.Configuration.GetSection("Authorities").Get<IEnumerable<Authority>>());
             services.Configure<KestrelServerOptions>(options =>
             {
                 options.AllowSynchronousIO = true;
@@ -40,7 +39,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseOwin(buildFunc => buildFunc.UseNancy(o => o.Bootstrapper = new CustomBootstrapper(app.ApplicationServices)));
+            app.UseOwin(buildFunc => buildFunc.UseNancy(o => o.Bootstrapper = new CustomBootstrapper(app.ApplicationServices, this.configuration)));
         }
     }
 }

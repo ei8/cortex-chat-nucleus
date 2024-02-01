@@ -4,13 +4,14 @@ using CQRSlite.Routing;
 using ei8.Cortex.Chat.Nucleus.Application;
 using ei8.Cortex.Chat.Nucleus.Application.Messages;
 using ei8.Cortex.Chat.Nucleus.Client.In;
-using ei8.Cortex.Chat.Nucleus.Domain.Model;
+using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services;
 using ei8.Cortex.IdentityAccess.Client.Out;
 using ei8.Cortex.Library.Client.Out;
 using ei8.EventSourcing.Client;
 using ei8.EventSourcing.Client.Out;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Nancy;
 using Nancy.TinyIoc;
@@ -28,10 +29,12 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
         private const string TerminalTransaction = "terminalTransaction";
 
         private readonly IServiceProvider serviceProvider;
+        private readonly IConfiguration configuration;
 
-        public CustomBootstrapper(IServiceProvider serviceProvider)
+        public CustomBootstrapper(IServiceProvider serviceProvider, IConfiguration configuration)
         {
             this.serviceProvider = serviceProvider;
+            this.configuration = configuration;
         }
 
         protected override void ConfigureRequestContainer(TinyIoCContainer container, NancyContext context)
@@ -55,7 +58,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
             container.Register<INotificationClient, HttpNotificationClient>();
 
-            container.Resolve<ISettingsService>().Authorities = this.serviceProvider.GetRequiredService<IEnumerable<Authority>>();
+            container.Resolve<ISettingsService>().Authorities = this.configuration.GetSection("Authorities").Get<IEnumerable<Authority>>();
 
             // data
             container.Register<IEventStoreUrlService>(

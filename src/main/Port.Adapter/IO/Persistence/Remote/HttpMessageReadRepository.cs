@@ -1,6 +1,6 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application;
 using ei8.Cortex.Chat.Nucleus.Client.Out;
-using ei8.Cortex.Chat.Nucleus.Domain.Model;
+using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Library.Client.Out;
 using ei8.Cortex.Library.Common;
 using IdentityModel.Client;
@@ -39,7 +39,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             this.httpClientFactory = httpClientFactory;
         }
 
-        public async Task<IEnumerable<Message>> GetAll(DateTimeOffset? maxTimestamp, int? pageSize, string userId, CancellationToken token = default)
+        public async Task<IEnumerable<MessageResult>> GetAll(DateTimeOffset? maxTimestamp, int? pageSize, string userId, CancellationToken token = default)
         {
             if (!maxTimestamp.HasValue)
                 maxTimestamp = DateTimeOffset.UtcNow;
@@ -62,21 +62,24 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 .Where(nr => DateTimeOffset.TryParse(nr.Creation.Timestamp, out DateTimeOffset currentCreationTimestamp) && currentCreationTimestamp <= maxTimestamp)
                 .Take(pageSize.Value)
                 .Reverse()
-                .Select(n => new Message()
+                .Select(n => new MessageResult()
                 {
-                    Id = Guid.Parse(n.Id),
-                    Content = n.Tag,
-                    Region = n.Region?.Tag,
-                    RegionId = Guid.TryParse(n.Region?.Id, out Guid newRegionId) ? (Guid?)newRegionId : null,
-                    Sender = n.Creation.Author.Tag,
-                    SenderId = Guid.Parse(n.Creation.Author.Id),
-                    CreationTimestamp = DateTimeOffset.TryParse(n.Creation.Timestamp, out DateTimeOffset creation) ? (DateTimeOffset?)creation : null,
-                    UnifiedLastModificationTimestamp = 
+                    Message = new Message()
+                    {
+                        Id = Guid.Parse(n.Id),
+                        Content = n.Tag,
+                        RegionId = Guid.TryParse(n.Region?.Id, out Guid newRegionId) ? (Guid?)newRegionId : null,
+                        SenderId = Guid.Parse(n.Creation.Author.Id),
+                        CreationTimestamp = DateTimeOffset.TryParse(n.Creation.Timestamp, out DateTimeOffset creation) ? (DateTimeOffset?)creation : null,
+                        UnifiedLastModificationTimestamp =
                         DateTimeOffset.TryParse(
-                            n.UnifiedLastModification.Timestamp, 
-                            out DateTimeOffset unifiedLastModification) ? 
-                                (DateTimeOffset?)unifiedLastModification : 
-                                null,
+                            n.UnifiedLastModification.Timestamp,
+                            out DateTimeOffset unifiedLastModification) ?
+                                (DateTimeOffset?)unifiedLastModification :
+                                null
+                    },
+                    RegionTag = n.Region?.Tag,
+                    SenderTag = n.Creation.Author.Tag,
                     IsCurrentUserCreationAuthor = n.Validation.IsCurrentUserCreationAuthor
                 });
 

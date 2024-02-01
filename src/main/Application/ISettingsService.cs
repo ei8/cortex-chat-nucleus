@@ -12,6 +12,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application
         string IdentityAccessInBaseUrl { get; }
         string IdentityAccessOutBaseUrl { get; }
         string InstantiatesMessageExternalReferenceUrl { get; }
+        string InstantiatesRegionExternalReferenceUrl { get; }
         int PageSize { get; }
         IEnumerable<Authority> Authorities { get; set; }
     }
