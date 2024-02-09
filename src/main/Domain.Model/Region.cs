@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Avatars
+namespace ei8.Cortex.Chat.Nucleus.Domain.Model
 {
     public class Region
     {

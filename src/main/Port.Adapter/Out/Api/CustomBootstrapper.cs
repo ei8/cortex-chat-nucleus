@@ -1,7 +1,7 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application;
 using ei8.Cortex.Chat.Nucleus.Application.Messages;
-using ei8.Cortex.Chat.Nucleus.Client.In;
 using ei8.Cortex.Chat.Nucleus.Client.Out;
+using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services;
@@ -13,7 +13,6 @@ using Nancy;
 using Nancy.TinyIoc;
 using neurUL.Common.Http;
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
@@ -42,11 +41,12 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
                });
 
             container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
+            container.Register(this.configuration);
             container.Register<ISettingsService, SettingsService>();
+            container.Register<IIdentityService, IdentityService>();
+            container.Register<IRegionReadRepository, HttpRegionReadRepository>();
             container.Register<IMessageQueryClient, HttpMessageQueryClient>();
             container.Register<IValidationClient, HttpValidationClient>();
-
-            container.Resolve<ISettingsService>().Authorities = this.configuration.GetSection("Authorities").Get<IEnumerable<Authority>>();
 
             container.Register<IMessageReadRepository>(
                 (tic, npo) =>
@@ -54,7 +54,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
                         container.Resolve<INeuronQueryClient>(),
                         container.Resolve<IMessageQueryClient>(),
                         container.Resolve<ISettingsService>(),
-                        this.serviceProvider.GetService<IHttpClientFactory>()
+                        this.serviceProvider.GetService<IHttpClientFactory>(),
+                        container.Resolve<IIdentityService>()
                         )
                     );
             container.Register<IMessageQueryService, MessageQueryService>();

@@ -1,5 +1,6 @@
-﻿using ei8.Cortex.Chat.Common;
+﻿using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
+using neurUL.Common.Domain.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,19 +12,26 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
     public class MessageQueryService : IMessageQueryService
     {
         private readonly IMessageReadRepository messageRepository;
+        private readonly IRegionReadRepository regionRepository;
 
-        public MessageQueryService(IMessageReadRepository messageRepository)
+        public MessageQueryService(IMessageReadRepository messageRepository, IRegionReadRepository regionRepository)
         {
+            AssertionConcern.AssertArgumentNotNull(messageRepository, nameof(messageRepository));
+            AssertionConcern.AssertArgumentNotNull(regionRepository, nameof(regionRepository));
+
             this.messageRepository = messageRepository;
+            this.regionRepository = regionRepository;
         }
 
-        public async Task<IEnumerable<Common.MessageResult>> GetMessages(DateTimeOffset? maxTimestamp, int? pageSize, string userId, CancellationToken token = default)
+        public async Task<IEnumerable<Common.MessageResult>> GetMessages(DateTimeOffset? maxTimestamp, int? pageSize, IEnumerable<Guid> externalRegionIds, CancellationToken token = default)
         {
+            AssertionConcern.AssertArgumentNotNull(externalRegionIds, nameof(externalRegionIds));
+
             return (
                 await this.messageRepository.GetAll(
                     maxTimestamp, 
-                    pageSize, 
-                    userId, 
+                    pageSize,
+                    await this.regionRepository.GetByIds(externalRegionIds),
                     token
                 )
             ).Select(m => m.ToCommon());

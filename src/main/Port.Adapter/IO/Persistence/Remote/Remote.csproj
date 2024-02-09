@@ -9,7 +9,6 @@
   <ItemGroup>
     <PackageReference Include="ei8.Cortex.Chat.Common" Version="0.1.10" />
     <PackageReference Include="ei8.Cortex.Chat.Nucleus.Client" Version="0.1.6" />
-    <PackageReference Include="ei8.Cortex.Graph.Client" Version="0.3.0" />
     <PackageReference Include="ei8.Cortex.Library.Client" Version="0.3.3" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
   </ItemGroup>

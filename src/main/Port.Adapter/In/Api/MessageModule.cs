@@ -1,10 +1,11 @@
 ﻿using CQRSlite.Commands;
-using Nancy;
-using ei8.Cortex.Chat.Nucleus.Application.Messages.Commands;
-using System;
-using neurUL.Common.Api;
 using CQRSlite.Domain.Exception;
+using ei8.Cortex.Chat.Nucleus.Application.Messages.Commands;
+using ei8.Cortex.Chat.Nucleus.Domain.Model;
+using Nancy;
+using neurUL.Common.Api;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Linq;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
@@ -17,7 +18,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                                 result = HttpStatusCode.Conflict;                            
                             return result;
                         });
-        public MessageModule(ICommandSender commandSender) : base("/nuclei/chat/messages")
+        public MessageModule(ICommandSender commandSender, IIdentityService identityService) : base("/nuclei/chat/messages")
         {
             this.Post(string.Empty, async (parameters) =>
             {
@@ -40,13 +41,14 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                                 bodyAsDictionary[nameof(CreateMessage.DestinationRegionIds)] != null)
                                 destinationRegionIds = ((JArray) bodyAsDictionary[nameof(CreateMessage.DestinationRegionIds)]).ToObject<string[]>();
 
+                            identityService.UserId = bodyAsObject.UserId.ToString();
+
                             await commandSender.Send(new CreateMessage(
                                 Guid.Parse(bodyAsObject.Id.ToString()),
                                 bodyAsObject.Content.ToString(),
                                 regionId,
                                 externalReferenceUrl,
-                                destinationRegionIds.Select(dri => Guid.Parse(dri)),
-                                bodyAsObject.UserId.ToString()
+                                destinationRegionIds.Select(dri => Guid.Parse(dri))
                                 )
                             );
                         },

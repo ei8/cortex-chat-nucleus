@@ -1,14 +1,19 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using ei8.Cortex.Chat.Nucleus.Application;
-using ei8.Cortex.Chat.Nucleus.Domain.Model;
+﻿using ei8.Cortex.Chat.Nucleus.Application;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.Common;
+using Microsoft.Extensions.Configuration;
+using System;
+using System.Collections.Generic;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services
 {
     public class SettingsService : ISettingsService
     {
+        private readonly IConfiguration configuration;
+        public SettingsService(IConfiguration configuration)
+        {
+            this.configuration = configuration;            
+        }
+
         public string CortexLibraryOutBaseUrl => Environment.GetEnvironmentVariable(EnvironmentVariableKeys.CortexLibraryOutBaseUrl);
 
         public string EventSourcingInBaseUrl => Environment.GetEnvironmentVariable(EnvironmentVariableKeys.EventSourcingInBaseUrl);
@@ -25,6 +30,6 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services
 
         public int PageSize => int.TryParse(Environment.GetEnvironmentVariable(EnvironmentVariableKeys.PageSize), out int size) ? size : Default.PageSize;
 
-        public IEnumerable<Authority> Authorities { get; set; }
+        public IEnumerable<Authority> Authorities => this.configuration.GetSection(nameof(Authorities)).Get<IEnumerable<Authority>>();
     }
 }

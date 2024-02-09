@@ -1,9 +1,11 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application;
 using ei8.Cortex.Chat.Nucleus.Client.Out;
+using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Library.Client.Out;
 using ei8.Cortex.Library.Common;
 using IdentityModel.Client;
+using Nancy.Extensions;
 using neurUL.Common.Domain.Model;
 using System;
 using System.Collections.Generic;
@@ -20,26 +22,30 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         private readonly IMessageQueryClient messageQueryClient;
         private readonly ISettingsService settingsService;
         private readonly IHttpClientFactory httpClientFactory;
+        private readonly IIdentityService identityService;
 
         public HttpMessageReadRepository(
             INeuronQueryClient neuronQueryClient,
             IMessageQueryClient messageQueryClient,
             ISettingsService settingsService,
-            IHttpClientFactory httpClientFactory
+            IHttpClientFactory httpClientFactory,
+            IIdentityService identityService
             )
         {
             AssertionConcern.AssertArgumentNotNull(neuronQueryClient, nameof(neuronQueryClient));
             AssertionConcern.AssertArgumentNotNull(messageQueryClient, nameof(messageQueryClient));
             AssertionConcern.AssertArgumentNotNull(settingsService, nameof(settingsService));
             AssertionConcern.AssertArgumentNotNull(httpClientFactory, nameof(httpClientFactory));
+            AssertionConcern.AssertArgumentNotNull(identityService, nameof(identityService));
 
             this.neuronQueryClient = neuronQueryClient;
             this.messageQueryClient = messageQueryClient;
             this.settingsService = settingsService;
             this.httpClientFactory = httpClientFactory;
+            this.identityService = identityService;
         }
 
-        public async Task<IEnumerable<MessageResult>> GetAll(DateTimeOffset? maxTimestamp, int? pageSize, string userId, CancellationToken token = default)
+        public async Task<IEnumerable<MessageResult>> GetAll(DateTimeOffset? maxTimestamp, int? pageSize, IEnumerable<Region> externalRegions, CancellationToken token = default)
         {
             if (!maxTimestamp.HasValue)
                 maxTimestamp = DateTimeOffset.UtcNow;
@@ -55,7 +61,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                     SortBy = SortByValue.NeuronCreationTimestamp,
                     SortOrder = SortOrderValue.Descending
                 },
-                userId
+                this.identityService.UserId
                 );
 
             var result = neurons.Items
@@ -83,37 +89,53 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                     IsCurrentUserCreationAuthor = n.Validation.IsCurrentUserCreationAuthor
                 });
 
-            var client = this.httpClientFactory.CreateClient("ignoreSSL");
-
-            var avatarUrl = "http://192.168.1.110:65111";
-            var authority = this.settingsService.Authorities.SingleOrDefault(au => au.Avatars.SingleOrDefault(av => av == avatarUrl) != null);
-
-            if (authority != null)
+            if (externalRegions.Any())
             {
-                var response = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
-                {
-                    Address = authority.Address + "/connect/token",
-                    ClientId = authority.ClientId,
-                    ClientSecret = authority.ClientSecret
-                });
+                var externalAvatarUrls = externalRegions
+                    .Select(er =>
+                        {
+                            new Uri(er.ExternalReferenceUrl).ExtractParts(out string au, out string eri);
+                            return au;
+                        })
+                    .Distinct();
 
-                try
-                {
-                    var remoteMessages = (await this.messageQueryClient.GetMessagesAsync(
-                       avatarUrl + "/",
-                        response.AccessToken
-                        )).Select(md => md.ToDomain());
+                var client = this.httpClientFactory.CreateClient("ignoreSSL");
 
-                    result = result.Concat(remoteMessages);
-                }
-                catch (Exception ex)
+                foreach (var eau in externalAvatarUrls)
                 {
-                    var e = ex;
+                    var authority = this.settingsService.Authorities.SingleOrDefault(au => au.Avatars.SingleOrDefault(av => av == eau) != null);
+
+                    if (authority != null)
+                    {
+                        var response = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
+                        {
+                            Address = authority.Address + "/connect/token",
+                            ClientId = authority.ClientId,
+                            ClientSecret = authority.ClientSecret
+                        });
+
+                        try
+                        {
+                            var remoteMessages = (await this.messageQueryClient.GetMessagesAsync(
+                                eau + "/",
+                                response.AccessToken, 
+                                maxTimestamp,
+                                pageSize,
+                                token
+                                )).Select(md => md.ToDomain());
+
+                            result = result.Concat(remoteMessages);
+                        }
+                        catch (Exception ex)
+                        {
+                            var e = ex;
+                        }
+                    }
+                    else
+                    {
+                        // TODO: log if authority for avatarurl was not found
+                    }
                 }
-            }
-            else
-            {
-                // TODO: log if authority for avatarurl was not found
             }
 
             return result;

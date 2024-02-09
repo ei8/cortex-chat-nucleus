@@ -1,5 +1,4 @@
-﻿using ei8.Cortex.Chat.Common;
-using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
+﻿using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 
 namespace ei8.Cortex.Chat.Nucleus.Application
 {
