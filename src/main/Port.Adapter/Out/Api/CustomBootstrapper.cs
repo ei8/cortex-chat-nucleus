@@ -5,7 +5,6 @@ using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services;
-using ei8.Cortex.IdentityAccess.Client.Out;
 using ei8.Cortex.Library.Client.Out;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,18 +45,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
             container.Register<IIdentityService, IdentityService>();
             container.Register<IRegionReadRepository, HttpRegionReadRepository>();
             container.Register<IMessageQueryClient, HttpMessageQueryClient>();
-            container.Register<IValidationClient, HttpValidationClient>();
-
-            container.Register<IMessageReadRepository>(
-                (tic, npo) =>
-                    new HttpMessageReadRepository(
-                        container.Resolve<INeuronQueryClient>(),
-                        container.Resolve<IMessageQueryClient>(),
-                        container.Resolve<ISettingsService>(),
-                        this.serviceProvider.GetService<IHttpClientFactory>(),
-                        container.Resolve<IIdentityService>()
-                        )
-                    );
+            container.Register(this.serviceProvider.GetService<IHttpClientFactory>());
+            container.Register<IMessageReadRepository, HttpMessageReadRepository>();
             container.Register<IMessageQueryService, MessageQueryService>();
         }
     }

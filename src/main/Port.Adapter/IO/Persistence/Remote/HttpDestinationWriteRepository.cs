@@ -59,7 +59,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                                 this.settingsService.CortexLibraryOutBaseUrl + "/",
                                 new NeuronQuery()
                                 {
-                                    Id = new string[] { d.ToString() },
+                                    Id = new string[] { d.RegionId.ToString() },
                                     SortBy = SortByValue.NeuronCreationTimestamp,
                                     SortOrder = SortOrderValue.Descending
                                 },

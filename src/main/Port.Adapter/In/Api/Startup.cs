@@ -41,7 +41,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseOwin(buildFunc => buildFunc.UseNancy(o => o.Bootstrapper = new CustomBootstrapper(this.configuration)));
+            app.UseOwin(buildFunc => buildFunc.UseNancy(o => o.Bootstrapper = new CustomBootstrapper(app.ApplicationServices, this.configuration)));
         }
     }
 }

@@ -29,10 +29,12 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
         private const string NeuronTransaction = "neuronTransaction";
         private const string TerminalTransaction = "terminalTransaction";
 
+        private readonly IServiceProvider serviceProvider;
         private readonly IConfiguration configuration;
 
-        public CustomBootstrapper(IConfiguration configuration)
+        public CustomBootstrapper(IServiceProvider serviceProvider, IConfiguration configuration)
         {
+            this.serviceProvider = serviceProvider;
             this.configuration = configuration;
         }
 
@@ -57,6 +59,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             container.Register<IMessageClient, HttpMessageClient>();
             container.Register<IValidationClient, HttpValidationClient>();
             container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
+            container.Register(this.serviceProvider.GetService<IHttpClientFactory>());
             container.Register<IDestinationWriteRepository, HttpDestinationWriteRepository>();
             container.Register<ILibraryService, LibraryService>();
             container.Register<INotificationClient, HttpNotificationClient>();

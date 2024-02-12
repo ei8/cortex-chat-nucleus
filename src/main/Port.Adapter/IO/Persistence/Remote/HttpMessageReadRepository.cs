@@ -121,7 +121,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                                 response.AccessToken, 
                                 maxTimestamp,
                                 pageSize,
-                                token
+                                token: token
                                 )).Select(md => md.ToDomain());
 
                             result = result.Concat(remoteMessages);
