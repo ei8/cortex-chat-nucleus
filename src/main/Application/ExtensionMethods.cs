@@ -4,7 +4,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application
 {
     public static class ExtensionMethods
     {
-        public static Common.MessageResult ToCommon(this Domain.Model.Messages.MessageResult value) =>
+        public static Common.MessageResult ToCommon(this MessageResult value) =>
             new Common.MessageResult()
             {
                 Id = value.Message.Id,
@@ -13,13 +13,14 @@ namespace ei8.Cortex.Chat.Nucleus.Application
                 RegionId = value.Message.RegionId,
                 SenderTag = value.SenderTag,
                 SenderId = value.Message.SenderId,
+                ExternalReferenceUrl = value.Message.ExternalReferenceUrl,
                 CreationTimestamp = value.Message.CreationTimestamp,
                 UnifiedLastModificationTimestamp = value.Message.UnifiedLastModificationTimestamp,
                 IsCurrentUserCreationAuthor = value.IsCurrentUserCreationAuthor
             };
 
-        public static Domain.Model.Messages.MessageResult ToDomain(this Common.MessageResult value) =>
-            new Domain.Model.Messages.MessageResult()
+        public static MessageResult ToDomain(this Common.MessageResult value) =>
+            new MessageResult()
             {
                 Message = new Message
                 {
@@ -27,6 +28,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application
                     Content = value.Content,
                     RegionId = value.RegionId,
                     SenderId = value.SenderId,
+                    ExternalReferenceUrl = value.ExternalReferenceUrl,
                     CreationTimestamp = value.CreationTimestamp,
                     UnifiedLastModificationTimestamp = value.UnifiedLastModificationTimestamp,
                 },

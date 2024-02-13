@@ -15,7 +15,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             {
                 Id = Guid.Parse(value.Id),
                 Name = value.Tag,
-                ExternalReferenceUrl = value.ExternalReferenceUrl
+                ExternalReferenceUrl = value.ExternalReferenceUrl,
+                Url = value.Url
             };
         }
 

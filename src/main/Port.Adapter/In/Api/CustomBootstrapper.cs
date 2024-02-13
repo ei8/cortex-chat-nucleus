@@ -59,6 +59,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             container.Register<IMessageClient, HttpMessageClient>();
             container.Register<IValidationClient, HttpValidationClient>();
             container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
+            container.Register<IRegionReadRepository, HttpRegionReadRepository>();
             container.Register(this.serviceProvider.GetService<IHttpClientFactory>());
             container.Register<IDestinationWriteRepository, HttpDestinationWriteRepository>();
             container.Register<ILibraryService, LibraryService>();

@@ -1,5 +1,4 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application;
-using ei8.Cortex.Chat.Nucleus.Client.Out;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Library.Client.Out;
 using ei8.Cortex.Library.Common;
@@ -7,8 +6,6 @@ using neurUL.Common.Domain.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 

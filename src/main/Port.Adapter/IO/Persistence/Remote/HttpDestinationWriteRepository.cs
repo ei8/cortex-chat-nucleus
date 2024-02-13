@@ -18,30 +18,27 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 {
     public class HttpDestinationWriteRepository : IDestinationWriteRepository
     {
-        private readonly IHttpClientFactory httpClientFactory;
-        private readonly INeuronQueryClient neuronQueryClient;
+        private readonly IHttpClientFactory httpClientFactory;        
         private readonly IMessageClient messageClient;
-        private readonly IIdentityService identityService;
+        // TODO: remove IRegionReadRepository once remote messageClient calls are removed
+        private readonly IRegionReadRepository regionReadRepository;
         private readonly ISettingsService settingsService;
 
         public HttpDestinationWriteRepository(
-            IHttpClientFactory httpClientFactory, 
-            INeuronQueryClient neuronQueryClient, 
+            IHttpClientFactory httpClientFactory,
             IMessageClient messageClient,
-            IIdentityService identityService,
+            IRegionReadRepository regionReadRepository,
             ISettingsService settingsService
             )
         {
             AssertionConcern.AssertArgumentNotNull(httpClientFactory, nameof(httpClientFactory));
-            AssertionConcern.AssertArgumentNotNull(neuronQueryClient, nameof(neuronQueryClient));
             AssertionConcern.AssertArgumentNotNull(messageClient, nameof(messageClient));
-            AssertionConcern.AssertArgumentNotNull(identityService, nameof(identityService));
+            AssertionConcern.AssertArgumentNotNull(regionReadRepository, nameof(regionReadRepository));
             AssertionConcern.AssertArgumentNotNull(settingsService, nameof(settingsService));
 
             this.httpClientFactory = httpClientFactory;
-            this.neuronQueryClient = neuronQueryClient;
             this.messageClient = messageClient;
-            this.identityService = identityService;
+            this.regionReadRepository = regionReadRepository;
             this.settingsService = settingsService;
         }
 
@@ -51,21 +48,13 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             {
                 var client = this.httpClientFactory.CreateClient("ignoreSSL");
                 var currentAvatarUrl = string.Empty;
+
+                var regionsDict = (await this.regionReadRepository.GetByIds(destinations.Select(d => d.RegionId)))
+                    .ToDictionary(r => r.Id);
+
                 foreach (var d in destinations)
                 {
-                    // TODO: transfer region retrieval to a repository?
-                    var regionNeuron = (
-                            await this.neuronQueryClient.GetNeuronsInternal(
-                                this.settingsService.CortexLibraryOutBaseUrl + "/",
-                                new NeuronQuery()
-                                {
-                                    Id = new string[] { d.RegionId.ToString() },
-                                    SortBy = SortByValue.NeuronCreationTimestamp,
-                                    SortOrder = SortOrderValue.Descending
-                                },
-                                this.identityService.UserId
-                            )
-                        ).Items.SingleOrDefault();
+                    var regionNeuron = regionsDict[d.RegionId];
 
                     if (string.IsNullOrWhiteSpace(currentAvatarUrl) && regionNeuron != null)
                     {
