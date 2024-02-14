@@ -18,7 +18,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
 
                 if (Request.Query.id.HasValue)
                     return new TextResponse(JsonConvert.SerializeObject(
-                       await regionQueryService.GetRegions(
+                       await regionQueryService.GetRegionsByIds(
                             ((string)Request.Query.id.Value.ToString())
                             .Split(',')
                             .Select(s => Guid.Parse(s))

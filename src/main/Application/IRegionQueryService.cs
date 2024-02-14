@@ -10,6 +10,6 @@ namespace ei8.Cortex.Chat.Nucleus.Application
     {
         Task<IEnumerable<Common.RegionResult>> GetRegions(CancellationToken token = default);
 
-        Task<IEnumerable<Common.RegionResult>> GetRegions(IEnumerable<Guid> ids, CancellationToken token = default);
+        Task<IEnumerable<Common.RegionResult>> GetRegionsByIds(IEnumerable<Guid> ids, CancellationToken token = default);
     }
 }

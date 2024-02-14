@@ -23,7 +23,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application
         public async Task<IEnumerable<RegionResult>> GetRegions(CancellationToken token = default) => 
             (await this.regionRepository.GetAll(token)).Select(r => r.ToCommon());
 
-        public async Task<IEnumerable<RegionResult>> GetRegions(IEnumerable<Guid> ids, CancellationToken token = default)
+        public async Task<IEnumerable<RegionResult>> GetRegionsByIds(IEnumerable<Guid> ids, CancellationToken token = default)
         {
             return (await this.regionRepository.GetByIds(ids, token)).Select(r => r.ToCommon());
         }
