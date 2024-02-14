@@ -48,6 +48,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
             container.Register(this.serviceProvider.GetService<IHttpClientFactory>());
             container.Register<IMessageReadRepository, HttpMessageReadRepository>();
             container.Register<IMessageQueryService, MessageQueryService>();
+            container.Register<IRegionQueryService, RegionQueryService>();
         }
     }
 }

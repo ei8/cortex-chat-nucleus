@@ -1,4 +1,5 @@
-﻿using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
+﻿using ei8.Cortex.Chat.Nucleus.Domain.Model;
+using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 
 namespace ei8.Cortex.Chat.Nucleus.Application
 {
@@ -35,6 +36,15 @@ namespace ei8.Cortex.Chat.Nucleus.Application
                 RegionTag = value.RegionTag,
                 SenderTag = value.SenderTag,
                 IsCurrentUserCreationAuthor = value.IsCurrentUserCreationAuthor
+            };
+
+        public static Common.RegionResult ToCommon(this Region value) =>
+            new Common.RegionResult()
+            {
+                Id = value.Id,
+                Name = value.Name,
+                ExternalReferenceUrl = value.ExternalReferenceUrl,
+                Url = value.Url
             };
     }
 }
