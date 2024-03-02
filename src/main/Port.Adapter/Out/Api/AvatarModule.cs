@@ -9,16 +9,16 @@ using ei8.Cortex.Chat.Nucleus.Application;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
 {
-    public class RegionModule : NancyModule
+    public class AvatarModule : NancyModule
     {
-        public RegionModule(IRegionQueryService regionQueryService, IIdentityService identityService) : base("/nuclei/chat/regions")
+        public AvatarModule(IAvatarQueryService avatarQueryService, IIdentityService identityService) : base("/nuclei/chat/avatars")
         {
             this.Get("/", async (parameters) => {
                 identityService.UserId = MessageModule.GetUserId(Request);
 
                 if (Request.Query.id.HasValue)
                     return new TextResponse(JsonConvert.SerializeObject(
-                       await regionQueryService.GetRegionsByIds(
+                       await avatarQueryService.GetAvatarsByIds(
                             ((string)Request.Query.id.Value.ToString())
                             .Split(',')
                             .Select(s => Guid.Parse(s))
@@ -26,7 +26,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
                        ));
                 else
                     return new TextResponse(JsonConvert.SerializeObject(
-                       await regionQueryService.GetRegions()
+                       await avatarQueryService.GetAvatars()
                        ));
             }
             );

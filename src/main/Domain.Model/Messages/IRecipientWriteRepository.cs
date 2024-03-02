@@ -4,8 +4,8 @@ using System.Collections.Generic;
 
 namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Messages
 {
-    public interface IDestinationWriteRepository
+    public interface IRecipientWriteRepository
     {
-        Task SaveAll(IEnumerable<Destination> destination, CancellationToken token = default);
+        Task SaveAll(IEnumerable<Recipient> recipients, CancellationToken token = default);
     }
 }

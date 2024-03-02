@@ -38,8 +38,8 @@ namespace ei8.Cortex.Chat.Nucleus.Application
                 IsCurrentUserCreationAuthor = value.IsCurrentUserCreationAuthor
             };
 
-        public static Common.RegionResult ToCommon(this Region value) =>
-            new Common.RegionResult()
+        public static Common.AvatarResult ToCommon(this Avatar value) =>
+            new Common.AvatarResult()
             {
                 Id = value.Id,
                 Name = value.Name,

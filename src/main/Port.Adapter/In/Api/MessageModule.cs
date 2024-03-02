@@ -28,7 +28,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                         {
                             Guid? regionId = null;
                             string externalReferenceUrl = null;
-                            var destinationRegionIds = Array.Empty<string>();
+                            string[] recipientAvatarIds = null;
 
                             if (bodyAsDictionary.ContainsKey(nameof(CreateMessage.RegionId)))
                                 if (Guid.TryParse(bodyAsObject.RegionId.ToString(), out Guid tempRegionId))
@@ -37,9 +37,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                             if (bodyAsDictionary.ContainsKey(nameof(CreateMessage.ExternalReferenceUrl)))
                                 externalReferenceUrl = bodyAsObject.ExternalReferenceUrl.ToString();
 
-                            if (bodyAsDictionary.ContainsKey(nameof(CreateMessage.DestinationRegionIds)) &&
-                                bodyAsDictionary[nameof(CreateMessage.DestinationRegionIds)] != null)
-                                destinationRegionIds = ((JArray) bodyAsDictionary[nameof(CreateMessage.DestinationRegionIds)]).ToObject<string[]>();
+                            if (bodyAsDictionary.ContainsKey(nameof(CreateMessage.RecipientAvatarIds)) &&
+                                bodyAsDictionary[nameof(CreateMessage.RecipientAvatarIds)] != null)
+                                recipientAvatarIds = ((JArray) bodyAsDictionary[nameof(CreateMessage.RecipientAvatarIds)]).ToObject<string[]>();
 
                             identityService.UserId = bodyAsObject.UserId.ToString();
 
@@ -48,7 +48,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                                 bodyAsObject.Content.ToString(),
                                 regionId,
                                 externalReferenceUrl,
-                                destinationRegionIds.Select(dri => Guid.Parse(dri))
+                                recipientAvatarIds?.Select(dri => Guid.Parse(dri))
                                 )
                             );
                         },

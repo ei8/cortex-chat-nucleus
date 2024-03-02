@@ -2,7 +2,7 @@
 
 namespace ei8.Cortex.Chat.Nucleus.Domain.Model
 {
-    public class Region
+    public class Avatar
     {
         public Guid Id { get; set; }
         public string Name { get; set; }

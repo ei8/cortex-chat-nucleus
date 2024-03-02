@@ -45,7 +45,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             this.identityService = identityService;
         }
 
-        public async Task<IEnumerable<MessageResult>> GetAll(DateTimeOffset? maxTimestamp, int? pageSize, IEnumerable<Region> externalRegions, CancellationToken token = default)
+        public async Task<IEnumerable<MessageResult>> GetAll(DateTimeOffset? maxTimestamp, int? pageSize, IEnumerable<Avatar> avatars, CancellationToken token = default)
         {
             if (!maxTimestamp.HasValue)
                 maxTimestamp = DateTimeOffset.UtcNow;
@@ -89,12 +89,12 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                     IsCurrentUserCreationAuthor = n.Validation.IsCurrentUserCreationAuthor
                 });
 
-            if (externalRegions.Any())
+            if (avatars.Any())
             {
-                var externalAvatarUrls = externalRegions
-                    .Select(er =>
+                var externalAvatarUrls = avatars
+                    .Select(a =>
                         {
-                            new Uri(er.ExternalReferenceUrl).ExtractParts(out string au, out string eri);
+                            new Uri(a.ExternalReferenceUrl).ExtractParts(out string au, out string id);
                             return au;
                         })
                     .Distinct();

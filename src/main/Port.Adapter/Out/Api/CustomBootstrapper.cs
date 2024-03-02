@@ -43,12 +43,12 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
             container.Register(this.configuration);
             container.Register<ISettingsService, SettingsService>();
             container.Register<IIdentityService, IdentityService>();
-            container.Register<IRegionReadRepository, HttpRegionReadRepository>();
+            container.Register<IAvatarReadRepository, HttpAvatarReadRepository>();
             container.Register<IMessageQueryClient, HttpMessageQueryClient>();
             container.Register(this.serviceProvider.GetService<IHttpClientFactory>());
             container.Register<IMessageReadRepository, HttpMessageReadRepository>();
             container.Register<IMessageQueryService, MessageQueryService>();
-            container.Register<IRegionQueryService, RegionQueryService>();
+            container.Register<IAvatarQueryService, AvatarQueryService>();
         }
     }
 }

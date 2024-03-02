@@ -1,6 +1,7 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application.Messages;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using Nancy;
+using Nancy.Helpers;
 using Nancy.Responses;
 using neurUL.Common.Domain.Model;
 using Newtonsoft.Json;
@@ -19,13 +20,13 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
                 return new TextResponse(JsonConvert.SerializeObject(
                    await messageQueryService.GetMessages(
                        Request.Query.maxTimestamp.HasValue ?
-                           DateTimeOffset.Parse(Request.Query.maxTimestamp.Value) :
+                           DateTimeOffset.Parse(HttpUtility.UrlDecode(Request.Query.maxTimestamp.Value)) :
                            null,
                        Request.Query.pageSize.HasValue ?
                            int.Parse(Request.Query.pageSize.Value) :
                            null,
-                       Request.Query.externalRegionId.HasValue ?
-                           ((string) Request.Query.externalRegionId.Value.ToString())
+                       Request.Query.avatarId.HasValue ?
+                           ((string) Request.Query.avatarId.Value.ToString())
                             .Split(',')
                             .Select(s => Guid.Parse(s)):
                            Array.Empty<Guid>()

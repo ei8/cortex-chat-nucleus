@@ -11,13 +11,13 @@ using System.Threading.Tasks;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 {
-    public class HttpRegionReadRepository : IRegionReadRepository
+    public class HttpAvatarReadRepository : IAvatarReadRepository
     {
         private readonly INeuronQueryClient neuronQueryClient;
         private readonly ISettingsService settingsService;
         private readonly IIdentityService identityService;
 
-        public HttpRegionReadRepository(
+        public HttpAvatarReadRepository(
             INeuronQueryClient neuronQueryClient,
             ISettingsService settingsService,
             IIdentityService identityService
@@ -32,27 +32,27 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             this.identityService = identityService;
         }
 
-        public async Task<IEnumerable<Region>> GetAll(CancellationToken token = default)
+        public async Task<IEnumerable<Avatar>> GetAll(CancellationToken token = default)
         {
             var neurons = await this.neuronQueryClient.GetNeuronsInternal(
                 this.settingsService.CortexLibraryOutBaseUrl + "/",
                 new NeuronQuery()
                 {
-                    PostsynapticExternalReferenceUrl = new string[] { this.settingsService.InstantiatesRegionExternalReferenceUrl },
+                    PostsynapticExternalReferenceUrl = new string[] { this.settingsService.InstantiatesAvatarExternalReferenceUrl },
                     SortBy = SortByValue.NeuronExternalReferenceUrl,
                     SortOrder = SortOrderValue.Ascending
                 },
                 this.identityService.UserId
                 );
 
-            return neurons.Items.Select(n => n.ToRegion());
+            return neurons.Items.Select(n => n.ToDomainAvatar());
         }
 
-        public async Task<IEnumerable<Region>> GetByIds(IEnumerable<Guid> ids, CancellationToken token = default)
+        public async Task<IEnumerable<Avatar>> GetByIds(IEnumerable<Guid> ids, CancellationToken token = default)
         {
             AssertionConcern.AssertArgumentNotNull(ids, nameof(ids));
 
-            var result = (IEnumerable<Region>) Array.Empty<Region>();
+            var result = (IEnumerable<Avatar>) Array.Empty<Avatar>();
 
             if (ids.Any())
             {
@@ -67,7 +67,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                     this.identityService.UserId
                     );
 
-                result = neurons.Items.Select(n => n.ToRegion());
+                result = neurons.Items.Select(n => n.ToDomainAvatar());
             }
 
             return result;

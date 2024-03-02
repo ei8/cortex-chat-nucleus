@@ -8,6 +8,7 @@ using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services;
+using ei8.Cortex.IdentityAccess.Client.In;
 using ei8.Cortex.IdentityAccess.Client.Out;
 using ei8.Cortex.Library.Client.Out;
 using ei8.EventSourcing.Client;
@@ -56,14 +57,15 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             container.Register(this.configuration);
             container.Register<ISettingsService, SettingsService>();
             container.Register<IIdentityService, IdentityService>();
-            container.Register<IMessageClient, HttpMessageClient>();
             container.Register<IValidationClient, HttpValidationClient>();
             container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
-            container.Register<IRegionReadRepository, HttpRegionReadRepository>();
+            container.Register<IAvatarReadRepository, HttpAvatarReadRepository>();
             container.Register(this.serviceProvider.GetService<IHttpClientFactory>());
-            container.Register<IDestinationWriteRepository, HttpDestinationWriteRepository>();
+            container.Register<IPermitClient, HttpPermitClient>();
+            container.Register<IRecipientWriteRepository, HttpRecipientWriteRepository>();
             container.Register<ILibraryService, LibraryService>();
-            container.Register<INotificationClient, HttpNotificationClient>();
+            // TODO: is this needed?
+            // DEL: container.Register<INotificationClient, HttpNotificationClient>();
 
             // data
             container.Register<IEventStoreUrlService>(
@@ -120,7 +122,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                 container.Resolve<ITransaction>(CustomBootstrapper.NeuronTransaction),
                 container.Resolve<ITransaction>(CustomBootstrapper.TerminalTransaction),
                 container.Resolve<IMessageWriteRepository>(),
-                container.Resolve<IDestinationWriteRepository>(),
+                container.Resolve<IRecipientWriteRepository>(),
                 container.Resolve<IValidationClient>(),
                 container.Resolve<ISettingsService>(),
                 container.Resolve<IIdentityService>()

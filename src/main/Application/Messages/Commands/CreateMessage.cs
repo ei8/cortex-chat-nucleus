@@ -9,7 +9,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages.Commands
 {
     public class CreateMessage : ICommand
     {
-        public CreateMessage(Guid id, string content, Guid? regionId, string externalReferenceUrl, IEnumerable<Guid> destinationRegionIds)
+        public CreateMessage(Guid id, string content, Guid? regionId, string externalReferenceUrl, IEnumerable<Guid> recipientAvatarIds)
         {
             AssertionConcern.AssertArgumentValid(
                 g => g != Guid.Empty,
@@ -24,13 +24,12 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages.Commands
                 Messages.Exception.InvalidId,
                 nameof(regionId)
                 );
-            AssertionConcern.AssertArgumentNotNull(destinationRegionIds, nameof(destinationRegionIds));
 
             this.Id = id;            
             this.Content = content;
             this.RegionId = regionId;
             this.ExternalReferenceUrl = externalReferenceUrl;
-            this.DestinationRegionIds = destinationRegionIds;
+            this.RecipientAvatarIds = recipientAvatarIds;
         }
 
         public Guid Id { get; private set; }
@@ -41,7 +40,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages.Commands
 
         public string ExternalReferenceUrl { get; private set; }
 
-        public IEnumerable<Guid> DestinationRegionIds { get; private set; }
+        public IEnumerable<Guid> RecipientAvatarIds { get; private set; }
 
         public int ExpectedVersion { get; private set; }
     }

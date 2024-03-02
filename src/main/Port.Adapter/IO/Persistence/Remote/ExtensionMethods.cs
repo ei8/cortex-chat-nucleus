@@ -9,9 +9,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 {
     internal static class ExtensionMethods
     {
-        internal static Region ToRegion(this Neuron value)
+        internal static Avatar ToDomainAvatar(this Neuron value)
         {
-            return new Region()
+            return new Avatar()
             {
                 Id = Guid.Parse(value.Id),
                 Name = value.Tag,
@@ -20,11 +20,11 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             };
         }
 
-        internal static void ExtractParts(this Uri neuronUrl, out string avatarUrl, out string externalRegionId)
+        internal static void ExtractParts(this Uri neuronUrl, out string avatarUrl, out string id)
         {
-            var match = Regex.Match(neuronUrl.AbsoluteUri, "(?<AvatarUrl>.*)\\/cortex\\/neurons\\/(?<ExternalRegionId>.*)?");
+            var match = Regex.Match(neuronUrl.AbsoluteUri, "(?<AvatarUrl>.*)\\/cortex\\/neurons\\/(?<Id>.*)?");
             avatarUrl = match.Groups["AvatarUrl"].Value;
-            externalRegionId = match.Groups["ExternalRegionId"].Value;
+            id = match.Groups["Id"].Value;
         }
     }
 }
