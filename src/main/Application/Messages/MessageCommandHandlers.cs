@@ -15,8 +15,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
     public class MessageCommandHandlers : 
         ICancellableCommandHandler<CreateMessage>
     {
-        private readonly ITransaction neuronTransaction;
-        private readonly ITransaction terminalTransaction;
+        private readonly ITransaction transaction;
         private readonly IMessageWriteRepository messageRepository;
         private readonly IRecipientWriteRepository recipientRepository;
         private readonly IValidationClient validationClient;
@@ -24,8 +23,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         private readonly IIdentityService identityService;
 
         public MessageCommandHandlers(
-            ITransaction neuronTransaction,
-            ITransaction terminalTransaction,
+            ITransaction transaction,
             IMessageWriteRepository messageRepository,
             IRecipientWriteRepository recipientRepository,
             IValidationClient validationClient, 
@@ -33,16 +31,14 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             IIdentityService identityService
             )
         {
-            AssertionConcern.AssertArgumentNotNull(neuronTransaction, nameof(neuronTransaction));
-            AssertionConcern.AssertArgumentNotNull(terminalTransaction, nameof(terminalTransaction));
+            AssertionConcern.AssertArgumentNotNull(transaction, nameof(transaction));
             AssertionConcern.AssertArgumentNotNull(messageRepository, nameof(messageRepository));
             AssertionConcern.AssertArgumentNotNull(recipientRepository, nameof(recipientRepository));
             AssertionConcern.AssertArgumentNotNull(validationClient, nameof(validationClient));
             AssertionConcern.AssertArgumentNotNull(settingsService, nameof(settingsService));
             AssertionConcern.AssertArgumentNotNull(identityService, nameof(identityService));
 
-            this.neuronTransaction = neuronTransaction;
-            this.terminalTransaction = terminalTransaction;
+            this.transaction = transaction;
             this.messageRepository = messageRepository;
             this.recipientRepository = recipientRepository;
             this.validationClient = validationClient;
@@ -75,8 +71,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                     InstantiatesMessageTerminalId = Guid.NewGuid()
                 };
                 
-                await this.neuronTransaction.Begin(dMessage.Id, validationResult.UserNeuronId);
-                await this.terminalTransaction.Begin(dMessage.InstantiatesMessageTerminalId, validationResult.UserNeuronId);
+                await this.transaction.BeginAsync(new Guid[] { dMessage.Id, dMessage.InstantiatesMessageTerminalId }, validationResult.UserNeuronId);
 
                 await this.messageRepository.Save(dMessage);
                 if (message.RecipientAvatarIds != null) 
@@ -91,8 +86,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                         )
                         );
 
-                await this.neuronTransaction.Commit();
-                await this.terminalTransaction.Commit();
+                await this.transaction.CommitAsync();
             }
         }
     }

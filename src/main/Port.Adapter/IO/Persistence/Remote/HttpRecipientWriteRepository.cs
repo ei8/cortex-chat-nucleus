@@ -47,13 +47,14 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                     // TODO: Create recipient neurons
 
                     // grant access to avatar neurons / user neuron id
-                    await this.permitClient.CreateNeuronPermitAsync(
-                        this.settingsService.IdentityAccessInBaseUrl + "/",
-                        r.MessageId,
-                        r.AvatarId,
-                        DateTime.Now.AddDays(30),
-                        token
-                        );
+                    // TODO: should be done by a separate service or not at all since permissions should be based on regions
+                    //await this.permitClient.CreateNeuronPermitAsync(
+                    //    this.settingsService.IdentityAccessInBaseUrl + "/",
+                    //    r.MessageId,
+                    //    r.AvatarId,
+                    //    DateTime.Now.AddDays(30),
+                    //    token
+                    //    );
                 }
             }
         }

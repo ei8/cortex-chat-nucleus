@@ -1,13 +1,13 @@
-﻿using ei8.Cortex.Chat.Nucleus.Domain.Model;
+﻿using ei8.Cortex.Chat.Nucleus.Application;
+using ei8.Cortex.Chat.Nucleus.Domain.Model;
+using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
+using ei8.Cortex.Library.Client.Out;
+using ei8.Cortex.Library.Common;
 using neurUL.Common.Domain.Model;
 using System;
-using ei8.Cortex.Library.Client.Out;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using ei8.Cortex.Chat.Nucleus.Application;
-using ei8.Cortex.Library.Common;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services
 {
@@ -16,6 +16,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services
         private readonly INeuronQueryClient neuronQueryClient;
         private readonly ISettingsService settingsService;
         private readonly IIdentityService identityService;
+
+        private IEnumerable<ExternalReference> externalReferences;
+        private bool loaded;
 
         public LibraryService(INeuronQueryClient neuronQueryClient, ISettingsService settingsService, IIdentityService identityService)
         {
@@ -26,26 +29,37 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services
             this.neuronQueryClient = neuronQueryClient;
             this.settingsService = settingsService;
             this.identityService = identityService;
+
+            this.loaded = false;
         }
 
-        public async Task<Guid> GetInstantiatesMessageId()
+        public async Task<Guid> GetId(string tag)
         {
-            var instantiatesMessage = (
-                await this.neuronQueryClient.GetNeuronsInternal(
-                    this.settingsService.CortexLibraryOutBaseUrl + "/",
-                    new NeuronQuery()
-                    {
-                        ExternalReferenceUrl = new string[] { this.settingsService.InstantiatesMessageExternalReferenceUrl },
-                        SortBy = SortByValue.NeuronCreationTimestamp,
-                        SortOrder = SortOrderValue.Descending
-                    },
-                    this.identityService.UserId
-                )
-            ).Items.SingleOrDefault();
+            if (!this.loaded)
+            {
+                var sers = this.settingsService.ExternalReferences.ToArray();
+                var erns = (await this.neuronQueryClient.GetNeuronsInternal(
+                        this.settingsService.CortexLibraryOutBaseUrl + "/",
+                        new NeuronQuery()
+                        {
+                            ExternalReferenceUrl = sers.Select(er => er.Url),
+                            SortBy = SortByValue.NeuronCreationTimestamp,
+                            SortOrder = SortOrderValue.Descending
+                        },
+                        this.identityService.UserId
+                    )).Items;
 
-            AssertionConcern.AssertStateTrue(Guid.TryParse(instantiatesMessage?.Id, out Guid result), "'Instantiates, Message' neuron was not found.");
+                for (int i = 0; i < sers.Length; i++)
+                {
+                    var ern = erns.SingleOrDefault(n => n.ExternalReferenceUrl == sers[i].Url);
+                    AssertionConcern.AssertStateTrue(ern != null, $"External Reference Neuron for tag '{sers[i].Tag}' was not found.");
+                    sers[i].Id = Guid.Parse(ern.Id);
+                }
+                this.externalReferences = sers;
+                this.loaded = true;
+            }
 
-            return result;
+            return this.externalReferences.Single(er => er.Tag == tag).Id;
         }
     }
 }

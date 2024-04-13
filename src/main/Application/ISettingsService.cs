@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -11,9 +12,8 @@ namespace ei8.Cortex.Chat.Nucleus.Application
         string EventSourcingOutBaseUrl { get; }
         string IdentityAccessInBaseUrl { get; }
         string IdentityAccessOutBaseUrl { get; }
-        string InstantiatesMessageExternalReferenceUrl { get; }
-        string InstantiatesAvatarExternalReferenceUrl { get; }
         int PageSize { get; }
         IEnumerable<Authority> Authorities { get; }
+        IEnumerable<ExternalReference> ExternalReferences { get; }
     }
 }
