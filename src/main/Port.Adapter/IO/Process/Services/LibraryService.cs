@@ -33,7 +33,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services
             this.loaded = false;
         }
 
-        public async Task<Guid> GetId(string tag)
+        public async Task<Guid> GetNeuronId(ExternalReferenceId value)
         {
             if (!this.loaded)
             {
@@ -44,22 +44,25 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services
                         {
                             ExternalReferenceUrl = sers.Select(er => er.Url),
                             SortBy = SortByValue.NeuronCreationTimestamp,
-                            SortOrder = SortOrderValue.Descending
+                            SortOrder = SortOrderValue.Descending,
+                            PageSize = sers.Length
                         },
+                        // TODO: retrieve from settings
                         this.identityService.UserId
                     )).Items;
 
                 for (int i = 0; i < sers.Length; i++)
                 {
                     var ern = erns.SingleOrDefault(n => n.ExternalReferenceUrl == sers[i].Url);
-                    AssertionConcern.AssertStateTrue(ern != null, $"External Reference Neuron for tag '{sers[i].Tag}' was not found.");
-                    sers[i].Id = Guid.Parse(ern.Id);
+                    AssertionConcern.AssertStateTrue(ern != null, $"Local copy of External Reference neuron '{sers[i].Id}' was not found.");
+                    sers[i].NeuronId = Guid.Parse(ern.Id);
                 }
                 this.externalReferences = sers;
                 this.loaded = true;
             }
 
-            return this.externalReferences.Single(er => er.Tag == tag).Id;
+            return this.externalReferences.Single(er => er.Id == value).NeuronId;
         }
     }
 }
+    

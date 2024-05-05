@@ -5,6 +5,7 @@ using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Library.Common;
 using ei8.EventSourcing.Client;
 using IdentityModel.Client;
+using Microsoft.Extensions.DependencyInjection;
 using neurUL.Common.Domain.Model;
 using neurUL.Cortex.Domain.Model.Neurons;
 using neurUL.Cortex.Port.Adapter.In.InProcess;
@@ -19,110 +20,108 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 {
     public class HttpMessageWriteRepository : IMessageWriteRepository
     {
-        private readonly ITransaction transaction;
-        private readonly INeuronAdapter neuronAdapter;
-        private readonly ITerminalAdapter terminalAdapter;
-        private readonly ei8.Data.Tag.Port.Adapter.In.InProcess.IItemAdapter tagItemAdapter;
-        private readonly ei8.Data.Aggregate.Port.Adapter.In.InProcess.IItemAdapter aggregateItemAdapter;
-        private readonly ei8.Data.ExternalReference.Port.Adapter.In.InProcess.IItemAdapter externalReferenceAdapter;
-        private readonly ILibraryService libraryService;
-
-        public HttpMessageWriteRepository(
-            ITransaction transaction,
-            INeuronAdapter neuronAdapter,
-            ITerminalAdapter terminalAdapter,
-            ei8.Data.Tag.Port.Adapter.In.InProcess.IItemAdapter tagItemAdapter,
-            ei8.Data.Aggregate.Port.Adapter.In.InProcess.IItemAdapter aggregateItemAdapter,
-            ei8.Data.ExternalReference.Port.Adapter.In.InProcess.IItemAdapter externalReferenceAdapter,
-            ILibraryService libraryService
-            )
+        private readonly IServiceProvider serviceProvider;
+        
+        public HttpMessageWriteRepository(IServiceProvider serviceProvider)
+            
         {
-            AssertionConcern.AssertArgumentNotNull(transaction, nameof(transaction));
-            AssertionConcern.AssertArgumentNotNull(neuronAdapter, nameof(neuronAdapter));
-            AssertionConcern.AssertArgumentNotNull(terminalAdapter, nameof(terminalAdapter));
-            AssertionConcern.AssertArgumentNotNull(tagItemAdapter, nameof(tagItemAdapter));
-            AssertionConcern.AssertArgumentNotNull(aggregateItemAdapter, nameof(aggregateItemAdapter));
-            AssertionConcern.AssertArgumentNotNull(externalReferenceAdapter, nameof(externalReferenceAdapter));
-            AssertionConcern.AssertArgumentNotNull(libraryService, nameof(libraryService));
-
-            this.transaction = transaction;
-            this.neuronAdapter = neuronAdapter;
-            this.terminalAdapter = terminalAdapter;
-            this.tagItemAdapter = tagItemAdapter;
-            this.aggregateItemAdapter = aggregateItemAdapter;
-            this.externalReferenceAdapter = externalReferenceAdapter;
-            this.libraryService = libraryService;
+            AssertionConcern.AssertArgumentNotNull(serviceProvider, nameof(serviceProvider));
+            
+            this.serviceProvider = serviceProvider;
         }
 
         public async Task Save(Message message, CancellationToken token = default)
         {
-            #region Create Message neuron
-            int expectedVersion = await this.transaction.InvokeAdapterAsync(
-                    message.Id,
-                    typeof(NeuronCreated).Assembly.GetEventTypes(),
-                    async (ev) => await this.neuronAdapter.CreateNeuron(
-                        message.Id, 
-                        message.SenderId)
-                    );
+            var libraryService = this.serviceProvider.GetRequiredService<ILibraryService>();
 
-            // assign tag value
-            expectedVersion = await this.transaction.InvokeAdapterAsync(
+            #region 'Hello World;Message' value
+            var messageInstanceTagSuffix = ";Message";
+            await this.serviceProvider.CreateInstanceAsync(
                 message.Id,
-                typeof(ei8.Data.Tag.Domain.Model.TagChanged).Assembly.GetEventTypes(),
-                async (ev) => await this.tagItemAdapter.ChangeTag(
-                    message.Id,
-                    message.Content,
-                    message.SenderId,
-                    ev
-                ),
-                expectedVersion
-                );
-            if (message.RegionId.HasValue)
-            {
-                // assign region value to id
-                expectedVersion = await this.transaction.InvokeAdapterAsync(
-                    message.Id,
-                    typeof(ei8.Data.Aggregate.Domain.Model.AggregateChanged).Assembly.GetEventTypes(),
-                    async (ev) => await this.aggregateItemAdapter.ChangeAggregate(
-                        message.Id,
-                        message.RegionId.ToString(),
-                        message.SenderId,
-                        ev
-                    ),
-                    expectedVersion
-                    );
-            }
-
-            if (!string.IsNullOrWhiteSpace(message.ExternalReferenceUrl))
-            {
-                expectedVersion = await this.transaction.InvokeAdapterAsync(
-                    message.Id, 
-                    typeof(ei8.Data.ExternalReference.Domain.Model.UrlChanged).Assembly.GetEventTypes(),
-                    async (ev) => await this.externalReferenceAdapter.ChangeUrl(
-                        message.Id,
-                        message.ExternalReferenceUrl,
-                        message.SenderId,
-                        ev
-                    ),
-                    expectedVersion
-                    );
-            }
-            #endregion
-
-            #region Create Instantiates, Message terminal
-            await this.transaction.InvokeAdapterAsync(
-                message.InstantiatesMessageTerminalId,
-                typeof(TerminalCreated).Assembly.GetEventTypes(),
-                async (ev) => await this.terminalAdapter.CreateTerminal(
-                    message.InstantiatesMessageTerminalId,
-                    message.Id,
-                    await this.libraryService.GetId(TagValues.Message.Instantiates),
-                    neurUL.Cortex.Common.NeurotransmitterEffect.Excite,
-                    1f,
-                    message.SenderId
-                )
+                message.Content + messageInstanceTagSuffix,
+                message.RegionId,
+                message.ExternalReferenceUrl,
+                await libraryService.GetNeuronId(ExternalReferenceId.InstantiatesMessage),
+                message.SenderId
                 );
             #endregion
+
+            var cpvdi = new CreatePropertyValueDependencyIds(
+                await libraryService.GetNeuronId(ExternalReferenceId.Unit),
+                await libraryService.GetNeuronId(ExternalReferenceId.Subordination),
+                await libraryService.GetNeuronId(ExternalReferenceId.Of_Case),
+                await libraryService.GetNeuronId(ExternalReferenceId.NominalModifier),
+                await libraryService.GetNeuronId(ExternalReferenceId.DirectObject),
+                await libraryService.GetNeuronId(ExternalReferenceId.Has_Unit)
+            );
+
+            #region 'Content' property value
+            var contentValueNeuronId = Guid.NewGuid();
+            await this.serviceProvider.CreateInstanceAsync(
+                contentValueNeuronId,
+                message.Content,
+                message.RegionId,
+                null,
+                await libraryService.GetNeuronId(ExternalReferenceId.InstantiatesIdea),
+                message.SenderId
+                );
+
+            var contentPropNeuronId = await this.serviceProvider.CreatePropertyValueAsync(
+               contentValueNeuronId,
+               await libraryService.GetNeuronId(ExternalReferenceId.Message_MustHaveContent),
+               message.SenderId,
+               cpvdi
+            );
+            #endregion
+
+            #region 'Author' property value
+            var authorPropNeuronId = await this.serviceProvider.CreatePropertyValueAsync(
+               message.SenderId,
+               await libraryService.GetNeuronId(ExternalReferenceId.Message_MustHaveAuthor),
+               message.SenderId,
+               cpvdi
+            );
+            #endregion
+
+            var nowTimestampValueNeuronId = Guid.NewGuid();
+            await this.serviceProvider.CreateInstanceAsync(
+                nowTimestampValueNeuronId,
+                DateTimeOffset.UtcNow.ToString("o"),
+                message.RegionId,
+                null,
+                await libraryService.GetNeuronId(ExternalReferenceId.InstantiatesDateTimeOffset),
+                message.SenderId
+                );
+
+            #region 'CreationTimestamp' property value
+            var creationPropNeuronId = await this.serviceProvider.CreatePropertyValueAsync(
+               nowTimestampValueNeuronId,
+               await libraryService.GetNeuronId(ExternalReferenceId.Message_MustHaveCreationTimestamp),
+               message.SenderId,
+               cpvdi
+            );
+            #endregion
+
+            #region 'LastModificationTimestamp' property value
+            var lastModificationPropNeuronId = await this.serviceProvider.CreatePropertyValueAsync(
+               nowTimestampValueNeuronId,
+               await libraryService.GetNeuronId(ExternalReferenceId.Message_MustHaveLastModificationTimestamp),
+               message.SenderId,
+               cpvdi
+            );
+            #endregion
+
+            await this.serviceProvider.LinkInstancePropertyValuesAsync(
+                message.Id,
+                new Guid[]
+                {
+                    contentPropNeuronId,
+                    authorPropNeuronId,
+                    creationPropNeuronId,
+                    lastModificationPropNeuronId
+                },
+                message.SenderId
+                );
         }
     }
 }

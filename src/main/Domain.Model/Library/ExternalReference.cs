@@ -7,7 +7,7 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Library
     public class ExternalReference
     {
         public string Url { get; set; }
-        public Guid Id { get; set; }
-        public string Tag { get; set; }
+        public Guid NeuronId { get; set; }
+        public ExternalReferenceId Id { get; set; }
     }
 }

@@ -58,7 +58,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 this.settingsService.CortexLibraryOutBaseUrl + "/",
                 new NeuronQuery()
                 {
-                    PostsynapticExternalReferenceUrl = this.settingsService.ExternalReferences.Where(er => er.Tag == TagValues.Message.Instantiates).Select(er => er.Url),
+                    PostsynapticExternalReferenceUrl = this.settingsService.ExternalReferences.Where(er => er.Id == ExternalReferenceId.InstantiatesMessage).Select(er => er.Url),
                     SortBy = SortByValue.NeuronCreationTimestamp,
                     SortOrder = SortOrderValue.Descending
                 },

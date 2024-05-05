@@ -1,5 +1,6 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
+using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
 using ei8.Cortex.Library.Client.Out;
 using ei8.Cortex.Library.Common;
 using neurUL.Common.Domain.Model;
@@ -38,7 +39,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 this.settingsService.CortexLibraryOutBaseUrl + "/",
                 new NeuronQuery()
                 {
-                    PostsynapticExternalReferenceUrl = new string[] { this.settingsService.InstantiatesAvatarExternalReferenceUrl },
+                    PostsynapticExternalReferenceUrl = this.settingsService.ExternalReferences.Where(er => er.Id == ExternalReferenceId.InstantiatesAvatar).Select(er => er.Url),
                     SortBy = SortByValue.NeuronExternalReferenceUrl,
                     SortOrder = SortOrderValue.Ascending
                 },

@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Messages
 {
+    /// <summary>
+    /// Property names based on function in Domain.Model.Library.TagValues
+    /// </summary>
     public class Message
     {
         public Guid Id { get; set; }
@@ -19,8 +22,5 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Messages
         public DateTimeOffset? CreationTimestamp { get; set; }
 
         public DateTimeOffset? UnifiedLastModificationTimestamp { get; set; }
-
-        // TODO: remove since it is not part of model and only needed by Repo.Save?
-        public Guid InstantiatesMessageTerminalId { get; set; }
     }
 }

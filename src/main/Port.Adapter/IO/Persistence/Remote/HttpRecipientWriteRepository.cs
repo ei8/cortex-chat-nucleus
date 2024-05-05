@@ -1,5 +1,6 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
+using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.IdentityAccess.Client.In;
 using neurUL.Common.Domain.Model;
@@ -55,6 +56,17 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                     //    DateTime.Now.AddDays(30),
                     //    token
                     //    );
+
+                    #region 'Message Instance' 
+                    // TODO: await this.transaction.CreatePropertyValue(
+                    //    this.neuronAdapter,
+                    //    this.terminalAdapter,
+                    //    message.Id,
+                    //    await this.libraryService.GetNeuronId(ExternalReferenceId.ReceiptInfo_MustHaveMessageInstance),
+                    //    message.SenderId,
+                    //    cpvdi
+                    //    );
+                    #endregion
                 }
             }
         }

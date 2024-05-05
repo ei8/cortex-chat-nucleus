@@ -67,11 +67,10 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                     Content = message.Content,
                     RegionId = message.RegionId,
                     SenderId = validationResult.UserNeuronId,
-                    ExternalReferenceUrl = message.ExternalReferenceUrl,
-                    InstantiatesMessageTerminalId = Guid.NewGuid()
+                    ExternalReferenceUrl = message.ExternalReferenceUrl
                 };
                 
-                await this.transaction.BeginAsync(new Guid[] { dMessage.Id, dMessage.InstantiatesMessageTerminalId }, validationResult.UserNeuronId);
+                await this.transaction.BeginAsync(validationResult.UserNeuronId);
 
                 await this.messageRepository.Save(dMessage);
                 if (message.RecipientAvatarIds != null) 

@@ -9,6 +9,9 @@
   <ItemGroup>
     <PackageReference Include="ei8.Cortex.Chat.Common" Version="0.2.1" />
     <PackageReference Include="Neurul.Common" Version="0.1.19" />
+    <Reference Include="System.ComponentModel.DataAnnotations">
+      <HintPath>..\..\..\..\..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.2\System.ComponentModel.DataAnnotations.dll</HintPath>
+    </Reference>
     <PackageReference Update="NETStandard.Library" Version="2.0.1" />
   </ItemGroup>
 

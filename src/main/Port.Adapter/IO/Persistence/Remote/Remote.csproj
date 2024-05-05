@@ -11,7 +11,7 @@
     <PackageReference Include="ei8.Cortex.Chat.Nucleus.Client" Version="0.2.4" />
     <PackageReference Include="ei8.Cortex.IdentityAccess.Client" Version="0.2.2" />
     <PackageReference Include="ei8.Cortex.Library.Client" Version="0.3.3" />
-    <PackageReference Include="ei8.EventSourcing.Client" Version="0.2.11" />
+    <PackageReference Include="ei8.EventSourcing.Client" Version="0.2.12" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
   </ItemGroup>
 

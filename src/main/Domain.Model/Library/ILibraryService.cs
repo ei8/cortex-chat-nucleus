@@ -6,6 +6,6 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Library
 {
     public interface ILibraryService
     {
-        Task<Guid> GetId(string tag);
+        Task<Guid> GetNeuronId(ExternalReferenceId value);
     }
 }
