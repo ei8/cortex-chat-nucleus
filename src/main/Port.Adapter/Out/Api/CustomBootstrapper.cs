@@ -2,16 +2,20 @@
 using ei8.Cortex.Chat.Nucleus.Application.Messages;
 using ei8.Cortex.Chat.Nucleus.Client.Out;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
+using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote;
+using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services;
 using ei8.Cortex.Library.Client.Out;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Nancy;
 using Nancy.TinyIoc;
 using neurUL.Common.Http;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
@@ -42,7 +46,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
             container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
             container.Register(this.configuration);
             container.Register<ISettingsService, SettingsService>();
-            container.Register<IIdentityService, IdentityService>();
+            container.Register(this.serviceProvider.GetService<IOptions<List<ExternalReference>>>());
             container.Register<IAvatarReadRepository, HttpAvatarReadRepository>();
             container.Register<IMessageQueryClient, HttpMessageQueryClient>();
             container.Register(this.serviceProvider.GetService<IHttpClientFactory>());

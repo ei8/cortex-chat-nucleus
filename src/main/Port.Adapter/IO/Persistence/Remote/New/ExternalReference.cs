@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Library
+namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
 {
     public class ExternalReference
     {
         public string Url { get; set; }
-        public Guid NeuronId { get; set; }
-        public ExternalReferenceId Id { get; set; }
+        public string Key { get; set; }
     }
 }

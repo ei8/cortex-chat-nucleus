@@ -1,8 +1,10 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
+using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New;
 using ei8.Cortex.Library.Client.Out;
 using ei8.Cortex.Library.Common;
+using Microsoft.Extensions.Options;
 using neurUL.Common.Domain.Model;
 using System;
 using System.Collections.Generic;
@@ -16,40 +18,40 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
     {
         private readonly INeuronQueryClient neuronQueryClient;
         private readonly ISettingsService settingsService;
-        private readonly IIdentityService identityService;
+        private readonly IEnumerable<ExternalReference> externalReferences;
 
         public HttpAvatarReadRepository(
             INeuronQueryClient neuronQueryClient,
             ISettingsService settingsService,
-            IIdentityService identityService
+            IOptions<List<ExternalReference>> externalReferences
             )
         {
             AssertionConcern.AssertArgumentNotNull(neuronQueryClient, nameof(neuronQueryClient));
             AssertionConcern.AssertArgumentNotNull(settingsService, nameof(settingsService));
-            AssertionConcern.AssertArgumentNotNull(identityService, nameof(identityService));
-
+            AssertionConcern.AssertArgumentNotNull(externalReferences, nameof(externalReferences));
+            
             this.neuronQueryClient = neuronQueryClient;
             this.settingsService = settingsService;
-            this.identityService = identityService;
+            this.externalReferences = externalReferences.Value.ToArray();
         }
 
-        public async Task<IEnumerable<Avatar>> GetAll(CancellationToken token = default)
+        public async Task<IEnumerable<Avatar>> GetAll(string userId, CancellationToken token = default)
         {
             var neurons = await this.neuronQueryClient.GetNeuronsInternal(
                 this.settingsService.CortexLibraryOutBaseUrl + "/",
                 new NeuronQuery()
                 {
-                    PostsynapticExternalReferenceUrl = this.settingsService.ExternalReferences.Where(er => er.Id == ExternalReferenceId.InstantiatesAvatar).Select(er => er.Url),
+                    PostsynapticExternalReferenceUrl = this.externalReferences.Where(er => er.Key == ExternalReferenceKey.InstantiatesAvatar.ToString()).Select(er => er.Url),
                     SortBy = SortByValue.NeuronExternalReferenceUrl,
                     SortOrder = SortOrderValue.Ascending
                 },
-                this.identityService.UserId
+                userId
                 );
 
             return neurons.Items.Select(n => n.ToDomainAvatar());
         }
 
-        public async Task<IEnumerable<Avatar>> GetByIds(IEnumerable<Guid> ids, CancellationToken token = default)
+        public async Task<IEnumerable<Avatar>> GetByIds(IEnumerable<Guid> ids, string userId, CancellationToken token = default)
         {
             AssertionConcern.AssertArgumentNotNull(ids, nameof(ids));
 
@@ -65,7 +67,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                         SortBy = SortByValue.NeuronExternalReferenceUrl,
                         SortOrder = SortOrderValue.Ascending
                     },
-                    this.identityService.UserId
+                    userId
                     );
 
                 result = neurons.Items.Select(n => n.ToDomainAvatar());

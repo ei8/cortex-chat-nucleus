@@ -1,18 +1,11 @@
-﻿using ei8.Cortex.Chat.Nucleus.Application;
-using ei8.Cortex.Chat.Nucleus.Client.In;
-using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
+﻿using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
-using ei8.Cortex.Library.Common;
+using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New;
 using ei8.EventSourcing.Client;
-using IdentityModel.Client;
 using Microsoft.Extensions.DependencyInjection;
 using neurUL.Common.Domain.Model;
-using neurUL.Cortex.Domain.Model.Neurons;
-using neurUL.Cortex.Port.Adapter.In.InProcess;
 using System;
 using System.Linq;
-using System.Net.Http;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,105 +16,153 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         private readonly IServiceProvider serviceProvider;
         
         public HttpMessageWriteRepository(IServiceProvider serviceProvider)
-            
         {
             AssertionConcern.AssertArgumentNotNull(serviceProvider, nameof(serviceProvider));
             
             this.serviceProvider = serviceProvider;
         }
 
-        public async Task Save(Message message, CancellationToken token = default)
+        public async Task Save(Message message, string userId, CancellationToken token = default)
         {
-            var libraryService = this.serviceProvider.GetRequiredService<ILibraryService>();
+            var neuronService = this.serviceProvider.GetRequiredService<INeuronService>();
+            var terminalService = this.serviceProvider.GetRequiredService<ITerminalService>();
+            var transaction = this.serviceProvider.GetRequiredService<ITransaction>();
 
-            #region 'Hello World;Message' value
-            var messageInstanceTagSuffix = ";Message";
-            await this.serviceProvider.CreateInstanceAsync(
-                message.Id,
-                message.Content + messageInstanceTagSuffix,
-                message.RegionId,
-                message.ExternalReferenceUrl,
-                await libraryService.GetNeuronId(ExternalReferenceId.InstantiatesMessage),
-                message.SenderId
-                );
-            #endregion
-
-            var cpvdi = new CreatePropertyValueDependencyIds(
-                await libraryService.GetNeuronId(ExternalReferenceId.Unit),
-                await libraryService.GetNeuronId(ExternalReferenceId.Subordination),
-                await libraryService.GetNeuronId(ExternalReferenceId.Of_Case),
-                await libraryService.GetNeuronId(ExternalReferenceId.NominalModifier),
-                await libraryService.GetNeuronId(ExternalReferenceId.DirectObject),
-                await libraryService.GetNeuronId(ExternalReferenceId.Has_Unit)
-            );
-
-            #region 'Content' property value
-            var contentValueNeuronId = Guid.NewGuid();
-            await this.serviceProvider.CreateInstanceAsync(
-                contentValueNeuronId,
-                message.Content,
-                message.RegionId,
-                null,
-                await libraryService.GetNeuronId(ExternalReferenceId.InstantiatesIdea),
-                message.SenderId
+            #region Temp Code  - For Creating an 'Instantiates^[Class]~do' ensemble
+            var ers = await neuronService.GetExternalReferences(
+                userId,
+                ExternalReferenceKey.DirectObject,
+                typeof(Domain.Model.Messages.Message),
+                ExternalReferenceKey.InstantiatesMessage,
+                ExternalReferenceKey.Subordination,
+                ExternalReferenceKey.Instantiates_Unit
                 );
 
-            var contentPropNeuronId = await this.serviceProvider.CreatePropertyValueAsync(
-               contentValueNeuronId,
-               await libraryService.GetNeuronId(ExternalReferenceId.Message_MustHaveContent),
-               message.SenderId,
-               cpvdi
-            );
-            #endregion
+            // TODO: use NeuronQueryClient to determine whether 'Message~do' already exists in DB
+            // if not yet in DB 
+            // ... use to create neuron in memory
+            // var message_do = neuronService.CreateTransient();
+            // message_do.Tag = "Message~do";
 
-            #region 'Author' property value
-            var authorPropNeuronId = await this.serviceProvider.CreatePropertyValueAsync(
-               message.SenderId,
-               await libraryService.GetNeuronId(ExternalReferenceId.Message_MustHaveAuthor),
-               message.SenderId,
-               cpvdi
-            );
-            #endregion
-
-            var nowTimestampValueNeuronId = Guid.NewGuid();
-            await this.serviceProvider.CreateInstanceAsync(
-                nowTimestampValueNeuronId,
-                DateTimeOffset.UtcNow.ToString("o"),
-                message.RegionId,
-                null,
-                await libraryService.GetNeuronId(ExternalReferenceId.InstantiatesDateTimeOffset),
-                message.SenderId
-                );
-
-            #region 'CreationTimestamp' property value
-            var creationPropNeuronId = await this.serviceProvider.CreatePropertyValueAsync(
-               nowTimestampValueNeuronId,
-               await libraryService.GetNeuronId(ExternalReferenceId.Message_MustHaveCreationTimestamp),
-               message.SenderId,
-               cpvdi
-            );
-            #endregion
-
-            #region 'LastModificationTimestamp' property value
-            var lastModificationPropNeuronId = await this.serviceProvider.CreatePropertyValueAsync(
-               nowTimestampValueNeuronId,
-               await libraryService.GetNeuronId(ExternalReferenceId.Message_MustHaveLastModificationTimestamp),
-               message.SenderId,
-               cpvdi
-            );
-            #endregion
-
-            await this.serviceProvider.LinkInstancePropertyValuesAsync(
-                message.Id,
-                new Guid[]
+            // ... use to create based on NeuronData
+            var message_do = neuronService.CreateFromData(
+                new NeuronData()
                 {
-                    contentPropNeuronId,
-                    authorPropNeuronId,
-                    creationPropNeuronId,
-                    lastModificationPropNeuronId
-                },
-                message.SenderId
+                    Id = Guid.Parse("3748be0d-94aa-40bf-b209-cb359194886c"),
+                    Tag = "Message~do"
+                }
                 );
+
+            var links1 = await terminalService.GetOrCreateTerminalsIfNotExistsAsync(
+                message_do, 
+                userId,
+                ers[ExternalReferenceKey.DirectObject],
+                ers[typeof(Domain.Model.Messages.Message)]
+                );
+
+            var instantiates_message_do = ers[ExternalReferenceKey.InstantiatesMessage]; 
+
+            var links2 = await terminalService.GetOrCreateTerminalsIfNotExistsAsync(
+                instantiates_message_do, 
+                userId,
+                ers[ExternalReferenceKey.Subordination],
+                ers[ExternalReferenceKey.Instantiates_Unit], 
+                message_do
+                );
+
+            var sd = instantiates_message_do.ToSerializableData();
+
+            await transaction.SaveEnsembleDataAsync(this.serviceProvider, sd, message.SenderId);
+            #endregion
+
+            //#region 'Hello World;Message' value
+            //var messageInstanceTagSuffix = ";Message";
+            //await this.serviceProvider.CreateInstanceAsync(
+            //    message.Id,
+            //    message.Content + messageInstanceTagSuffix,
+            //    message.RegionId,
+            //    message.ExternalReferenceUrl,
+            //    (await neuronService.GetOrCreateIfNotExistsAsync(ExternalReferenceKey.InstantiatesMessage, userId)).Id,
+            //    message.SenderId
+            //    );
+            //#endregion
+
+            //var cpvdi = new CreatePropertyValueDependencyIds(
+            //    (await neuronService.GetOrCreateIfNotExistsAsync(ExternalReferenceKey.Unit, userId)).Id,
+            //    (await neuronService.GetOrCreateIfNotExistsAsync(ExternalReferenceKey.Subordination, userId)).Id,
+            //    (await neuronService.GetOrCreateIfNotExistsAsync(ExternalReferenceKey.Of_Case, userId)).Id,
+            //    (await neuronService.GetOrCreateIfNotExistsAsync(ExternalReferenceKey.NominalModifier, userId)).Id,
+            //    (await neuronService.GetOrCreateIfNotExistsAsync(ExternalReferenceKey.DirectObject, userId)).Id,
+            //    (await neuronService.GetOrCreateIfNotExistsAsync(ExternalReferenceKey.Has_Unit, userId)).Id
+            //);
+
+            //#region 'Content' property value
+            //var contentValueNeuronId = Guid.NewGuid();
+            //await this.serviceProvider.CreateInstanceAsync(
+            //    contentValueNeuronId,
+            //    message.Content,
+            //    message.RegionId,
+            //    null,
+            //    (await neuronService.GetOrCreateIfNotExistsAsync(ExternalReferenceKey.InstantiatesIdea, userId)).Id,
+            //    message.SenderId
+            //    );
+
+            //var contentPropNeuronId = await this.serviceProvider.CreatePropertyValueAsync(
+            //   contentValueNeuronId,
+            //   (await neuronService.GetOrCreateIfNotExistsAsync(ExternalReferenceKey.Message_MustHaveContent, userId)).Id,
+            //   message.SenderId,
+            //   cpvdi
+            //);
+            //#endregion
+
+            //#region 'Author' property value
+            //var authorPropNeuronId = await this.serviceProvider.CreatePropertyValueAsync(
+            //   message.SenderId,
+            //   (await neuronService.GetOrCreateIfNotExistsAsync(ExternalReferenceKey.Message_MustHaveAuthor, userId)).Id,
+            //   message.SenderId,
+            //   cpvdi
+            //);
+            //#endregion
+
+            //var nowTimestampValueNeuronId = Guid.NewGuid();
+            //await this.serviceProvider.CreateInstanceAsync(
+            //    nowTimestampValueNeuronId,
+            //    DateTimeOffset.UtcNow.ToString("o"),
+            //    message.RegionId,
+            //    null,
+            //    (await neuronService.GetOrCreateIfNotExistsAsync(ExternalReferenceKey.InstantiatesDateTimeOffset, userId)).Id,
+            //    message.SenderId
+            //    );
+
+            //#region 'CreationTimestamp' property value
+            //var creationPropNeuronId = await this.serviceProvider.CreatePropertyValueAsync(
+            //   nowTimestampValueNeuronId,
+            //   (await neuronService.GetOrCreateIfNotExistsAsync(ExternalReferenceKey.Message_MustHaveCreationTimestamp, userId)).Id,
+            //   message.SenderId,
+            //   cpvdi
+            //);
+            //#endregion
+
+            //#region 'LastModificationTimestamp' property value
+            //var lastModificationPropNeuronId = await this.serviceProvider.CreatePropertyValueAsync(
+            //   nowTimestampValueNeuronId,
+            //   (await neuronService.GetOrCreateIfNotExistsAsync(ExternalReferenceKey.Message_MustHaveLastModificationTimestamp, userId)).Id,
+            //   message.SenderId,
+            //   cpvdi
+            //);
+            //#endregion
+
+            //await this.serviceProvider.LinkInstancePropertyValuesAsync(
+            //    message.Id,
+            //    new Guid[]
+            //    {
+            //        contentPropNeuronId,
+            //        authorPropNeuronId,
+            //        creationPropNeuronId,
+            //        lastModificationPropNeuronId
+            //    },
+            //    message.SenderId
+            //    );
         }
     }
 }

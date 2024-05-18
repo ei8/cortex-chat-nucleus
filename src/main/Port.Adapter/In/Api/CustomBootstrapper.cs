@@ -8,6 +8,7 @@ using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote;
+using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services;
 using ei8.Cortex.IdentityAccess.Client.In;
 using ei8.Cortex.IdentityAccess.Client.Out;
@@ -16,6 +17,7 @@ using ei8.EventSourcing.Client;
 using ei8.EventSourcing.Client.Out;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Nancy;
 using Nancy.TinyIoc;
 using neurUL.Common.Http;
@@ -41,6 +43,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
         {
             base.ConfigureRequestContainer(container, context);
 
+            // TODO: remove when Authorities is removed from settings
             container.Register(this.configuration);
             container.Register(this.serviceProvider.GetService<IHttpClientFactory>());
 
@@ -55,15 +58,17 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                     rp.SetHttpClientHandler(new HttpClientHandler());
                     return rp;
                 });
-            
+
+            container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
             container.Register<ISettingsService, SettingsService>();
-            container.Register<IIdentityService, IdentityService>();
+            container.Register(this.serviceProvider.GetService<IOptions<List<ExternalReference>>>());
             container.Register<IValidationClient, HttpValidationClient>();
             container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
             container.Register<IAvatarReadRepository, HttpAvatarReadRepository>();
             container.Register<IPermitClient, HttpPermitClient>();
             container.Register<IRecipientWriteRepository, HttpRecipientWriteRepository>();
-            container.Register<ILibraryService, LibraryService>();
+            container.Register<INeuronService, NeuronService>();
+            container.Register<ITerminalService, TerminalService>();
 
             // data
             container.Register<IEventStoreUrlService>(

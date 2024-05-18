@@ -3,9 +3,11 @@ using ei8.Cortex.Chat.Nucleus.Client.Out;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
+using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New;
 using ei8.Cortex.Library.Client.Out;
 using ei8.Cortex.Library.Common;
 using IdentityModel.Client;
+using Microsoft.Extensions.Options;
 using Nancy.Extensions;
 using neurUL.Common.Domain.Model;
 using System;
@@ -23,30 +25,30 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         private readonly IMessageQueryClient messageQueryClient;
         private readonly ISettingsService settingsService;
         private readonly IHttpClientFactory httpClientFactory;
-        private readonly IIdentityService identityService;
+        private readonly IEnumerable<ExternalReference> externalReferences;
 
         public HttpMessageReadRepository(
             INeuronQueryClient neuronQueryClient,
             IMessageQueryClient messageQueryClient,
             ISettingsService settingsService,
-            IHttpClientFactory httpClientFactory,
-            IIdentityService identityService
+            IHttpClientFactory httpClientFactory, 
+            IOptions<List<ExternalReference>> externalReferences
             )
         {
             AssertionConcern.AssertArgumentNotNull(neuronQueryClient, nameof(neuronQueryClient));
             AssertionConcern.AssertArgumentNotNull(messageQueryClient, nameof(messageQueryClient));
             AssertionConcern.AssertArgumentNotNull(settingsService, nameof(settingsService));
             AssertionConcern.AssertArgumentNotNull(httpClientFactory, nameof(httpClientFactory));
-            AssertionConcern.AssertArgumentNotNull(identityService, nameof(identityService));
+            AssertionConcern.AssertArgumentNotNull(externalReferences, nameof(externalReferences));
 
             this.neuronQueryClient = neuronQueryClient;
             this.messageQueryClient = messageQueryClient;
             this.settingsService = settingsService;
             this.httpClientFactory = httpClientFactory;
-            this.identityService = identityService;
+            this.externalReferences = externalReferences.Value.ToArray();
         }
 
-        public async Task<IEnumerable<MessageResult>> GetAll(DateTimeOffset? maxTimestamp, int? pageSize, IEnumerable<Avatar> avatars, CancellationToken token = default)
+        public async Task<IEnumerable<MessageResult>> GetAll(DateTimeOffset? maxTimestamp, int? pageSize, IEnumerable<Avatar> avatars, string userId, CancellationToken token = default)
         {
             if (!maxTimestamp.HasValue)
                 maxTimestamp = DateTimeOffset.UtcNow;
@@ -58,11 +60,11 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 this.settingsService.CortexLibraryOutBaseUrl + "/",
                 new NeuronQuery()
                 {
-                    PostsynapticExternalReferenceUrl = this.settingsService.ExternalReferences.Where(er => er.Id == ExternalReferenceId.InstantiatesMessage).Select(er => er.Url),
+                    PostsynapticExternalReferenceUrl = this.externalReferences.Where(er => er.Key == ExternalReferenceKey.InstantiatesMessage.ToString()).Select(er => er.Url),
                     SortBy = SortByValue.NeuronCreationTimestamp,
                     SortOrder = SortOrderValue.Descending
                 },
-                this.identityService.UserId
+                userId
                 );
 
             var result = neurons.Items

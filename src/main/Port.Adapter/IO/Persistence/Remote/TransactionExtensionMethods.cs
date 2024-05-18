@@ -1,5 +1,4 @@
-﻿using ei8.Cortex.Library.Common;
-using ei8.EventSourcing.Client;
+﻿using ei8.EventSourcing.Client;
 using Microsoft.Extensions.DependencyInjection;
 using neurUL.Common.Domain.Model;
 using neurUL.Cortex.Domain.Model.Neurons;

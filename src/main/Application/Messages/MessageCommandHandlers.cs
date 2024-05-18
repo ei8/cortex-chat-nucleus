@@ -20,15 +20,13 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         private readonly IRecipientWriteRepository recipientRepository;
         private readonly IValidationClient validationClient;
         private readonly ISettingsService settingsService;
-        private readonly IIdentityService identityService;
 
         public MessageCommandHandlers(
             ITransaction transaction,
             IMessageWriteRepository messageRepository,
             IRecipientWriteRepository recipientRepository,
             IValidationClient validationClient, 
-            ISettingsService settingsService,
-            IIdentityService identityService
+            ISettingsService settingsService
             )
         {
             AssertionConcern.AssertArgumentNotNull(transaction, nameof(transaction));
@@ -36,14 +34,12 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             AssertionConcern.AssertArgumentNotNull(recipientRepository, nameof(recipientRepository));
             AssertionConcern.AssertArgumentNotNull(validationClient, nameof(validationClient));
             AssertionConcern.AssertArgumentNotNull(settingsService, nameof(settingsService));
-            AssertionConcern.AssertArgumentNotNull(identityService, nameof(identityService));
-
+            
             this.transaction = transaction;
             this.messageRepository = messageRepository;
             this.recipientRepository = recipientRepository;
             this.validationClient = validationClient;
             this.settingsService = settingsService;
-            this.identityService = identityService;
         }
 
         public async Task Handle(CreateMessage message, CancellationToken token = default)
@@ -55,7 +51,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                 this.settingsService.IdentityAccessOutBaseUrl + "/",
                 message.Id,
                 message.RegionId,
-                this.identityService.UserId,
+                message.UserId,
                 token
                 );
 
@@ -72,7 +68,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                 
                 await this.transaction.BeginAsync(validationResult.UserNeuronId);
 
-                await this.messageRepository.Save(dMessage);
+                await this.messageRepository.Save(dMessage, message.UserId);
                 if (message.RecipientAvatarIds != null) 
                     await this.recipientRepository.SaveAll(
                         message.RecipientAvatarIds.Select(dri =>
@@ -82,7 +78,8 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                                 Message = dMessage,
                                 AvatarId = dri
                             }
-                        )
+                        ),
+                        message.UserId
                         );
 
                 await this.transaction.CommitAsync();

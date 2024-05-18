@@ -14,7 +14,6 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 {
     public class HttpRecipientWriteRepository : IRecipientWriteRepository
     {
-        // TODO: remove IRegionReadRepository once remote messageClient calls are removed
         private readonly IAvatarReadRepository avatarReadRepository;
         private readonly IPermitClient permitClient;
         private readonly ISettingsService settingsService;
@@ -34,11 +33,11 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             this.settingsService = settingsService;
         }
 
-        public async Task SaveAll(IEnumerable<Recipient> recipients, CancellationToken token = default)
+        public async Task SaveAll(IEnumerable<Recipient> recipients, string userId, CancellationToken token = default)
         {
             if (recipients.Any())
             { 
-                var avatarsDict = (await this.avatarReadRepository.GetByIds(recipients.Select(d => d.AvatarId)))
+                var avatarsDict = (await this.avatarReadRepository.GetByIds(recipients.Select(d => d.AvatarId), userId))
                     .ToDictionary(r => r.Id);
 
                 foreach (var r in recipients)

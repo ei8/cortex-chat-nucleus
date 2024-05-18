@@ -12,11 +12,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
 {
     public class MessageModule : NancyModule
     {
-        public MessageModule(IMessageQueryService messageQueryService, IIdentityService identityService) : base("/nuclei/chat/messages")
+        public MessageModule(IMessageQueryService messageQueryService) : base("/nuclei/chat/messages")
         {
             this.Get("/", async (parameters) => {
-                identityService.UserId = MessageModule.GetUserId(Request);
-
                 return new TextResponse(JsonConvert.SerializeObject(
                    await messageQueryService.GetMessages(
                        Request.Query.maxTimestamp.HasValue ?
@@ -29,7 +27,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
                            ((string) Request.Query.avatarId.Value.ToString())
                             .Split(',')
                             .Select(s => Guid.Parse(s)):
-                           Array.Empty<Guid>()
+                           Array.Empty<Guid>(),
+                       MessageModule.GetUserId(Request)
                    )
                    ));
                 }

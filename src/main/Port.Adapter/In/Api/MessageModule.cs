@@ -18,7 +18,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                                 result = HttpStatusCode.Conflict;                            
                             return result;
                         });
-        public MessageModule(ICommandSender commandSender, IIdentityService identityService) : base("/nuclei/chat/messages")
+        public MessageModule(ICommandSender commandSender) : base("/nuclei/chat/messages")
         {
             this.Post(string.Empty, async (parameters) =>
             {
@@ -41,14 +41,13 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                                 bodyAsDictionary[nameof(CreateMessage.RecipientAvatarIds)] != null)
                                 recipientAvatarIds = ((JArray) bodyAsDictionary[nameof(CreateMessage.RecipientAvatarIds)]).ToObject<string[]>();
 
-                            identityService.UserId = bodyAsObject.UserId.ToString();
-
                             await commandSender.Send(new CreateMessage(
                                 Guid.Parse(bodyAsObject.Id.ToString()),
                                 bodyAsObject.Content.ToString(),
                                 regionId,
                                 externalReferenceUrl,
-                                recipientAvatarIds?.Select(dri => Guid.Parse(dri))
+                                recipientAvatarIds?.Select(dri => Guid.Parse(dri)),
+                                bodyAsObject.UserId.ToString()
                                 )
                             );
                         },

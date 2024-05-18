@@ -23,7 +23,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             this.avatarRepository = avatarRepository;
         }
 
-        public async Task<IEnumerable<Common.MessageResult>> GetMessages(DateTimeOffset? maxTimestamp, int? pageSize, IEnumerable<Guid> avatarIds, CancellationToken token = default)
+        public async Task<IEnumerable<Common.MessageResult>> GetMessages(DateTimeOffset? maxTimestamp, int? pageSize, IEnumerable<Guid> avatarIds, string userId, CancellationToken token = default)
         {
             AssertionConcern.AssertArgumentNotNull(avatarIds, nameof(avatarIds));
 
@@ -31,7 +31,8 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                 await this.messageRepository.GetAll(
                     maxTimestamp, 
                     pageSize,
-                    await this.avatarRepository.GetByIds(avatarIds),
+                    await this.avatarRepository.GetByIds(avatarIds, userId),
+                    userId,
                     token
                 )
             ).Select(m => m.ToCommon());

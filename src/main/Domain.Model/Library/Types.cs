@@ -8,12 +8,14 @@ using System.Threading;
 
 namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Library
 {
-    public enum ExternalReferenceId
+    public enum ExternalReferenceKey
     {
         [Display(Name = "Direct Object:Dependency:Dependent:Unit")]
         DirectObject,
         [Display(Name = "Has^")]
         Has_Unit,
+        [Display(Name = "Instantiates^")]
+        Instantiates_Unit,
         [Display(Name = "Instantiates^Avatar~do")]
         InstantiatesAvatar,
         [Display(Name = "Instantiates^(Date Time Offset)~do")]

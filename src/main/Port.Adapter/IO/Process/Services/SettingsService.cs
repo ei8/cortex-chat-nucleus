@@ -28,7 +28,5 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services
         public int PageSize => int.TryParse(Environment.GetEnvironmentVariable(EnvironmentVariableKeys.PageSize), out int size) ? size : Default.PageSize;
 
         public IEnumerable<Authority> Authorities => this.configuration.GetSection(nameof(Authorities)).Get<IEnumerable<Authority>>();
-
-        public IEnumerable<ExternalReference> ExternalReferences => this.configuration.GetSection(nameof(ExternalReferences)).Get<IEnumerable<ExternalReference>>();
     }
 }

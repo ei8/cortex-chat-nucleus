@@ -1,11 +1,9 @@
-﻿using ei8.Cortex.Chat.Nucleus.Application;
+﻿using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Nancy.Owin;
-using Newtonsoft.Json;
-using System.Collections;
 using System.Collections.Generic;
 using System.Net.Http;
 
@@ -37,6 +35,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             {
                 options.AllowSynchronousIO = true;
             });
+            services.AddOptions();
+            services.Configure<List<ExternalReference>>(configuration.GetSection("ExternalReferences"));
         }
 
         public void Configure(IApplicationBuilder app)

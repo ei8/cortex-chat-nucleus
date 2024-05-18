@@ -20,12 +20,12 @@ namespace ei8.Cortex.Chat.Nucleus.Application
             this.avatarRepository = avatarRepository;
         }
 
-        public async Task<IEnumerable<AvatarResult>> GetAvatars(CancellationToken token = default) => 
-            (await this.avatarRepository.GetAll(token)).Select(r => r.ToCommon());
+        public async Task<IEnumerable<AvatarResult>> GetAvatars(string userId, CancellationToken token = default) => 
+            (await this.avatarRepository.GetAll(userId, token)).Select(r => r.ToCommon());
 
-        public async Task<IEnumerable<AvatarResult>> GetAvatarsByIds(IEnumerable<Guid> ids, CancellationToken token = default)
+        public async Task<IEnumerable<AvatarResult>> GetAvatarsByIds(IEnumerable<Guid> ids, string userId, CancellationToken token = default)
         {
-            return (await this.avatarRepository.GetByIds(ids, token)).Select(r => r.ToCommon());
+            return (await this.avatarRepository.GetByIds(ids, userId, token)).Select(r => r.ToCommon());
         }
     }
 }

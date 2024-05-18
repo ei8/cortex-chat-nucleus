@@ -8,8 +8,8 @@ namespace ei8.Cortex.Chat.Nucleus.Application
 {
     public interface IAvatarQueryService
     {
-        Task<IEnumerable<Common.AvatarResult>> GetAvatars(CancellationToken token = default);
+        Task<IEnumerable<Common.AvatarResult>> GetAvatars(string userId, CancellationToken token = default);
 
-        Task<IEnumerable<Common.AvatarResult>> GetAvatarsByIds(IEnumerable<Guid> ids, CancellationToken token = default);
+        Task<IEnumerable<Common.AvatarResult>> GetAvatarsByIds(IEnumerable<Guid> ids, string userId, CancellationToken token = default);
     }
 }
