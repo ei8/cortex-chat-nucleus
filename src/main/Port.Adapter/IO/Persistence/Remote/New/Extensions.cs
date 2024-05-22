@@ -1,9 +1,14 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application;
+using ei8.Cortex.Graph.Common;
 using ei8.EventSourcing.Client;
 using Microsoft.Extensions.DependencyInjection;
+using Nancy.Extensions;
+using neurUL.Common.Domain.Model;
 using neurUL.Cortex.Application.Neurons.Commands;
+using neurUL.Cortex.Common;
 using neurUL.Cortex.Domain.Model.Neurons;
 using neurUL.Cortex.Port.Adapter.In.InProcess;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -63,9 +68,35 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
             Neuron postsynaptic) =>
             (await terminalService.GetOrCreateTerminalsIfNotExistsAsync(presynaptic, userId, postsynaptic)).SingleOrDefault();
 
-        public static New.Neuron CreateFromData(
-            this INeuronService neuronService,
-            NeuronData value
+        public static New.Neuron ToEnsemble(
+            this Library.Common.QueryResult<Library.Common.Neuron> queryResult, 
+            params Library.Common.QueryResult<Library.Common.Neuron>[] queryResults)
+        {
+            var allNs = queryResult.Items
+                .SelectMany(n => n.Traversals.SelectMany(t => t.Neurons));
+            var allTs = queryResult.Items
+                .SelectMany(n => n.Traversals.SelectMany(t => t.Terminals));
+
+            foreach (var qr in queryResults)
+            {
+                var ns = qr.Items
+                    .SelectMany(n => n.Traversals.SelectMany(t => t.Neurons));
+                var ts = qr.Items
+                    .SelectMany(n => n.Traversals.SelectMany(t => t.Terminals));
+
+                allNs = allNs.Concat(ns);
+                allTs = allTs.Concat(ts);
+            }
+
+            var eNs = allNs.DistinctBy(n => n.Id)
+                .Select(n => n.ToEnsemble()).ToList();
+            var eTs = allTs.DistinctBy(t => t.Id)
+                .Select(t => t.ToEnsemble(eNs)).ToList();
+
+            return eNs[0];
+        }
+        public static New.Neuron ToEnsemble(
+            this NeuronData value
             ) => NeuronService.CreateNeuron(
                 value.Id,
                 false,
@@ -74,7 +105,47 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
                 value.RegionId
                 );
 
-        public static EnsembleData ToSerializableData(this Neuron neuron, bool includeTransientOnly = true)
+        public static New.Neuron ToEnsemble(
+            this Library.Common.Neuron value
+            ) 
+        {
+            Guid? g = null;
+
+            if (Guid.TryParse(value.Region?.Id, out Guid gr))
+                g = gr;
+            
+            return NeuronService.CreateNeuron(
+                Guid.Parse(value.Id),
+                false,
+                value.Tag,
+                value.ExternalReferenceUrl,
+                g   
+            );
+        }
+
+        public static New.Terminal ToEnsemble(
+            this Library.Common.Terminal value,
+            IEnumerable<Neuron> neurons
+        )
+        {
+            var presynaptic = neurons.Single(n => n.Id.ToString() == value.PresynapticNeuronId);
+            var postsynaptic = neurons.Single(n => n.Id.ToString() == value.PostsynapticNeuronId);
+
+            var result = new Terminal();
+            result.Id = Guid.Parse(value.Id);
+            result.IsTransient = false;
+            result.Strength = float.Parse(value.Strength);
+            result.Effect = Enum.TryParse(value.Effect, out NeurotransmitterEffect ne) ? ne : NeurotransmitterEffect.Excite;
+
+            result.Presynaptic = presynaptic;
+            result.Postsynaptic = postsynaptic;
+            presynaptic.AddTerminal(result);
+            postsynaptic.AddDendrite(result);
+
+            return result;
+        }
+
+        public static EnsembleData ToEnsembleData(this Neuron neuron, bool includeTransientOnly = true)
         {
             var neuronsList = new List<NeuronData>();
             var terminalsList = new List<TerminalData>();
@@ -215,5 +286,24 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
             #endregion
         }
 
+        public static bool HasSameElementsAs<T>(
+                this IEnumerable<T> first,
+                IEnumerable<T> second
+            )
+        {
+            var firstMap = first
+                .GroupBy(x => x)
+                .ToDictionary(x => x.Key, x => x.Count());
+            var secondMap = second
+                .GroupBy(x => x)
+                .ToDictionary(x => x.Key, x => x.Count());
+            return
+                firstMap.Keys.All(x =>
+                    secondMap.Keys.Contains(x) && firstMap[x] == secondMap[x]
+                ) &&
+                secondMap.Keys.All(x =>
+                    firstMap.Keys.Contains(x) && secondMap[x] == firstMap[x]
+                );
+        }
     }
 }

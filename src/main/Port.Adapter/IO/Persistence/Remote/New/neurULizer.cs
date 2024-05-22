@@ -31,9 +31,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
                 // assembly qualified name 
                 key = key.GetType().FullName;
             // use key to retrieve external reference url from library
-            var rootTypeNeuronId = await options.ExternalReferenceRetriever(new string[] { key });
-
-            // if "Instantiates, Message" exists based on retrieved (1) message class erurl (2) instantiates erurl
+            var erDict = await options.ExternalReferenceRetriever(new string[] { key });
+            var rootTypeNeuron = erDict[key];
+            // if "Instantiates, Message" exists based on retrieved (1) message class and (2) instantiates erurl - via a options.InstantiatesClassRetriever(new string[] { key })
             // ... deserialize to and cache ensemble
             // else
             // ... create "instantiates, message" etc.			

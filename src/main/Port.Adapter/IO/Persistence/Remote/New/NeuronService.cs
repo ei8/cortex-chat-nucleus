@@ -1,7 +1,9 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application;
+using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
 using ei8.Cortex.Library.Client.Out;
 using ei8.Cortex.Library.Common;
 using Microsoft.Extensions.Options;
+using Nancy.Extensions;
 using neurUL.Common.Domain.Model;
 using neurUL.Cortex.Application.Neurons.Commands;
 using System;
@@ -30,6 +32,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
 
         public async Task<IDictionary<string, Neuron>> GetExternalReferences(string userId, params string[] keys)
         {
+            AssertionConcern.AssertArgumentNotEmpty(userId, "Specified 'userId' cannot be null or empty.", nameof(userId));
             AssertionConcern.AssertArgumentNotNull(keys, nameof(keys));
             AssertionConcern.AssertArgumentValid(k => k.Length > 0, keys, "Specified 'keys' array cannot be an empty array.", nameof(keys));
             
@@ -51,7 +54,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
             foreach (var n in qr.Items)
             {
                 Guid? r = null;
-                if (Guid.TryParse(n.Region?.Id, out Guid g))
+                if (Guid.TryParse(n?.Id, out Guid g))
                     r = g;
                 result.Add(
                     exRefs.Single(er => er.Url == n.ExternalReferenceUrl).Key,
@@ -78,6 +81,63 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
             result.RegionId = regionId;
             return result;
         }
+
+        public async Task<IDictionary<string, Neuron>> GetInstantiatesClassNeurons(string userId, params string[] keys)
+        {
+            AssertionConcern.AssertArgumentNotEmpty(userId, "Specified 'userId' cannot be null or empty.", nameof(userId));
+            AssertionConcern.AssertArgumentNotNull(keys, nameof(keys));
+            AssertionConcern.AssertArgumentValid(k => k.Length > 0, keys, "Specified 'keys' array cannot be an empty array.", nameof(keys));
+
+            var result = new Dictionary<string, Neuron>();
+
+            var coreNeurons = await this.GetExternalReferences(
+                    userId,
+                    ExternalReferenceKey.DirectObject,
+                    ExternalReferenceKey.Subordination,
+                    ExternalReferenceKey.Instantiates_Unit
+                    );
+            var coreQr = (await this.neuronQueryClient.GetNeuronsInternal(
+                    this.settingsService.CortexLibraryOutBaseUrl + "/",
+                    new NeuronQuery()
+                    {
+                        PostsynapticExternalReferenceUrl = new[] {
+                            coreNeurons[ExternalReferenceKey.Subordination].ExternalReferenceUrl,
+                            coreNeurons[ExternalReferenceKey.Instantiates_Unit].ExternalReferenceUrl
+                            },
+                        DirectionValues = DirectionValues.Outbound,
+                        Depth = 1
+                    },
+                    userId
+                ));
+            var ice = new InstantiatesClassEnsemble(
+                    coreNeurons[ExternalReferenceKey.DirectObject].Id,
+                    coreNeurons[ExternalReferenceKey.Subordination].Id,
+                    coreNeurons[ExternalReferenceKey.Instantiates_Unit].Id
+                    );
+
+            var targetNeurons = await this.GetExternalReferences(userId, keys);
+            AssertionConcern.AssertStateTrue(keys.Length == targetNeurons.Count(), "At least one local copy of a specified External Reference was not found.");
+
+            foreach (var tn in targetNeurons)
+            {
+                var classQr = (await this.neuronQueryClient.GetNeuronsInternal(
+                        this.settingsService.CortexLibraryOutBaseUrl + "/",
+                        new NeuronQuery()
+                        {
+                            ExternalReferenceUrl = new[] { tn.Value.ExternalReferenceUrl },
+                            DirectionValues = DirectionValues.Any,
+                            Depth = 2
+                        },
+                        userId
+                    ));
+
+                var ens = classQr.ToEnsemble(coreQr);
+
+                if (ice.TryGet(ens, out Neuron n))
+                    result.Add(tn.Key, n);
+            }
+            
+            return result;
+        }
     }
 }
-    
