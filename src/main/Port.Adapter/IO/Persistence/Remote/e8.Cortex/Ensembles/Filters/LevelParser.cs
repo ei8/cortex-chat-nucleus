@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
+namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.Ensembles.Filters
 {
     public class LevelParser
     {
         public LevelParser(params IFilter[] filters)
         {
-            this.Filters = filters;
+            Filters = filters;
         }
 
         public IEnumerable<IFilter> Filters { get; private set; }
@@ -15,7 +15,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
         public IEnumerable<Neuron> Evaluate(IEnumerable<Neuron> paths)
         {
             var result = new List<Neuron>();
-            foreach(var filter in this.Filters)
+            foreach (var filter in Filters)
             {
                 result.AddRange(filter.Evaluate(paths));
             }

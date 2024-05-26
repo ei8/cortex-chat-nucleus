@@ -1,47 +1,39 @@
-﻿using ei8.Cortex.Chat.Nucleus.Application;
-using ei8.Cortex.Graph.Common;
+﻿using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.Ensembles.Data;
 using ei8.EventSourcing.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Nancy.Extensions;
-using neurUL.Common.Domain.Model;
-using neurUL.Cortex.Application.Neurons.Commands;
 using neurUL.Cortex.Common;
 using neurUL.Cortex.Domain.Model.Neurons;
 using neurUL.Cortex.Port.Adapter.In.InProcess;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
-using System.Transactions;
-using static SQLite.SQLite3;
 
-namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
+namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex
 {
     internal static class Extensions
     {
-        public static Neuron CreateTransient(this INeuronService neuronService) =>
+        public static Ensembles.Neuron CreateTransient(this INeuronService neuronService) =>
             NeuronService.CreateNeuron(
                 Guid.NewGuid(),
                 true
                 );
 
-        public static async Task<Neuron> GetExternalReference(this INeuronService neuronService, string userId, string key) =>
+        public static async Task<Ensembles.Neuron> GetExternalReference(this INeuronService neuronService, string userId, string key) =>
              (await neuronService.GetExternalReferences(userId, key)).Values.SingleOrDefault();
 
         public static string ToExternalReferenceKeyString(this Type value) => value.FullName;
         public static string ToExternalReferenceKeyString(this Enum value) => value.ToString();
 
-        public static async Task<New.Neuron> GetExternalReference(
+        public static async Task<Ensembles.Neuron> GetExternalReference(
             this INeuronService neuronService,
             string userId,
             object key
             ) =>
             (await neuronService.GetExternalReferences(userId, key)).Values.SingleOrDefault();
 
-        public static async Task<IDictionary<object, New.Neuron>> GetExternalReferences(
+        public static async Task<IDictionary<object, Ensembles.Neuron>> GetExternalReferences(
             this INeuronService neuronService,
             string userId,
             params object[] keys
@@ -49,7 +41,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
         {
             var keyConverter = new Func<object, string>(o =>
             {
-                var result = string.Empty;
+                var result = o as string;
                 if (o is Type)
                     result = ((Type)o).ToExternalReferenceKeyString();
                 else if (o is Enum)
@@ -61,15 +53,115 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
             return origDict.ToDictionary(kvpK => keys.Single(t => keyConverter(t) == kvpK.Key), kvpE => kvpE.Value);
         }
 
-        public static async Task<Terminal> GetOrCreateTerminalIfNotExistsAsync(
+        public static async Task<Ensembles.Terminal> GetOrCreateTerminalIfNotExistsAsync(
             this ITerminalService terminalService,
-            Neuron presynaptic,
+            Ensembles.Neuron presynaptic,
             string userId,
-            Neuron postsynaptic) =>
+            Ensembles.Neuron postsynaptic) =>
             (await terminalService.GetOrCreateTerminalsIfNotExistsAsync(presynaptic, userId, postsynaptic)).SingleOrDefault();
 
-        public static New.Neuron ToEnsemble(
-            this Library.Common.QueryResult<Library.Common.Neuron> queryResult, 
+        #region Library.Common to EnsembleData
+        public static EnsembleData ToEnsembleData(
+            this Library.Common.QueryResult<Library.Common.Neuron> queryResult,
+            params Library.Common.QueryResult<Library.Common.Neuron>[] queryResults)
+        {
+            var allNs = queryResult.Items
+                .SelectMany(n => n.Traversals.SelectMany(t => t.Neurons));
+            var allTs = queryResult.Items
+                .SelectMany(n => n.Traversals.SelectMany(t => t.Terminals));
+
+            foreach (var qr in queryResults)
+            {
+                var ns = qr.Items
+                    .SelectMany(n => n.Traversals.SelectMany(t => t.Neurons));
+                var ts = qr.Items
+                    .SelectMany(n => n.Traversals.SelectMany(t => t.Terminals));
+
+                allNs = allNs.Concat(ns);
+                allTs = allTs.Concat(ts);
+            }
+
+            var eNs = allNs.DistinctBy(n => n.Id)
+                .Select(n => n.ToEnsembleData()).ToArray();
+            var eTs = allTs.DistinctBy(t => t.Id)
+                .Select(t => t.ToEnsembleData()).ToArray();
+
+            return new EnsembleData(eNs, eTs);
+        }
+
+        public static Ensembles.Data.NeuronData ToEnsembleData(this Library.Common.Neuron value)
+        {
+            Guid? g = null;
+
+            if (Guid.TryParse(value.Region?.Id, out Guid gr))
+                g = gr;
+
+            return new Ensembles.Data.NeuronData()
+            {
+                Id = Guid.Parse(value.Id),
+                Tag = value.Tag,
+                ExternalReferenceUrl = value.ExternalReferenceUrl,
+                RegionId = g
+            };
+        }
+
+        public static TerminalData ToEnsembleData(this Library.Common.Terminal value)
+        {
+            var result = new TerminalData();
+            result.Id = Guid.Parse(value.Id);
+            result.PresynapticNeuronId = Guid.Parse(value.PresynapticNeuronId);
+            result.PostsynapticNeuronId = Guid.Parse(value.PostsynapticNeuronId);
+            result.Effect = Enum.TryParse(value.Effect, out NeurotransmitterEffect ne) ? ne : NeurotransmitterEffect.Excite;
+            result.Strength = float.Parse(value.Strength);
+            return result;
+        }
+        #endregion
+
+        #region EnsembleData to Ensemble
+        public static Ensembles.Neuron ToEnsemble(this EnsembleData value, Guid? resultId = null) {
+            var eNs = value.Neurons.DistinctBy(n => n.Id)
+                .Select(n => n.ToEnsemble()).ToList();
+            var eTs = value.Terminals.DistinctBy(t => t.Id)
+                .Select(t => t.ToEnsemble(eNs)).ToList();
+            return resultId.HasValue ? eNs.Single(n => n.Id == resultId) : eNs[0];
+        }
+        
+        public static Ensembles.Neuron ToEnsemble(
+            this Ensembles.Data.NeuronData value
+            ) => NeuronService.CreateNeuron(
+                value.Id,
+                false,
+                value.Tag,
+                value.ExternalReferenceUrl,
+                value.RegionId
+                );
+
+        public static Ensembles.Terminal ToEnsemble(
+            this TerminalData value,
+            IEnumerable<Ensembles.Neuron> neurons
+        )
+        {
+            var presynaptic = neurons.Single(n => n.Id.ToString() == value.PresynapticNeuronId.ToString());
+            var postsynaptic = neurons.Single(n => n.Id.ToString() == value.PostsynapticNeuronId.ToString());
+
+            var result = new Ensembles.Terminal();
+            result.Id = value.Id;
+            result.IsTransient = false;
+            result.Strength = value.Strength;
+            result.Effect = value.Effect;
+
+            result.Presynaptic = presynaptic;
+            result.Postsynaptic = postsynaptic;
+            presynaptic.AddTerminal(result);
+            postsynaptic.AddDendrite(result);
+
+            return result;
+        }
+        #endregion
+
+        #region Library.Common to Ensemble
+        public static Ensembles.Neuron ToEnsemble(
+            this Library.Common.QueryResult<Library.Common.Neuron> queryResult,
             params Library.Common.QueryResult<Library.Common.Neuron>[] queryResults)
         {
             var allNs = queryResult.Items
@@ -95,17 +187,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
 
             return eNs[0];
         }
-        public static New.Neuron ToEnsemble(
-            this NeuronData value
-            ) => NeuronService.CreateNeuron(
-                value.Id,
-                false,
-                value.Tag,
-                value.ExternalReferenceUrl,
-                value.RegionId
-                );
 
-        public static New.Neuron ToEnsemble(
+        public static Ensembles.Neuron ToEnsemble(
             this Library.Common.Neuron value
             ) 
         {
@@ -123,15 +206,15 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
             );
         }
 
-        public static New.Terminal ToEnsemble(
+        public static Ensembles.Terminal ToEnsemble(
             this Library.Common.Terminal value,
-            IEnumerable<Neuron> neurons
+            IEnumerable<Ensembles.Neuron> neurons
         )
         {
             var presynaptic = neurons.Single(n => n.Id.ToString() == value.PresynapticNeuronId);
             var postsynaptic = neurons.Single(n => n.Id.ToString() == value.PostsynapticNeuronId);
 
-            var result = new Terminal();
+            var result = new Ensembles.Terminal();
             result.Id = Guid.Parse(value.Id);
             result.IsTransient = false;
             result.Strength = float.Parse(value.Strength);
@@ -144,22 +227,25 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
 
             return result;
         }
+        #endregion
 
-        public static EnsembleData ToEnsembleData(this Neuron neuron, bool includeTransientOnly = true)
+        #region Ensemble to EnsembleData
+        public static EnsembleData ToEnsembleData(this Ensembles.Neuron neuron, bool includeTransientOnly = true)
         {
-            var neuronsList = new List<NeuronData>();
+            var neuronsList = new List<Ensembles.Data.NeuronData>();
             var terminalsList = new List<TerminalData>();
 
             ExtractData(neuron, neuronsList, terminalsList, includeTransientOnly);
 
             return new EnsembleData(neuronsList.ToArray(), terminalsList.ToArray());
         }
+        #endregion
 
-        private static void ExtractData(Neuron neuron, List<NeuronData> neuronsList, List<TerminalData> terminalsList, bool includeTransientOnly)
+        private static void ExtractData(Ensembles.Neuron neuron, List<Ensembles.Data.NeuronData> neuronsList, List<TerminalData> terminalsList, bool includeTransientOnly)
         {
             if (!includeTransientOnly || neuron.IsTransient) 
                 neuronsList.Add(
-                    new NeuronData()
+                    new Ensembles.Data.NeuronData()
                     {
                         Id = neuron.Id,
                         Tag = neuron.Tag,
@@ -222,7 +308,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
         public static async Task SaveNeuronDataAsync(
            this ITransaction transaction,
            IServiceProvider serviceProvider,
-           NeuronData neuronData,
+           Ensembles.Data.NeuronData neuronData,
            Guid authorId
            )
         {

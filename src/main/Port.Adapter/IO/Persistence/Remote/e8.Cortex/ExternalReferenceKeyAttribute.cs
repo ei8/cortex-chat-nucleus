@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
+namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex
 {
     public class ExternalReferenceKeyAttribute : Attribute
     {

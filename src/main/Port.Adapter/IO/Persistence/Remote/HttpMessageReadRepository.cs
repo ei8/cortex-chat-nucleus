@@ -3,7 +3,7 @@ using ei8.Cortex.Chat.Nucleus.Client.Out;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
-using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New;
+using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex;
 using ei8.Cortex.Library.Client.Out;
 using ei8.Cortex.Library.Common;
 using IdentityModel.Client;

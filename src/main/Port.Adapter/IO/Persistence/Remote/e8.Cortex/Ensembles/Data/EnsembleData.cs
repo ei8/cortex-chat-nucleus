@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
+namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.Ensembles.Data
 {
     public class EnsembleData
     {
         public EnsembleData(IEnumerable<NeuronData> neurons, IEnumerable<TerminalData> terminals)
         {
-            this.Neurons = neurons;
+            Neurons = neurons;
 
-            this.Terminals = terminals;
+            Terminals = terminals;
         }
 
         public IEnumerable<NeuronData> Neurons { get; private set; }

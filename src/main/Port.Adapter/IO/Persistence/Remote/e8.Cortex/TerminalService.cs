@@ -1,5 +1,6 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
+using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.Ensembles;
 using ei8.Cortex.Library.Client.Out;
 using ei8.Cortex.Library.Common;
 using neurUL.Common.Domain.Model;
@@ -10,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
+namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex
 {
     public class TerminalService : ITerminalService
     {
@@ -26,7 +27,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
             this.settingsService = settingsService;
         }
         
-        public async Task<IEnumerable<Terminal>> GetOrCreateTerminalsIfNotExistsAsync(Neuron presynaptic, string userId, params Neuron[] postsynaptics)
+        public async Task<IEnumerable<Ensembles.Terminal>> GetOrCreateTerminalsIfNotExistsAsync(Ensembles.Neuron presynaptic, string userId, params Ensembles.Neuron[] postsynaptics)
         {
             var qr = await this.neuronQueryClient.GetNeuronsInternal(
                 this.settingsService.CortexLibraryOutBaseUrl + "/",
@@ -40,7 +41,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
                 userId
                 );
 
-            var result = new List<Terminal>();
+            var result = new List<Ensembles.Terminal>();
 
             foreach (var postsynaptic in postsynaptics)
             {
@@ -50,7 +51,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
                     );
                 AssertionConcern.AssertStateTrue(retrievedNeurons.Count() < 2, "Multiple identical Terminals found.");
 
-                var resultTerminal = new Terminal();
+                var resultTerminal = new Ensembles.Terminal();
                 if (retrievedNeurons.Count() == 1)
                 {
                     var t = retrievedNeurons.Single().Terminal;
@@ -78,7 +79,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
             return result;
         }
 
-        public Terminal Unlink(Neuron presynaptic, Neuron postsynaptic)
+        public Ensembles.Terminal Unlink(Ensembles.Neuron presynaptic, Ensembles.Neuron postsynaptic)
         {
             var result = presynaptic.Terminals.SingleOrDefault(
                 t => t.Presynaptic.Id == presynaptic.Id && t.Postsynaptic.Id == postsynaptic.Id

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
+namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.Ensembles
 {
     public class Neuron
     {
@@ -16,30 +16,30 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
         public string Tag { get; internal set; }
         public Guid? RegionId { get; internal set; }
         public string ExternalReferenceUrl { get; internal set; }
-        
+
         internal void AddTerminal(Terminal value)
         {
-            this.terminals.Add(value.Id, value);
+            terminals.Add(value.Id, value);
         }
 
         internal void RemoveTerminal(Guid value)
         {
-            this.terminals.Remove(value);
+            terminals.Remove(value);
         }
 
         internal void AddDendrite(Terminal value)
         {
-            this.dendrites.Add(value.Id, value);
+            dendrites.Add(value.Id, value);
         }
-        
+
         internal void RemoveDendrite(Guid value)
         {
-            this.dendrites.Remove(value);
+            dendrites.Remove(value);
         }
 
-        public IEnumerable<Terminal> Terminals => this.terminals.Values;
+        public IEnumerable<Terminal> Terminals => terminals.Values;
 
-        public IEnumerable<Terminal> Dendrites => this.dendrites.Values;
+        public IEnumerable<Terminal> Dendrites => dendrites.Values;
 
     }
 }

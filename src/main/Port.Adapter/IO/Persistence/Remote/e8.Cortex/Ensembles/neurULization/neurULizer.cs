@@ -1,11 +1,12 @@
-﻿using neurUL.Common.Domain.Model;
+﻿using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.Ensembles;
+using neurUL.Common.Domain.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
+namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.Ensembles.neurULization
 {
     public class neurULizer
     {
@@ -14,7 +15,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
             AssertionConcern.AssertArgumentNotNull(value, nameof(value));
             AssertionConcern.AssertArgumentNotNull(options, nameof(options));
             AssertionConcern.AssertArgumentValid(
-                o => o.ExternalReferenceRetriever != null, 
+                o => o.ExternalReferenceRetriever != null,
                 options,
                 $"{nameof(neurULizationOptions)}.{nameof(neurULizationOptions.ExternalReferenceRetriever)} cannot be null.",
                 nameof(neurULizationOptions.ExternalReferenceRetriever)

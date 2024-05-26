@@ -1,6 +1,6 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
-using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New;
+using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex;
 using ei8.EventSourcing.Client;
 using Microsoft.Extensions.DependencyInjection;
 using neurUL.Common.Domain.Model;

@@ -1,7 +1,7 @@
 ﻿using ei8.Cortex.Library.Common;
 using System.Collections.Generic;
 
-namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.New
+namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.Ensembles.Filters
 {
     public class Relation : IFilter
     {
