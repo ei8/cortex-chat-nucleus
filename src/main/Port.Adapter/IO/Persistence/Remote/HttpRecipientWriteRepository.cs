@@ -32,7 +32,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             this.permitClient = permitClient;
             this.settingsService = settingsService;
         }
-
+        
         public async Task SaveAll(IEnumerable<Recipient> recipients, string userId, CancellationToken token = default)
         {
             if (recipients.Any())

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.Ensembles
@@ -9,22 +10,17 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
         private Dictionary<Guid, Terminal> terminals = new Dictionary<Guid, Terminal>();
         private Dictionary<Guid, Terminal> dendrites = new Dictionary<Guid, Terminal>();
 
-        internal Neuron() { }
-
-        public Guid Id { get; internal set; }
-        public bool IsTransient { get; internal set; }
-        public string Tag { get; internal set; }
-        public Guid? RegionId { get; internal set; }
-        public string ExternalReferenceUrl { get; internal set; }
-
-        internal void AddTerminal(Terminal value)
+        public Neuron(Guid id, string tag, string externalReferenceUrl, Guid? regionId) : this(id, false, tag, externalReferenceUrl, regionId)
         {
-            terminals.Add(value.Id, value);
         }
 
-        internal void RemoveTerminal(Guid value)
+        public Neuron(Guid id, bool isTransient, string tag, string externalReferenceUrl, Guid? regionId)
         {
-            terminals.Remove(value);
+            this.Id = id;
+            this.IsTransient = isTransient;
+            this.Tag = tag;
+            this.ExternalReferenceUrl = externalReferenceUrl;
+            this.RegionId = regionId;
         }
 
         internal void AddDendrite(Terminal value)
@@ -32,14 +28,40 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
             dendrites.Add(value.Id, value);
         }
 
+        internal void AddTerminal(Terminal value)
+        {
+            terminals.Add(value.Id, value);
+        }
+
+        internal Neuron CloneWithoutTerminals() =>
+            new Neuron(
+                this.Id,
+                this.IsTransient,
+                this.Tag,
+                this.ExternalReferenceUrl,
+                this.RegionId
+            );
+
+        public static Neuron CreateTransient() => Neuron.CreateTransient(null, null, null);
+
+        public static Neuron CreateTransient(string tag, string externalReferenceUrl, Guid? regionId) => new Neuron(Guid.NewGuid(), true, tag, externalReferenceUrl, regionId);
+
         internal void RemoveDendrite(Guid value)
         {
             dendrites.Remove(value);
         }
 
-        public IEnumerable<Terminal> Terminals => terminals.Values;
+        internal void RemoveTerminal(Guid value)
+        {
+            terminals.Remove(value);
+        }
 
         public IEnumerable<Terminal> Dendrites => dendrites.Values;
-
+        public string ExternalReferenceUrl { get; private set; }
+        public Guid Id { get; private set; }
+        public bool IsTransient { get; private set; }
+        public Guid? RegionId { get; private set; }
+        public string Tag { get; private set; }
+        public IEnumerable<Terminal> Terminals => terminals.Values;
     }
 }

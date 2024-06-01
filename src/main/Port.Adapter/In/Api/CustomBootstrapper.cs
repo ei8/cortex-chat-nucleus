@@ -4,9 +4,12 @@ using CQRSlite.Routing;
 using ei8.Cortex.Chat.Nucleus.Application;
 using ei8.Cortex.Chat.Nucleus.Application.Messages;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
+using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex;
+using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.Ensembles;
+using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.Ensembles.EnsembleServices;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services;
 using ei8.Cortex.IdentityAccess.Client.In;
 using ei8.Cortex.IdentityAccess.Client.Out;
@@ -64,8 +67,22 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             container.Register<IAvatarReadRepository, HttpAvatarReadRepository>();
             container.Register<IPermitClient, HttpPermitClient>();
             container.Register<IRecipientWriteRepository, HttpRecipientWriteRepository>();
-            container.Register<INeuronService, NeuronService>();
+            container.Register<INeuronRepository, NeuronRepository>();
+            container.Register<ITerminalRepository, TerminalRepository>();
             container.Register<ITerminalService, TerminalService>();
+
+            // TODO: transfer to library user to settings, or
+            // remove from injection as all required core can be determined at start of neurulization
+            // and just passed across obtain-build methods
+            var cores = container.Resolve<INeuronRepository>().GetExternalReferencesAsync("elmer.bool@ei8.io", ExternalReferenceKey.Subordination, ExternalReferenceKey.DirectObject, ExternalReferenceKey.Instantiates_Unit).Result;
+            container.Register<ICoreSet>(new CoreSet()
+            {
+                Subordination = cores[ExternalReferenceKey.Subordination],
+                DirectObject = cores[ExternalReferenceKey.DirectObject],
+                InstantiatesUnit = cores[ExternalReferenceKey.Instantiates_Unit]
+            });
+            container.Register<IDependency, Dependency>();
+            container.Register<IInstantiates, Instantiates>();
 
             // data
             container.Register<IEventStoreUrlService>(

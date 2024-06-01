@@ -21,7 +21,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
                 nameof(neurULizationOptions.ExternalReferenceRetriever)
             );
 
-            var root = new Neuron();
+            var root = Neuron.CreateTransient();
             // get ExternalReferenceKeyAttribute of root type
             var erka = value.GetType().GetCustomAttributes(typeof(ExternalReferenceKeyAttribute), true).SingleOrDefault() as ExternalReferenceKeyAttribute;
             var key = string.Empty;
