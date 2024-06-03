@@ -13,6 +13,6 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
 
         IEnumerable<NeuronQuery> GetQueries(TParameterSet parameterSet);
 
-        Task Build(Neuron mainEnsemble, IEnumerable<Neuron> supplementaryEnsembles, TParameterSet parameterSet, INeuronRepository neuronRepository, string userId);
+        Task Build(EnsembleCollection ensembles, TParameterSet parameterSet, INeuronRepository neuronRepository, string userId);
     }
 }

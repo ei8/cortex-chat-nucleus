@@ -18,11 +18,13 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
             this.dependency = dependency;
         }
 
-        public async Task Build(Neuron mainEnsemble, IEnumerable<Neuron> supplementaryEnsembles, IInstantiatesParameterSet parameterSet, INeuronRepository neuronRepository, string userId)
+        public async Task Build(EnsembleCollection ensembles, IInstantiatesParameterSet parameterSet, INeuronRepository neuronRepository, string userId)
         {
             // TODO: check first if ensemble already contains classDirectObject before obtaining or
             // should obtainAsync accept ensemble so it can be done inside obtainAsync before retrieving from DB???
-            var classDirectObject = await this.dependency.ObtainAsync(new DependencyParameterSet(
+            var classDirectObject = await this.dependency.ObtainAsync(
+                ensembles, 
+                new DependencyParameterSet(
                     parameterSet.Class,
                     this.coreSet.DirectObject.CloneWithoutTerminals()
                 ),
@@ -100,7 +102,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
         public bool TryParse(Neuron ensemble, IInstantiatesParameterSet parameterSet, out Neuron result)
         {
             result = null;
-            IEnumerable<Neuron> paths = new[] { ensemble.Find(parameterSet.Class.Id) };
+            IEnumerable<Neuron> paths = new[] { ensemble.GetAllNeurons().Single(n => n.Id == parameterSet.Class.Id) };
 
             var levelParsers = new LevelParser[]
             {

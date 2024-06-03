@@ -33,7 +33,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 
             var mn = await neuronRepository.GetExternalReferenceAsync(userId, typeof(Message).ToExternalReferenceKeyString());
             // TODO: transfer this inside neurULizer
-            var n = await instantiates.ObtainAsync(new InstantiatesParameterSet(mn), neuronRepository, userId);
+            var n = await instantiates.ObtainAsync(new EnsembleCollection(), new InstantiatesParameterSet(mn), neuronRepository, userId);
 
             //#region 'Hello World;Message' value
             //var messageInstanceTagSuffix = ";Message";

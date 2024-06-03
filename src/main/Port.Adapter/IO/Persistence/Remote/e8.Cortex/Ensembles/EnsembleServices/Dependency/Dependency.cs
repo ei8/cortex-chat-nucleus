@@ -16,11 +16,11 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
         }
 
         
-        public async Task Build(Neuron mainEnsemble, IEnumerable<Neuron> supplementaryEnsembles, IDependencyParameterSet parameterSet, INeuronRepository neuronRepository, string userId)
+        public async Task Build(EnsembleCollection ensembles, IDependencyParameterSet parameterSet, INeuronRepository neuronRepository, string userId)
         {
             // the fact that this point is reached means that grandmother does not yet exist
-            this.FindInParamsOrUseTarget(parameterSet.Value, mainEnsemble, supplementaryEnsembles, out Neuron value);
-            this.FindInParamsOrUseTarget(parameterSet.Type, mainEnsemble, supplementaryEnsembles, out Neuron dependencyType);
+            ensembles.TryFind(parameterSet.Value, out Neuron value, out int valueIndex);
+            ensembles.TryFind(parameterSet.Type, out Neuron dependencyType, out int dependencyTypeIndex);
             Neuron dependency = Neuron.CreateTransient(string.Empty, null, null);
 
 
@@ -87,7 +87,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
         public bool TryParse(Neuron ensemble, IDependencyParameterSet parameterSet, out Neuron result)
         {
             result = null;
-            IEnumerable<Neuron> paths = new[] { ensemble.Find(parameterSet.Value.Id) };
+            IEnumerable<Neuron> paths = new[] { ensemble.GetAllNeurons().Single(n => n.Id == parameterSet.Value.Id) };
 
             var levelParsers = new LevelParser[]
             {

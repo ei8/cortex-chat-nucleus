@@ -1,5 +1,5 @@
 ﻿using Nancy.Extensions;
-using Newtonsoft.Json.Linq;
+using neurUL.Common.Domain.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,18 +10,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
     public static class Extensions
     {
         #region IEnsembleService
-        public async static Task<Neuron> ObtainAsync<TEnsembleService, TParameterSet>(
-                this IEnsembleService<TEnsembleService, TParameterSet> ensembleService,
-                TParameterSet parameterSet,
-                INeuronRepository neuronRepository,
-                string userId
-            )
-            where TEnsembleService : IEnsembleService<TEnsembleService, TParameterSet>
-            where TParameterSet : IParameterSet
-            => await ensembleService.ObtainAsync(null, null, parameterSet, neuronRepository, userId);
-
         /// <summary>
-        /// Use to:
         /// 1. Create ensembles containing core and non-core neurons and terminals
         /// 2. Retrieve existing ensembles
         /// 3. Repair disjointed ensembles
@@ -29,40 +18,26 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
         /// <typeparam name="TEnsembleService"></typeparam>
         /// <typeparam name="TParameterSet"></typeparam>
         /// <param name="ensembleService"></param>
-        /// <param name="mainEnsemble"></param>
-        /// <param name="supplementaryEnsembles"></param>
+        /// <param name="ensembles"></param>
         /// <param name="parameterSet"></param>
         /// <param name="neuronRepository"></param>
         /// <param name="userId"></param>
         /// <returns></returns>
         public async static Task<Neuron> ObtainAsync<TEnsembleService, TParameterSet>(
                 this IEnsembleService<TEnsembleService, TParameterSet> ensembleService, 
-                Neuron mainEnsemble,
-                IEnumerable<Neuron> supplementaryEnsembles,
+                EnsembleCollection ensembles,
                 TParameterSet parameterSet, 
                 INeuronRepository neuronRepository, 
                 string userId
             ) 
             where TEnsembleService : IEnsembleService<TEnsembleService, TParameterSet>
             where TParameterSet : IParameterSet
-        {   
-            Neuron supplementaryParseResult = null;
-            if (
-                    (
-                        // if main ensemble is not specified or 
-                        mainEnsemble == null ||
-                        // does not contain target, otherwise
-                        // ... simply "rotate" the mainEnsemble by assigning it as the result
-                        // ... "rotate" - set the reference to another target neuron in an ensemble
-                        !ensembleService.TryParse(mainEnsemble, parameterSet, out mainEnsemble)
-                    ) &&
-                    (
-                        // if supplementery ensembles are not specified
-                        supplementaryEnsembles == null ||
-                        // or target is not in any of them
-                        !supplementaryEnsembles.Any(ie => ensembleService.TryParse(ie, parameterSet, out supplementaryParseResult))
-                    )
-                )
+        {
+            AssertionConcern.AssertArgumentNotNull(ensembles, nameof(ensembles));
+            Neuron result = null;
+            Neuron ensembleParseResult = null;
+            // if target is not in any of specified ensembles
+            if (!ensembles.Items.Any(ie => ensembleService.TryParse(ie, parameterSet, out ensembleParseResult)))
             {
                 // retrieve target from DB
                 var queries = ensembleService.GetQueries(parameterSet);
@@ -70,86 +45,23 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
                 // if target is not in DB
                 if (!ensembleService.TryParse(ensembleFromDB, parameterSet, out Neuron dbParseResult))
                 {
-                    // if main ensemble was not specified
-                    if (mainEnsemble == null)
-                        // set it to the ensemble from DB
-                        mainEnsemble = ensembleFromDB;
-                    // otherwise 
-                    else
-                    {
-                        // if supplementeries were specified
-                        if (supplementaryEnsembles != null)
-                            // add ensemble from DB to supplementaries
-                            supplementaryEnsembles = supplementaryEnsembles.Concat(new[] { ensembleFromDB });
-                        else
-                            // assign ensemble from DB to supplementaries
-                            supplementaryEnsembles = new[] { ensembleFromDB };
-                    }
-
-                    // build main ensemble
-                    await ensembleService.Build(mainEnsemble, supplementaryEnsembles, parameterSet, neuronRepository, userId);
+                    // add to ensembles
+                    ensembles.PreciseAdd(ensembleFromDB);
+                    // build in ensembles
+                    await ensembleService.Build(ensembles, parameterSet, neuronRepository, userId);
                 }
                 // else if target is in DB 
                 else
                 {
-                    // if mainEnsemble was not specified
-                    if (mainEnsemble == null)
-                        // set mainEnsemble
-                        mainEnsemble = dbParseResult;
-                    else 
-                    {
-                        // combine db result with supplementaries if latter exist and call build to combine with main ensemble
-                        await ensembleService.Build(
-                            mainEnsemble,
-                            supplementaryEnsembles != null ?
-                                supplementaryEnsembles.Concat(new[] { dbParseResult }) :
-                                supplementaryEnsembles,
-                            parameterSet,
-                            neuronRepository,
-                            userId
-                            );
-                    }
+                    ensembles.PreciseAdd(dbParseResult);
+                    result = dbParseResult;
                 }
             }
-            // if target was found in supplementaries
-            else if (supplementaryParseResult != null)
-            {
-                // if mainEnsemble was specified
-                if (mainEnsemble != null)
-                    // pass supplementaries as it contains target and call build to combine with main ensemble
-                    await ensembleService.Build(mainEnsemble, supplementaryEnsembles, parameterSet, neuronRepository, userId);
-                else
-                    // otherwise set supplementary parse result as main ensemble
-                    mainEnsemble = supplementaryParseResult;
-            }
+            // if target was found in ensembles
+            else if (ensembleParseResult != null)
+                result = ensembleParseResult;
 
-            return mainEnsemble;
-        }
-
-        internal static bool FindInParamsOrUseTarget<TEnsembleService, TParameterSet>(
-                this IEnsembleService<TEnsembleService, TParameterSet> ensembleService,
-                Neuron target,
-                Neuron mainEnsemble,
-                IEnumerable<Neuron> supplementaryEnsembles,
-                out Neuron result
-            )
-            where TEnsembleService : IEnsembleService<TEnsembleService, TParameterSet>
-            where TParameterSet : IParameterSet
-        {
-            result = null;
-            Neuron resultInMain = null;
-
-            if (
-                // if target is not in mainEnsemble and 
-                (result = resultInMain = mainEnsemble.Find(target.Id)) == null &&
-                // if supplementaryEnsembles was specified and
-                supplementaryEnsembles != null &&
-                // target is not in any of the supplementaries
-                (result = supplementaryEnsembles.FirstOrDefault(se => se.Find(target.Id) != null)) == null
-                )
-                result = target;
-
-            return resultInMain != null;
+            return result;
         }
         #endregion
 
@@ -213,33 +125,43 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
         #endregion
 
         #region Neuron
-        public static Neuron Find(this Neuron neuron, Guid value, Neuron caller = null)
+        public static IEnumerable<Neuron> GetAllNeurons(this Neuron neuron)
         {
-            Neuron result = null;
-            if (neuron.Id == value)
-                result = neuron;
+            List<Neuron> result = new List<Neuron>();
 
-            if (result == null)
-                result = neuron.Find(value, neuron.Terminals.Select(t => t.Postsynaptic));
+            neuron.GetAllNeuronsCore(result);
 
-            if (result == null)
-                result = neuron.Find(value, neuron.Dendrites.Select(t => t.Presynaptic));
-
-            return result;
+            return result.ToArray();
         }
 
-        private static Neuron Find(this Neuron caller, Guid value, IEnumerable<Neuron> neurons)
+        private static void GetAllNeuronsCore(this Neuron neuron, IList<Neuron> allNeurons)
         {
-            Neuron result = null;
+            // if neuron with same id does not yet exist
+            if (!allNeurons.Any(n => n.Id == neuron.Id))
+                allNeurons.Add(neuron);
+            // otherwise 
+            else
+                // assert neuron with same id exists and is the same instance
+                AssertionConcern.AssertStateTrue(allNeurons.Contains(neuron), "Ensemble contains at least two Neurons with the same Id.");
+
+            // sift through postsynaptics
+            neuron.GetAllNeuronsCore(allNeurons, neuron.Terminals.Select(t => t.Postsynaptic));
+
+            // sift through presynaptics
+            neuron.GetAllNeuronsCore(allNeurons, neuron.Dendrites.Select(t => t.Presynaptic));
+        }
+
+        private static void GetAllNeuronsCore(this Neuron currentNeuron, IList<Neuron> allNeurons, IEnumerable<Neuron> neurons)
+        {
+            // for each neuron in list
             foreach (var neuron in neurons)
             {
-                if (neuron == caller) continue;
-                result = neuron.Find(value, caller);
-                if (result != null) break;
+                // if neuron is already in the list, skip it
+                if (allNeurons.Contains(neuron)) continue;
+                // otherwise find it in current neuron in list, using the list's parent as the caller
+                neuron.GetAllNeuronsCore(allNeurons);
             }
-            return result;
         }
-
         #endregion
     }
 }

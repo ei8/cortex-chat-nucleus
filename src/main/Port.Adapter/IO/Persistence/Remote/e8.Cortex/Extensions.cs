@@ -182,6 +182,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex
         }
         #endregion
 
+        // TODO: This process does not include dendrites
         private static void ExtractData(Ensembles.Neuron neuron, List<Ensembles.Data.NeuronData> neuronsList, List<TerminalData> terminalsList, bool includeTransientOnly)
         {
             if (!includeTransientOnly || neuron.IsTransient) 
