@@ -1,27 +1,27 @@
-﻿using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.Ensembles;
+﻿using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.Ensembles.EnsembleServices;
+using Microsoft.Extensions.DependencyInjection;
 using neurUL.Common.Domain.Model;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.Ensembles.neurULization
 {
     public class neurULizer
     {
-        public async Task<Neuron> neurULizeAsync<TValue>(TValue value, neurULizationOptions options)
+        public async Task<Ensemble> neurULizeAsync<TValue>(TValue value, neurULizationOptions options)
         {
             AssertionConcern.AssertArgumentNotNull(value, nameof(value));
             AssertionConcern.AssertArgumentNotNull(options, nameof(options));
-            AssertionConcern.AssertArgumentValid(
-                o => o.ExternalReferenceRetriever != null,
-                options,
-                $"{nameof(neurULizationOptions)}.{nameof(neurULizationOptions.ExternalReferenceRetriever)} cannot be null.",
-                nameof(neurULizationOptions.ExternalReferenceRetriever)
-            );
 
-            var root = Neuron.CreateTransient();
+            // required services
+            var instantiates = options.ServiceProvider.GetRequiredService<IInstantiates>();
+            var neuronRepository = options.ServiceProvider.GetRequiredService<INeuronRepository>();
+            
+            var result = new Ensemble();
+
+            var grandmother = Neuron.CreateTransient(null, null, null);
+            result.AddReplace(grandmother);
+
             // get ExternalReferenceKeyAttribute of root type
             var erka = value.GetType().GetCustomAttributes(typeof(ExternalReferenceKeyAttribute), true).SingleOrDefault() as ExternalReferenceKeyAttribute;
             var key = string.Empty;
@@ -30,18 +30,23 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
                 key = erka.Key;
             else
                 // assembly qualified name 
-                key = key.GetType().FullName;
+                key = value.GetType().ToExternalReferenceKeyString();
             // use key to retrieve external reference url from library
-            var erDict = await options.ExternalReferenceRetriever(new string[] { key });
+            var erDict = await neuronRepository.GetExternalReferencesAsync(options.UserId, new string[] { key });
             var rootTypeNeuron = erDict[key];
-            // if "Instantiates, Message" exists based on retrieved (1) message class and (2) instantiates erurl - via a options.InstantiatesClassRetriever(new string[] { key })
-            // ... deserialize to and cache ensemble
-            // else
-            // ... create "instantiates, message" etc.			
+
+            // instantiates
+            var instantiatesType = await instantiates.ObtainAsync(
+                result,
+                new InstantiatesParameterSet(rootTypeNeuron),
+                neuronRepository,
+                options.UserId
+                );
+
             // create Root Neuron
             // link root neuron to InstantiatesMessage neuron
 
-            return root;
+            return result;
         }
     }
 }

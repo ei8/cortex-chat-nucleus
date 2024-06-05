@@ -1,13 +1,10 @@
-﻿using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
-using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
-using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex;
+﻿using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.Ensembles;
-using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.Ensembles.EnsembleServices;
+using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.Ensembles.neurULization;
 using ei8.EventSourcing.Client;
 using Microsoft.Extensions.DependencyInjection;
 using neurUL.Common.Domain.Model;
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,14 +23,16 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 
         public async Task Save(Message message, string userId, CancellationToken token = default)
         {
-            var instantiates = this.serviceProvider.GetRequiredService<IInstantiates>();
-            var neuronRepository = this.serviceProvider.GetRequiredService<INeuronRepository>();
-            var terminalService = this.serviceProvider.GetRequiredService<ITerminalRepository>();
             var transaction = this.serviceProvider.GetRequiredService<ITransaction>();
 
-            var mn = await neuronRepository.GetExternalReferenceAsync(userId, typeof(Message).ToExternalReferenceKeyString());
-            // TODO: transfer this inside neurULizer
-            var n = await instantiates.ObtainAsync(new EnsembleCollection(), new InstantiatesParameterSet(mn), neuronRepository, userId);
+            var nzer = new neurULizer();
+            var me = await nzer.neurULizeAsync(message, new neurULizationOptions()
+            {
+                ServiceProvider = this.serviceProvider,
+                UserId = userId
+            });
+
+            await transaction.SaveEnsembleAsync(this.serviceProvider, me, message.SenderId);
 
             //#region 'Hello World;Message' value
             //var messageInstanceTagSuffix = ";Message";

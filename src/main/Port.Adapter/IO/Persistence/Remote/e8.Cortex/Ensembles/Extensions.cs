@@ -1,5 +1,10 @@
-﻿using Nancy.Extensions;
+﻿using ei8.EventSourcing.Client;
+using Microsoft.Extensions.DependencyInjection;
+using Nancy.Extensions;
 using neurUL.Common.Domain.Model;
+using neurUL.Cortex.Common;
+using neurUL.Cortex.Domain.Model.Neurons;
+using neurUL.Cortex.Port.Adapter.In.InProcess;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,21 +16,19 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
     {
         #region IEnsembleService
         /// <summary>
-        /// 1. Create ensembles containing core and non-core neurons and terminals
-        /// 2. Retrieve existing ensembles
-        /// 3. Repair disjointed ensembles
+        /// Retrieves grandmother from ensemble if present; Otherwise, retrieves it from persistence or builds it, and adds it to the ensemble.
         /// </summary>
         /// <typeparam name="TEnsembleService"></typeparam>
         /// <typeparam name="TParameterSet"></typeparam>
         /// <param name="ensembleService"></param>
-        /// <param name="ensembles"></param>
+        /// <param name="ensemble"></param>
         /// <param name="parameterSet"></param>
         /// <param name="neuronRepository"></param>
         /// <param name="userId"></param>
         /// <returns></returns>
         public async static Task<Neuron> ObtainAsync<TEnsembleService, TParameterSet>(
                 this IEnsembleService<TEnsembleService, TParameterSet> ensembleService, 
-                EnsembleCollection ensembles,
+                Ensemble ensemble,
                 TParameterSet parameterSet, 
                 INeuronRepository neuronRepository, 
                 string userId
@@ -33,31 +36,31 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
             where TEnsembleService : IEnsembleService<TEnsembleService, TParameterSet>
             where TParameterSet : IParameterSet
         {
-            AssertionConcern.AssertArgumentNotNull(ensembles, nameof(ensembles));
+            AssertionConcern.AssertArgumentNotNull(ensemble, nameof(ensemble));
+            AssertionConcern.AssertArgumentNotNull(parameterSet, nameof(parameterSet));
+            AssertionConcern.AssertArgumentNotNull(neuronRepository, nameof(neuronRepository));
+            AssertionConcern.AssertArgumentNotEmpty(userId, "Specified value cannot be null or empty.", nameof(userId));
+
             Neuron result = null;
-            Neuron ensembleParseResult = null;
-            // if target is not in any of specified ensembles
-            if (!ensembles.Items.Any(ie => ensembleService.TryParse(ie, parameterSet, out ensembleParseResult)))
+            // if target is not in specified ensemble
+            if (!ensembleService.TryParse(ensemble, parameterSet, out Neuron ensembleParseResult))
             {
                 // retrieve target from DB
                 var queries = ensembleService.GetQueries(parameterSet);
-                var ensembleFromDB = await neuronRepository.GetByQueriesAsync(userId, queries.ToArray());
-                // if target is not in DB
-                if (!ensembleService.TryParse(ensembleFromDB, parameterSet, out Neuron dbParseResult))
+                ensemble.AddReplaceItems(await neuronRepository.GetByQueriesAsync(userId, queries.ToArray()));
+                // if target is in DB
+                if (ensembleService.TryParse(ensemble, parameterSet, out Neuron dbParseResult))
                 {
-                    // add to ensembles
-                    ensembles.PreciseAdd(ensembleFromDB);
-                    // build in ensembles
-                    await ensembleService.Build(ensembles, parameterSet, neuronRepository, userId);
-                }
-                // else if target is in DB 
-                else
-                {
-                    ensembles.PreciseAdd(dbParseResult);
                     result = dbParseResult;
                 }
+                // else if target is not in DB 
+                else
+                {
+                    // build in ensemble
+                    result = await ensembleService.BuildAsync(ensemble, parameterSet, neuronRepository, userId);
+                }
             }
-            // if target was found in ensembles
+            // if target was found in ensemble
             else if (ensembleParseResult != null)
                 result = ensembleParseResult;
 
@@ -109,59 +112,196 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
             (await terminalService.ObtainLinkAsync(presynaptic, userId, postsynaptic)).SingleOrDefault();
         #endregion
 
+        #region ITransaction
+        public static async Task SaveEnsembleAsync(
+           this ITransaction transaction,
+           IServiceProvider serviceProvider,
+           Ensemble ensemble,
+           Guid authorId
+           )
+        {
+            foreach (var ei in ensemble.GetItems<IEnsembleItem>().Where(ei => ei.IsTransient))
+                await transaction.SaveItemAsync(serviceProvider, ei, authorId);
+        }
+
+        public static async Task SaveItemAsync(
+           this ITransaction transaction,
+           IServiceProvider serviceProvider,
+           IEnsembleItem item,
+           Guid authorId
+           )
+        {
+            if (item is Terminal terminal)
+            {
+                var terminalAdapter = serviceProvider.GetRequiredService<ITerminalAdapter>();
+
+                await transaction.InvokeAdapterAsync(
+                    terminal.Id,
+                    typeof(TerminalCreated).Assembly.GetEventTypes(),
+                    async (ev) => await terminalAdapter.CreateTerminal(
+                        terminal.Id,
+                        terminal.PresynapticNeuronId,
+                        terminal.PostsynapticNeuronId,
+                        terminal.Effect,
+                        terminal.Strength,
+                        authorId
+                    )
+                );
+            }
+            else if (item is Neuron neuron)
+            {
+                var neuronAdapter = serviceProvider.GetRequiredService<INeuronAdapter>();
+                var tagItemAdapter = serviceProvider.GetRequiredService<Data.Tag.Port.Adapter.In.InProcess.IItemAdapter>();
+                var aggregateItemAdapter = serviceProvider.GetRequiredService<Data.Aggregate.Port.Adapter.In.InProcess.IItemAdapter>();
+                var externalReferenceItemAdapter = serviceProvider.GetRequiredService<Data.ExternalReference.Port.Adapter.In.InProcess.IItemAdapter>();
+
+                #region Create instance neuron
+                int expectedVersion = await transaction.InvokeAdapterAsync(
+                        neuron.Id,
+                        typeof(NeuronCreated).Assembly.GetEventTypes(),
+                        async (ev) => await neuronAdapter.CreateNeuron(
+                            neuron.Id,
+                            authorId)
+                        );
+
+                // assign tag value
+                if (!string.IsNullOrWhiteSpace(neuron.Tag))
+                {
+                    expectedVersion = await transaction.InvokeAdapterAsync(
+                        neuron.Id,
+                        typeof(ei8.Data.Tag.Domain.Model.TagChanged).Assembly.GetEventTypes(),
+                        async (ev) => await tagItemAdapter.ChangeTag(
+                            neuron.Id,
+                            neuron.Tag,
+                            authorId,
+                            ev
+                        ),
+                        expectedVersion
+                        );
+                }
+
+                if (neuron.RegionId.HasValue)
+                {
+                    // assign region value to id
+                    expectedVersion = await transaction.InvokeAdapterAsync(
+                        neuron.Id,
+                        typeof(ei8.Data.Aggregate.Domain.Model.AggregateChanged).Assembly.GetEventTypes(),
+                        async (ev) => await aggregateItemAdapter.ChangeAggregate(
+                            neuron.Id,
+                            neuron.RegionId.ToString(),
+                            authorId,
+                            ev
+                        ),
+                        expectedVersion
+                    );
+                }
+
+                if (!string.IsNullOrWhiteSpace(neuron.ExternalReferenceUrl))
+                {
+                    expectedVersion = await transaction.InvokeAdapterAsync(
+                        neuron.Id,
+                        typeof(ei8.Data.ExternalReference.Domain.Model.UrlChanged).Assembly.GetEventTypes(),
+                        async (ev) => await externalReferenceItemAdapter.ChangeUrl(
+                            neuron.Id,
+                            neuron.ExternalReferenceUrl,
+                            authorId,
+                            ev
+                        ),
+                        expectedVersion
+                        );
+                }
+                #endregion
+            }
+        }
+        #endregion
+
+        #region Neuron
+        public static IEnumerable<Terminal> GetDendrites(this Neuron neuron, Ensemble ensemble) =>
+            ensemble.GetItems<Terminal>().Where(t => t.PostsynapticNeuronId == neuron.Id);
+
+        public static IEnumerable<Terminal> GetTerminals(this Neuron neuron, Ensemble ensemble) =>
+            ensemble.GetItems<Terminal>().Where(t => t.PresynapticNeuronId == neuron.Id);
+
+        public static IEnumerable<Neuron> GetPresynapticNeurons(this Neuron neuron, Ensemble ensemble) =>
+            neuron.GetDendrites(ensemble)
+                 .Select(t => {
+                     AssertionConcern.AssertStateTrue(
+                         ensemble.TryGetById(t.PresynapticNeuronId, out Neuron result), 
+                         "Neuron with specified Presynaptic Neuron Id was not found."
+                         );
+                     return result;
+                     });
+        #endregion
+
         #region Library.Common to Ensemble
-        public static Ensembles.Neuron ToEnsemble(this IEnumerable<Library.Common.QueryResult<Library.Common.Neuron>> queryResults)
+        public static Ensemble ToEnsemble(this IEnumerable<Library.Common.QueryResult<Library.Common.Neuron>> queryResults)
         {
             var allNs = queryResults.SelectMany(qr => qr.Items.SelectMany(n => n.Traversals.SelectMany(t => t.Neurons)));
             var allTs = queryResults.SelectMany(qr => qr.Items.SelectMany(n => n.Traversals.SelectMany(t => t.Terminals)));
 
             var eNs = allNs.DistinctBy(n => n.Id)
-                .Select(n => n.ToEnsemble()).ToList();
+                .Select(n => n.ToEnsemble());
             var eTs = allTs.DistinctBy(t => t.Id)
-                .Select(t => t.ToEnsemble(eNs)).ToList();
+                .Select(t => t.ToEnsemble());
 
-            return eNs[0];
+            return new Ensemble(
+                eNs.Cast<IEnsembleItem>().Concat(
+                    eTs.Cast<IEnsembleItem>()
+                ).ToDictionary(ei => ei.Id)
+            );
+        }
+
+        public static Neuron ToEnsemble(
+            this Library.Common.Neuron value
+            )
+        {
+            Guid? g = null;
+
+            if (Guid.TryParse(value.Region?.Id, out Guid gr))
+                g = gr;
+
+            return new Neuron(
+                Guid.Parse(value.Id),
+                value.Tag,
+                value.ExternalReferenceUrl,
+                g
+            );
+        }
+
+        public static Terminal ToEnsemble(
+            this Library.Common.Terminal value
+        )
+        {
+            var result = new Terminal(
+                Guid.Parse(value.Id),
+                Guid.Parse(value.PresynapticNeuronId),
+                Guid.Parse(value.PostsynapticNeuronId),
+                Enum.TryParse(value.Effect, out NeurotransmitterEffect ne) ? ne : NeurotransmitterEffect.Excite,
+                float.Parse(value.Strength)
+                );
+
+            return result;
         }
         #endregion
-
-        #region Neuron
-        public static IEnumerable<Neuron> GetAllNeurons(this Neuron neuron)
+        
+        public static bool HasSameElementsAs<T>(
+                this IEnumerable<T> first,
+                IEnumerable<T> second
+            )
         {
-            List<Neuron> result = new List<Neuron>();
-
-            neuron.GetAllNeuronsCore(result);
-
-            return result.ToArray();
+            var firstMap = first
+                .GroupBy(x => x)
+                .ToDictionary(x => x.Key, x => x.Count());
+            var secondMap = second
+                .GroupBy(x => x)
+                .ToDictionary(x => x.Key, x => x.Count());
+            return
+                firstMap.Keys.All(x =>
+                    secondMap.Keys.Contains(x) && firstMap[x] == secondMap[x]
+                ) &&
+                secondMap.Keys.All(x =>
+                    firstMap.Keys.Contains(x) && secondMap[x] == firstMap[x]
+                );
         }
-
-        private static void GetAllNeuronsCore(this Neuron neuron, IList<Neuron> allNeurons)
-        {
-            // if neuron with same id does not yet exist
-            if (!allNeurons.Any(n => n.Id == neuron.Id))
-                allNeurons.Add(neuron);
-            // otherwise 
-            else
-                // assert neuron with same id exists and is the same instance
-                AssertionConcern.AssertStateTrue(allNeurons.Contains(neuron), "Ensemble contains at least two Neurons with the same Id.");
-
-            // sift through postsynaptics
-            neuron.GetAllNeuronsCore(allNeurons, neuron.Terminals.Select(t => t.Postsynaptic));
-
-            // sift through presynaptics
-            neuron.GetAllNeuronsCore(allNeurons, neuron.Dendrites.Select(t => t.Presynaptic));
-        }
-
-        private static void GetAllNeuronsCore(this Neuron currentNeuron, IList<Neuron> allNeurons, IEnumerable<Neuron> neurons)
-        {
-            // for each neuron in list
-            foreach (var neuron in neurons)
-            {
-                // if neuron is already in the list, skip it
-                if (allNeurons.Contains(neuron)) continue;
-                // otherwise find it in current neuron in list, using the list's parent as the caller
-                neuron.GetAllNeuronsCore(allNeurons);
-            }
-        }
-        #endregion
     }
 }

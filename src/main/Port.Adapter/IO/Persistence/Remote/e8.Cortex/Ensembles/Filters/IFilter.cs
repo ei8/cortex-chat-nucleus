@@ -6,6 +6,6 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
 {
     public interface IFilter
     {
-        IEnumerable<Neuron> Evaluate(IEnumerable<Neuron> neurons);
+        IEnumerable<Neuron> Evaluate(Ensemble ensemble, IEnumerable<Neuron> neurons);
     }
 }

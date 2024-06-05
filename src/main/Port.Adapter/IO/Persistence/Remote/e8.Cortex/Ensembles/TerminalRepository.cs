@@ -53,9 +53,10 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
                 var t = retrievedNeurons.Single().Terminal;
                 var resultTerminal = new Terminal(
                     Guid.Parse(t.Id),
-                    false,
-                    float.Parse(t.Strength),
-                    Enum.TryParse(t.Effect, out NeurotransmitterEffect ne) ? ne : NeurotransmitterEffect.Excite
+                    presynapticId,
+                    postsynapticId,
+                    Enum.TryParse(t.Effect, out NeurotransmitterEffect ne) ? ne : NeurotransmitterEffect.Excite,
+                    float.Parse(t.Strength)
                     );
 
                 result.Add(resultTerminal);

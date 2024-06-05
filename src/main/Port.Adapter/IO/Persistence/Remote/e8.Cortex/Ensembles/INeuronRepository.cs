@@ -9,6 +9,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
     {
         Task<IDictionary<string, Neuron>> GetExternalReferencesAsync(string userId, params string[] keys);
 
-        Task<Neuron> GetByQueriesAsync(string userId, params NeuronQuery[] queries);
+        // TODO: transfer to own repository?
+        Task<Ensemble> GetByQueriesAsync(string userId, params NeuronQuery[] queries);
     }
 }

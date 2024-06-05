@@ -1,5 +1,6 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.Ensembles.Filters;
 using ei8.Cortex.Library.Common;
+using neurUL.Common.Domain.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,66 +19,25 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
             this.dependency = dependency;
         }
 
-        public async Task Build(EnsembleCollection ensembles, IInstantiatesParameterSet parameterSet, INeuronRepository neuronRepository, string userId)
+        public async Task<Neuron> BuildAsync(Ensemble ensemble, IInstantiatesParameterSet parameterSet, INeuronRepository neuronRepository, string userId)
         {
-            // TODO: check first if ensemble already contains classDirectObject before obtaining or
-            // should obtainAsync accept ensemble so it can be done inside obtainAsync before retrieving from DB???
+            var subordination = ensemble.Obtain(this.coreSet.Subordination);
+            var instantiatesUnit = ensemble.Obtain(this.coreSet.InstantiatesUnit);
             var classDirectObject = await this.dependency.ObtainAsync(
-                ensembles, 
+                ensemble, 
                 new DependencyParameterSet(
                     parameterSet.Class,
-                    this.coreSet.DirectObject.CloneWithoutTerminals()
+                    this.coreSet.DirectObject
                 ),
                 neuronRepository,
                 userId
                 );
+            var instantiatesClass = ensemble.Obtain(Neuron.CreateTransient(null, null, null));
+            ensemble.Obtain(Terminal.CreateTransient(instantiatesClass.Id, subordination.Id));
+            ensemble.Obtain(Terminal.CreateTransient(instantiatesClass.Id, instantiatesUnit.Id));
+            ensemble.Obtain(Terminal.CreateTransient(instantiatesClass.Id, classDirectObject.Id));
 
-            #region Temp Code  - For Creating an 'Instantiates^[Class]~do' ensemble
-            //var ers = await neuronService.GetExternalReferences(
-            //    userId,
-            //    ExternalReferenceKey.DirectObject,
-            //    typeof(Domain.Model.Messages.Message),
-            //    ExternalReferenceKey.InstantiatesMessage,
-            //    ExternalReferenceKey.Subordination,
-            //    ExternalReferenceKey.Instantiates_Unit
-            //    );
-
-            //// TODO: use NeuronQueryClient to determine whether 'Message~do' already exists in DB
-            //// if not yet in DB 
-            //// ... use to create neuron in memory
-            //// var message_do = neuronService.CreateTransient();
-            //// message_do.Tag = "Message~do";
-
-            //// ... use to create based on NeuronData
-            //var message_do = new NeuronData()
-            //    {
-            //        Id = Guid.Parse("3748be0d-94aa-40bf-b209-cb359194886c"),
-            //        Tag = "Message~do"
-            //    }.ToEnsemble();
-
-            //var links1 = await terminalService.GetOrCreateTerminalsIfNotExistsAsync(
-            //    message_do,
-            //    userId,
-            //    ers[ExternalReferenceKey.DirectObject],
-            //    ers[typeof(Domain.Model.Messages.Message)]
-            //    );
-
-            //var instantiates_message_do = ers[ExternalReferenceKey.InstantiatesMessage];
-
-            //var links2 = await terminalService.GetOrCreateTerminalsIfNotExistsAsync(
-            //    instantiates_message_do,
-            //    userId,
-            //    ers[ExternalReferenceKey.Subordination],
-            //    ers[ExternalReferenceKey.Instantiates_Unit],
-            //    message_do
-            //    );
-
-            //var sd = instantiates_message_do.ToEnsembleData();
-
-            ////await transaction.SaveEnsembleDataAsync(this.serviceProvider, sd, message.SenderId);
-            #endregion
-
-            return; // Task.CompletedTask;
+            return instantiatesClass;
         }
 
         public IEnumerable<Library.Common.NeuronQuery> GetQueries(IInstantiatesParameterSet parameterSet) =>
@@ -99,10 +59,10 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
                 }
             };
 
-        public bool TryParse(Neuron ensemble, IInstantiatesParameterSet parameterSet, out Neuron result)
+        public bool TryParse(Ensemble ensemble, IInstantiatesParameterSet parameterSet, out Neuron result)
         {
             result = null;
-            IEnumerable<Neuron> paths = new[] { ensemble.GetAllNeurons().Single(n => n.Id == parameterSet.Class.Id) };
+            IEnumerable<Neuron> neurons = new[] { parameterSet.Class };
 
             var levelParsers = new LevelParser[]
             {
@@ -114,13 +74,12 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
             };
 
             foreach (var levelParser in levelParsers)
-                paths = levelParser.Evaluate(paths);
+                neurons = levelParser.Evaluate(ensemble, neurons);
 
-            if (paths.Count() == 1)
-                result = paths.ToArray()[0];
+            if (neurons.Count() == 1)
+                result = neurons.Single();
 
             return result != null;
-
         }
     }
 }

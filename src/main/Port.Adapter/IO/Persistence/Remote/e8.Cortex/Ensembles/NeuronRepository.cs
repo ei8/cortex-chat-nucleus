@@ -27,7 +27,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
             this.externalReferences = externalReferences.Value.ToArray();
         }
 
-        public async Task<Neuron> GetByQueriesAsync(string userId, params NeuronQuery[] queries)
+        public async Task<Ensemble> GetByQueriesAsync(string userId, params NeuronQuery[] queries)
         {
             AssertionConcern.AssertArgumentNotEmpty(userId, "Specified 'userId' cannot be null or empty.", nameof(userId));
             AssertionConcern.AssertArgumentNotNull(queries, nameof(queries));

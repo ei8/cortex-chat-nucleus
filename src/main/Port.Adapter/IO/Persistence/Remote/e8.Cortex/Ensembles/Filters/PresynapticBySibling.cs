@@ -20,7 +20,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
             this.siblingNeuronIds = siblingNeuronIds;
         }
 
-        public IEnumerable<Neuron> Evaluate(IEnumerable<Neuron> neurons)
+        public IEnumerable<Neuron> Evaluate(Ensemble ensemble, IEnumerable<Neuron> neurons)
         {
             var result = new List<Neuron>();
 
@@ -28,15 +28,16 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
             foreach (var neuron in neurons)
             {
                 // loop through each presynaptic
-                foreach (var pre in neuron.Dendrites.Select(d => d.Presynaptic))
+                foreach (var pre in neuron.GetPresynapticNeurons(ensemble))
                 {
                     // if exhaustive
                     if (exhaustive)
                     {
+                        var preTerminals = pre.GetTerminals(ensemble);
                         // if presynaptic has only current neuron + siblings as postsynaptic 
-                        if (pre.Terminals.Count() == siblingNeuronIds.Count() + 1 &&
+                        if (preTerminals.Count() == siblingNeuronIds.Count() + 1 &&
                             // and postsynaptics of presynaptic match the current neuron and the siblings
-                            pre.Terminals.Select(t => t.Postsynaptic.Id).HasSameElementsAs(
+                            preTerminals.Select(t => t.PostsynapticNeuronId).HasSameElementsAs(
                                 siblingNeuronIds.Concat(new[] { neuron.Id }))
                             )
                         {

@@ -13,7 +13,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
             this.neuronIds = neuronIds;
         }
 
-        public IEnumerable<Neuron> Evaluate(IEnumerable<Neuron> paths)
+        public IEnumerable<Neuron> Evaluate(Ensemble ensemble, IEnumerable<Neuron> paths)
         {
             throw new NotImplementedException();
         }

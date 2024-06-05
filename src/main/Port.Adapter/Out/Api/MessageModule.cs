@@ -1,5 +1,4 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application.Messages;
-using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using Nancy;
 using Nancy.Helpers;
 using Nancy.Responses;

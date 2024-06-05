@@ -3,46 +3,29 @@ using System;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.Ensembles
 {
-    public class Terminal
+    public class Terminal : IEnsembleItem
     {
-        public Terminal(Guid id, float strength, NeurotransmitterEffect effect) : this(id, false, strength, effect)
+        public Terminal(Guid id, Guid presynapticNeuronId, Guid postsynapticNeuronId, NeurotransmitterEffect effect, float strength) : this(id, false, presynapticNeuronId, postsynapticNeuronId, effect, strength)
         {
         }
 
-        public Terminal(Guid id, bool isTransient, float strength, NeurotransmitterEffect effect)
+        public Terminal(Guid id, bool isTransient, Guid presynapticNeuronId, Guid postsynapticNeuronId, NeurotransmitterEffect effect, float strength)
         {
             this.Id = id;
             this.IsTransient = isTransient;
-            this.Strength = strength;
+            this.PresynapticNeuronId = presynapticNeuronId;
+            this.PostsynapticNeuronId = postsynapticNeuronId;
             this.Effect = effect;
+            this.Strength = strength;
         }
 
-        public Terminal() : this(Guid.NewGuid(), true, 1f, NeurotransmitterEffect.Excite)
-        {
-        }
-
-        public void Unlink()
-        {
-            this.Presynaptic.RemoveTerminal(this.Id);
-            this.Postsynaptic.RemoveDendrite(this.Id);
-
-            this.Presynaptic = null;
-            this.Postsynaptic = null;
-        }
-
-        public void Link(Neuron presynaptic, Neuron postsynaptic)
-        {
-            this.Presynaptic = presynaptic;
-            this.Postsynaptic = postsynaptic;
-            presynaptic.AddTerminal(this);
-            postsynaptic.AddDendrite(this);
-        }
+        public static Terminal CreateTransient(Guid presynapticNeuronId, Guid postsynapticNeuronId) => new Terminal(Guid.NewGuid(), true, presynapticNeuronId, postsynapticNeuronId, NeurotransmitterEffect.Excite, 1f);
 
         public Guid Id { get; private set; }
-        public bool IsTransient { get; private set; }
-        public float Strength { get; private set; }
+        public bool IsTransient { get; }
+        public Guid PresynapticNeuronId { get; private set; }
+        public Guid PostsynapticNeuronId { get; private set; }
         public NeurotransmitterEffect Effect { get; private set; }
-        public Neuron Presynaptic { get; private set; }
-        public Neuron Postsynaptic { get; private set; }
+        public float Strength { get; private set; }
     }
 }

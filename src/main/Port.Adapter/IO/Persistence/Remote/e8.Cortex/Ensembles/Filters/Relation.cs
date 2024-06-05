@@ -12,7 +12,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
             this.type = type;
         }
 
-        public IEnumerable<Neuron> Evaluate(IEnumerable<Neuron> paths)
+        public IEnumerable<Neuron> Evaluate(Ensemble ensemble, IEnumerable<Neuron> paths)
         {
             throw new System.NotImplementedException();
         }

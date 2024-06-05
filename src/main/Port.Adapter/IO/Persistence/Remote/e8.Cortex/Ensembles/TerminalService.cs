@@ -25,11 +25,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
             var results = new List<Terminal>(ts);
             foreach (Neuron postsynaptic in postsynaptics)
             {
-                var result = results.SingleOrDefault(r => r.Presynaptic.Id == presynaptic.Id && r.Postsynaptic.Id == postsynaptic.Id);
+                var result = results.SingleOrDefault(r => r.PresynapticNeuronId == presynaptic.Id && r.PostsynapticNeuronId == postsynaptic.Id);
                 if (result == null)
-                    result = new Terminal();
-
-                result.Link(presynaptic, postsynaptic);
+                    result = Terminal.CreateTransient(presynaptic.Id, postsynaptic.Id);
 
                 results.Add(result);
             }

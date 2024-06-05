@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.Ensembles.Filters
 {
@@ -12,14 +11,12 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
 
         public IEnumerable<IFilter> Filters { get; private set; }
 
-        public IEnumerable<Neuron> Evaluate(IEnumerable<Neuron> paths)
+        public IEnumerable<Neuron> Evaluate(Ensemble ensemble, IEnumerable<Neuron> neurons)
         {
-            var result = new List<Neuron>();
             foreach (var filter in Filters)
-            {
-                result.AddRange(filter.Evaluate(paths));
-            }
-            return result;
+                neurons = filter.Evaluate(ensemble, neurons);
+
+            return neurons;
         }
     }
 }
