@@ -16,6 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\..\..\ei8-cortex-coding-d23\src\main\d23.csproj" />
+    <ProjectReference Include="..\..\..\..\..\..\..\ei8-cortex-coding\src\main\Coding.csproj" />
     <ProjectReference Include="..\..\..\..\Application\Application.csproj" />
     <ProjectReference Include="..\..\..\..\Domain.Model\Domain.Model.csproj" />
   </ItemGroup>

@@ -1,4 +1,5 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application;
+using ei8.Cortex.Coding;
 using ei8.Cortex.Library.Client.Out;
 using ei8.Cortex.Library.Common;
 using Microsoft.Extensions.Options;
@@ -8,15 +9,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.Ensembles
+namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 {
-    public class NeuronRepository : INeuronRepository
+    public class EnsembleRepository : IEnsembleRepository
     {
         private readonly INeuronQueryClient neuronQueryClient;
         private readonly ISettingsService settingsService;
         private IEnumerable<ExternalReference> externalReferences;
 
-        public NeuronRepository(INeuronQueryClient neuronQueryClient, ISettingsService settingsService, IOptions<List<ExternalReference>> externalReferences)
+        public EnsembleRepository(INeuronQueryClient neuronQueryClient, ISettingsService settingsService, IOptions<List<ExternalReference>> externalReferences)
         {
             AssertionConcern.AssertArgumentNotNull(neuronQueryClient, nameof(neuronQueryClient));
             AssertionConcern.AssertArgumentNotNull(settingsService, nameof(settingsService));
@@ -33,10 +34,10 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
             AssertionConcern.AssertArgumentNotNull(queries, nameof(queries));
             AssertionConcern.AssertArgumentValid(k => k.Length > 0, queries, "Specified array cannot be an empty array.", nameof(queries));
 
-            var qrs = new List<Library.Common.QueryResult<Library.Common.Neuron>>();
+            var qrs = new List<QueryResult<Library.Common.Neuron>>();
             foreach (var q in queries)
             {
-                var qr = await this.neuronQueryClient.GetNeuronsInternal(
+                var qr = await neuronQueryClient.GetNeuronsInternal(
                         settingsService.CortexLibraryOutBaseUrl + "/",
                         q,
                         userId
@@ -48,7 +49,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
             return qrs.ToEnsemble();
         }
 
-        public async Task<IDictionary<string, Neuron>> GetExternalReferencesAsync(string userId, params string[] keys)
+        public async Task<IDictionary<string, Coding.Neuron>> GetExternalReferencesAsync(string userId, params string[] keys)
         {
             AssertionConcern.AssertArgumentNotEmpty(userId, "Specified 'userId' cannot be null or empty.", nameof(userId));
             AssertionConcern.AssertArgumentNotNull(keys, nameof(keys));
@@ -67,7 +68,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
                     userId
                 );
             AssertionConcern.AssertStateTrue(keys.Length == qr.Count, "At least one local copy of a specified External Reference was not found.");
-            var result = new Dictionary<string, Neuron>();
+            var result = new Dictionary<string, Coding.Neuron>();
 
             foreach (var n in qr.Items)
             {
@@ -76,7 +77,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.E
                     r = g;
                 result.Add(
                     exRefs.Single(er => er.Url == n.ExternalReferenceUrl).Key,
-                    new Neuron(
+                    new Coding.Neuron(
                         Guid.Parse(n.Id),
                         n.Tag,
                         n.ExternalReferenceUrl,

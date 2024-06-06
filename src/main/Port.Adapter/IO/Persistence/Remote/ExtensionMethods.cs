@@ -1,15 +1,20 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Domain.Model;
+using ei8.Cortex.Coding;
 using ei8.Cortex.Library.Common;
+using ei8.EventSourcing.Client;
+using Microsoft.Extensions.DependencyInjection;
+using neurUL.Cortex.Domain.Model.Neurons;
+using neurUL.Cortex.Port.Adapter.In.InProcess;
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 {
     internal static class ExtensionMethods
     {
-        internal static Avatar ToDomainAvatar(this Neuron value)
+        internal static Avatar ToDomainAvatar(this Library.Common.Neuron value)
         {
             return new Avatar()
             {
@@ -36,5 +41,109 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             var type = typeof(T);
             return string.Format("{0}.{1}.{2}", type.Namespace, type.Name, Enum.GetName(type, @this));
         }
+
+        #region ITransaction
+        // TODO: Transfer
+        public static async Task SaveEnsembleAsync(
+           this ITransaction transaction,
+           IServiceProvider serviceProvider,
+           Ensemble ensemble,
+           Guid authorId
+           )
+        {
+            foreach (var ei in ensemble.GetItems<IEnsembleItem>().Where(ei => ei.IsTransient))
+                await transaction.SaveItemAsync(serviceProvider, ei, authorId);
+        }
+
+        public static async Task SaveItemAsync(
+           this ITransaction transaction,
+           IServiceProvider serviceProvider,
+           IEnsembleItem item,
+           Guid authorId
+           )
+        {
+            if (item is Coding.Terminal terminal)
+            {
+                var terminalAdapter = serviceProvider.GetRequiredService<ITerminalAdapter>();
+
+                await transaction.InvokeAdapterAsync(
+                    terminal.Id,
+                    typeof(TerminalCreated).Assembly.GetEventTypes(),
+                    async (ev) => await terminalAdapter.CreateTerminal(
+                        terminal.Id,
+                        terminal.PresynapticNeuronId,
+                        terminal.PostsynapticNeuronId,
+                        terminal.Effect,
+                        terminal.Strength,
+                        authorId
+                    )
+                );
+            }
+            else if (item is Coding.Neuron neuron)
+            {
+                var neuronAdapter = serviceProvider.GetRequiredService<INeuronAdapter>();
+                var tagItemAdapter = serviceProvider.GetRequiredService<Data.Tag.Port.Adapter.In.InProcess.IItemAdapter>();
+                var aggregateItemAdapter = serviceProvider.GetRequiredService<Data.Aggregate.Port.Adapter.In.InProcess.IItemAdapter>();
+                var externalReferenceItemAdapter = serviceProvider.GetRequiredService<Data.ExternalReference.Port.Adapter.In.InProcess.IItemAdapter>();
+
+                #region Create instance neuron
+                int expectedVersion = await transaction.InvokeAdapterAsync(
+                        neuron.Id,
+                        typeof(NeuronCreated).Assembly.GetEventTypes(),
+                        async (ev) => await neuronAdapter.CreateNeuron(
+                            neuron.Id,
+                            authorId)
+                        );
+
+                // assign tag value
+                if (!string.IsNullOrWhiteSpace(neuron.Tag))
+                {
+                    expectedVersion = await transaction.InvokeAdapterAsync(
+                        neuron.Id,
+                        typeof(ei8.Data.Tag.Domain.Model.TagChanged).Assembly.GetEventTypes(),
+                        async (ev) => await tagItemAdapter.ChangeTag(
+                            neuron.Id,
+                            neuron.Tag,
+                            authorId,
+                            ev
+                        ),
+                        expectedVersion
+                        );
+                }
+
+                if (neuron.RegionId.HasValue)
+                {
+                    // assign region value to id
+                    expectedVersion = await transaction.InvokeAdapterAsync(
+                        neuron.Id,
+                        typeof(ei8.Data.Aggregate.Domain.Model.AggregateChanged).Assembly.GetEventTypes(),
+                        async (ev) => await aggregateItemAdapter.ChangeAggregate(
+                            neuron.Id,
+                            neuron.RegionId.ToString(),
+                            authorId,
+                            ev
+                        ),
+                        expectedVersion
+                    );
+                }
+
+                if (!string.IsNullOrWhiteSpace(neuron.ExternalReferenceUrl))
+                {
+                    expectedVersion = await transaction.InvokeAdapterAsync(
+                        neuron.Id,
+                        typeof(ei8.Data.ExternalReference.Domain.Model.UrlChanged).Assembly.GetEventTypes(),
+                        async (ev) => await externalReferenceItemAdapter.ChangeUrl(
+                            neuron.Id,
+                            neuron.ExternalReferenceUrl,
+                            authorId,
+                            ev
+                        ),
+                        expectedVersion
+                        );
+                }
+                #endregion
+            }
+        }
+        #endregion
     }
 }

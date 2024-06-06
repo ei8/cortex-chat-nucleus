@@ -1,8 +1,11 @@
-﻿using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
-using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.Ensembles;
-using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote.e8.Cortex.Ensembles.neurULization;
+﻿using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
+using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
+using ei8.Cortex.Coding;
+using ei8.Cortex.Coding.d23;
+using ei8.Cortex.Coding.d23.neurULization;
 using ei8.EventSourcing.Client;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using neurUL.Common.Domain.Model;
 using System;
 using System.Threading;
@@ -23,14 +26,29 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 
         public async Task Save(Message message, string userId, CancellationToken token = default)
         {
+            var neuronRepository = this.serviceProvider.GetRequiredService<IEnsembleRepository>();
             var transaction = this.serviceProvider.GetRequiredService<ITransaction>();
 
-            var nzer = new neurULizer();
-            var me = await nzer.neurULizeAsync(message, new neurULizationOptions()
+            // required services
+            var cores = await neuronRepository.GetExternalReferencesAsync(
+                userId, 
+                ExternalReferenceKey.Subordination, 
+                ExternalReferenceKey.DirectObject, 
+                ExternalReferenceKey.Instantiates_Unit
+            );
+            var coreSet = new CoreSet()
             {
-                ServiceProvider = this.serviceProvider,
-                UserId = userId
-            });
+                Subordination = cores[ExternalReferenceKey.Subordination],
+                DirectObject = cores[ExternalReferenceKey.DirectObject],
+                InstantiatesUnit = cores[ExternalReferenceKey.Instantiates_Unit]
+            };
+
+            var nzer = new neurULizer();
+            var me = await nzer.neurULizeAsync(message, new neurULizationOptions(
+                coreSet,
+                this.serviceProvider.GetRequiredService<IEnsembleRepository>(),
+                userId
+            ));
 
             await transaction.SaveEnsembleAsync(this.serviceProvider, me, message.SenderId);
 
