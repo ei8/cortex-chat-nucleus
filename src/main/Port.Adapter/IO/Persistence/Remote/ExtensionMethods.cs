@@ -1,6 +1,5 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Coding;
-using ei8.Cortex.Library.Common;
 using ei8.EventSourcing.Client;
 using Microsoft.Extensions.DependencyInjection;
 using neurUL.Cortex.Domain.Model.Neurons;
@@ -73,7 +72,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                         terminal.Id,
                         terminal.PresynapticNeuronId,
                         terminal.PostsynapticNeuronId,
-                        terminal.Effect,
+                        (neurUL.Cortex.Common.NeurotransmitterEffect) Enum.Parse(typeof(neurUL.Cortex.Common.NeurotransmitterEffect), terminal.Effect.ToString()),
                         terminal.Strength,
                         authorId
                     )

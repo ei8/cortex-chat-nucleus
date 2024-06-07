@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\..\cortex-coding\src\main\Coding.csproj" />
     <ProjectReference Include="..\..\..\Application\Application.csproj" />
     <ProjectReference Include="..\..\IO\Persistence\Remote\Remote.csproj" />
     <ProjectReference Include="..\..\IO\Process\Services\Services.csproj" />

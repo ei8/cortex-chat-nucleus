@@ -41,9 +41,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Remote", "main\Port.Adapter
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "[temp]", "[temp]", "{7081B2DF-B72B-4F56-AD42-D7CF7CAF569A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "d23", "..\..\ei8-cortex-coding-d23\src\main\d23.csproj", "{80D17C07-C59C-4E0A-8374-077509EDD8B9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "d23", "..\..\cortex-coding-d23\src\main\d23.csproj", "{80D17C07-C59C-4E0A-8374-077509EDD8B9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Coding", "..\..\ei8-cortex-coding\src\main\Coding.csproj", "{3974029F-A375-409D-812D-622507D0F198}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Coding", "..\..\cortex-coding\src\main\Coding.csproj", "{3974029F-A375-409D-812D-622507D0F198}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
