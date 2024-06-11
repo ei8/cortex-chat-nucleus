@@ -1,10 +1,4 @@
-﻿using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Library
 {
@@ -12,18 +6,16 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Library
     {
         [Display(Name = "Direct Object:Dependency:Dependent:Unit")]
         DirectObject,
-        [Display(Name = "Has^")]
-        Has_Unit,
-        [Display(Name = "Instantiates^")]
-        Instantiates_Unit,
+        [Display(Name = "Has")]
+        Has,
+        [Display(Name = "Instantiates")]
+        Instantiates,
         [Display(Name = "Instantiates^Avatar~do")]
         InstantiatesAvatar,
         [Display(Name = "Instantiates^(Date Time Offset)~do")]
         InstantiatesDateTimeOffset,
         [Display(Name = "Instantiates^Idea~do")]
         InstantiatesIdea,
-        [Display(Name = "Instantiates^Message~do")]
-        InstantiatesMessage,
         [Display(Name = "Instantiates^(Receipt Info)~do")]
         InstantiatesReceiptInfo,
         [Display(Name = "Instantiates^(Receipt Status)~do")]

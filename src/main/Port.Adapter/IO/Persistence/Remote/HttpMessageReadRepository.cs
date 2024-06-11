@@ -55,16 +55,19 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             if (!pageSize.HasValue)
                 pageSize = this.settingsService.PageSize;
 
-            var neurons = await this.neuronQueryClient.GetNeuronsInternal(
-                this.settingsService.CortexLibraryOutBaseUrl + "/",
-                new NeuronQuery()
-                {
-                    PostsynapticExternalReferenceUrl = this.externalReferences.Where(er => er.Key == ExternalReferenceKey.InstantiatesMessage.ToString()).Select(er => er.Url),
-                    SortBy = SortByValue.NeuronCreationTimestamp,
-                    SortOrder = SortOrderValue.Descending
-                },
-                userId
-                );
+            var neurons = new QueryResult<Library.Common.Neuron>();
+            
+            // TODO: use InstantiatesGranny to obtain Instantiates^Message~do and reference by PostsynapticId
+            //await this.neuronQueryClient.GetNeuronsInternal(
+            //    this.settingsService.CortexLibraryOutBaseUrl + "/",
+            //    new NeuronQuery()
+            //    {
+            //        PostsynapticExternalReferenceUrl = this.externalReferences.Where(er => er.Key == ExternalReferenceKey.InstantiatesMessage.ToString()).Select(er => er.Url),
+            //        SortBy = SortByValue.NeuronCreationTimestamp,
+            //        SortOrder = SortOrderValue.Descending
+            //    },
+            //    userId
+            //    );
 
             var result = neurons.Items
                 .Where(nr => DateTimeOffset.TryParse(nr.Creation.Timestamp, out DateTimeOffset currentCreationTimestamp) && currentCreationTimestamp <= maxTimestamp)

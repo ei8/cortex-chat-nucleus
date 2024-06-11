@@ -34,13 +34,15 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 userId, 
                 ExternalReferenceKey.Subordination, 
                 ExternalReferenceKey.DirectObject, 
-                ExternalReferenceKey.Instantiates_Unit
+                ExternalReferenceKey.Instantiates,
+                ExternalReferenceKey.Unit
             );
             var coreSet = new CoreSet()
             {
-                Subordination = cores[ExternalReferenceKey.Subordination],
                 DirectObject = cores[ExternalReferenceKey.DirectObject],
-                InstantiatesUnit = cores[ExternalReferenceKey.Instantiates_Unit]
+                Instantiates = cores[ExternalReferenceKey.Instantiates],
+                Subordination = cores[ExternalReferenceKey.Subordination],
+                Unit = cores[ExternalReferenceKey.Unit]
             };
 
             var nzer = new neurULizer();
