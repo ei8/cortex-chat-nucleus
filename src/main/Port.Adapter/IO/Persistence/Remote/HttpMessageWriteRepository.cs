@@ -32,14 +32,16 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             // required services
             var cores = await neuronRepository.GetExternalReferencesAsync(
                 userId, 
-                ExternalReferenceKey.Subordination, 
                 ExternalReferenceKey.DirectObject, 
+                ExternalReferenceKey.Idea,
                 ExternalReferenceKey.Instantiates,
+                ExternalReferenceKey.Subordination,
                 ExternalReferenceKey.Unit
             );
-            var coreSet = new CoreSet()
+            var coreSet = new PrimitiveSet()
             {
                 DirectObject = cores[ExternalReferenceKey.DirectObject],
+                Idea = cores[ExternalReferenceKey.Idea],
                 Instantiates = cores[ExternalReferenceKey.Instantiates],
                 Subordination = cores[ExternalReferenceKey.Subordination],
                 Unit = cores[ExternalReferenceKey.Unit]

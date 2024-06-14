@@ -14,8 +14,8 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Library
         InstantiatesAvatar,
         [Display(Name = "Instantiates^(Date Time Offset)~do")]
         InstantiatesDateTimeOffset,
-        [Display(Name = "Instantiates^Idea~do")]
-        InstantiatesIdea,
+        [Display(Name = "Idea")]
+        Idea,
         [Display(Name = "Instantiates^(Receipt Info)~do")]
         InstantiatesReceiptInfo,
         [Display(Name = "Instantiates^(Receipt Status)~do")]

@@ -1,5 +1,7 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application;
 using ei8.Cortex.Coding;
+using ei8.Cortex.Coding.d23;
+using ei8.Cortex.Coding.d23.Grannies;
 using ei8.Cortex.Library.Client.Out;
 using ei8.Cortex.Library.Common;
 using Microsoft.Extensions.Options;
@@ -28,25 +30,18 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             this.externalReferences = externalReferences.Value.ToArray();
         }
 
-        public async Task<Ensemble> GetByQueriesAsync(string userId, params NeuronQuery[] queries)
+        public async Task<Ensemble> GetByQueryAsync(string userId, NeuronQuery query)
         {
             AssertionConcern.AssertArgumentNotEmpty(userId, "Specified 'userId' cannot be null or empty.", nameof(userId));
-            AssertionConcern.AssertArgumentNotNull(queries, nameof(queries));
-            AssertionConcern.AssertArgumentValid(k => k.Length > 0, queries, "Specified array cannot be an empty array.", nameof(queries));
+            AssertionConcern.AssertArgumentNotNull(query, nameof(query));
 
-            var qrs = new List<QueryResult<Library.Common.Neuron>>();
-            foreach (var q in queries)
-            {
-                var qr = await neuronQueryClient.GetNeuronsInternal(
-                        settingsService.CortexLibraryOutBaseUrl + "/",
-                        q,
-                        userId
-                        );
+            var qr = await neuronQueryClient.GetNeuronsInternal(
+                    settingsService.CortexLibraryOutBaseUrl + "/",
+                    query,
+                    userId
+                    );
 
-                qrs.Add(qr);
-            }
-
-            return qrs.ToEnsemble();
+            return qr.ToEnsemble();
         }
 
         public async Task<IDictionary<string, Coding.Neuron>> GetExternalReferencesAsync(string userId, params string[] keys)
