@@ -36,7 +36,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 ExternalReferenceKey.Idea,
                 ExternalReferenceKey.Instantiates,
                 ExternalReferenceKey.Subordination,
-                ExternalReferenceKey.Unit
+                ExternalReferenceKey.Unit,
+                ExternalReferenceKey.Of,
+                ExternalReferenceKey.Case
             );
             var coreSet = new PrimitiveSet()
             {
@@ -44,7 +46,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 Idea = cores[ExternalReferenceKey.Idea],
                 Instantiates = cores[ExternalReferenceKey.Instantiates],
                 Subordination = cores[ExternalReferenceKey.Subordination],
-                Unit = cores[ExternalReferenceKey.Unit]
+                Unit = cores[ExternalReferenceKey.Unit],
+                Of = cores[ExternalReferenceKey.Of],
+                Case = cores[ExternalReferenceKey.Case]
             };
 
             var nzer = new neurULizer();

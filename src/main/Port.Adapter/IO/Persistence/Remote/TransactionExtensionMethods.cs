@@ -226,7 +226,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             AssertionConcern.AssertArgumentNotNull(createPropertyValueDependencyIds, nameof(createPropertyValueDependencyIds));
 
             var idSet = new PropertyIdSet();
-            #region ...declaration
+            #region ...value expression
             #region ...head
             await serviceProvider.CreateUnitAsync(
                 idSet.Declaration.Head.NeuronId,
@@ -264,7 +264,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             #endregion
             #endregion
 
-            #region ...assignment
+            #region ...property assignment
             #region ...dependent
             await serviceProvider.CreateUnitAsync(
                 idSet.Assignment.Dependent.NeuronId,
@@ -302,7 +302,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             #endregion
             #endregion
 
-            #region ...association
+            #region ...property association
             #region ...dependent
             await serviceProvider.CreateUnitAsync(
                 idSet.Association.Dependent.NeuronId,

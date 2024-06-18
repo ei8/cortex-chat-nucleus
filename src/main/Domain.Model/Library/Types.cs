@@ -30,8 +30,10 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Library
         Message_MustHaveLastModificationTimestamp,
         [Display(Name = "Nominal Modifier:Dependency:Dependent:Unit")]
         NominalModifier,
-        [Display(Name = "Of~cs")]
-        Of_Case,
+        [Display(Name = "Of")]
+        Of,
+        [Display(Name = "Case")]
+        Case,
         [Display(Name = "(Defines^((Have^Must~ax,(Avatar Instance)~do)^(Avatar^As~cs)~nm)~do)^")]
         ReceiptInfo_MustHaveAvatarInstance,
         [Display(Name = "(Defines^((Have^Must~ax,(Message Instance)~do)^(Message^As~cs)~nm)~do)^")]
