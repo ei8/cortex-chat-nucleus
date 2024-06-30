@@ -35,7 +35,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 ExternalReferenceKey.DirectObject, 
                 ExternalReferenceKey.Idea,
                 ExternalReferenceKey.Instantiates,
+                ExternalReferenceKey.Simple,
                 ExternalReferenceKey.Subordination,
+                ExternalReferenceKey.Coordination,
                 ExternalReferenceKey.Unit,
                 ExternalReferenceKey.Of,
                 ExternalReferenceKey.Case
@@ -45,7 +47,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 DirectObject = cores[ExternalReferenceKey.DirectObject],
                 Idea = cores[ExternalReferenceKey.Idea],
                 Instantiates = cores[ExternalReferenceKey.Instantiates],
+                Simple = cores[ExternalReferenceKey.Simple],
                 Subordination = cores[ExternalReferenceKey.Subordination],
+                Coordination = cores[ExternalReferenceKey.Coordination],
                 Unit = cores[ExternalReferenceKey.Unit],
                 Of = cores[ExternalReferenceKey.Of],
                 Case = cores[ExternalReferenceKey.Case]

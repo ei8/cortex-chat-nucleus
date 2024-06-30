@@ -42,8 +42,12 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Library
         ReceiptInfo_MustHaveStatus,
         [Display(Name = "Read")]
         Read,
+        [Display(Name = "Simple:Literal:Expression")]
+        Simple,
         [Display(Name = "Subordination:Literal:Expression")]
         Subordination,
+        [Display(Name = "Coordination:Literal:Expression")]
+        Coordination,
         [Display(Name = "Unit")]
         Unit,
         [Display(Name = "Unread")]
