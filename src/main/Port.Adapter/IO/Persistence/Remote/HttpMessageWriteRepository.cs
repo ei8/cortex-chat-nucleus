@@ -60,7 +60,13 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             };
 
             var nzer = new neurULizer();
-            var me = await nzer.neurULizeAsync(message, new neurULizationOptions(
+            // DEL: Test Data
+            message.ExternalReferenceUrl = "http://neurul.net";
+            // TODO: Smessage.RegionId = Guid.NewGuid();
+            message.SenderId = Guid.NewGuid();
+            message.CreationTimestamp = DateTimeOffset.Now;
+            message.UnifiedLastModificationTimestamp = DateTimeOffset.Now;
+            var me = await nzer.neurULizeAsync(message, new neurULizerOptions(
                 coreSet,
                 this.serviceProvider.GetRequiredService<IEnsembleRepository>(),
                 userId

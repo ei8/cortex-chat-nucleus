@@ -72,12 +72,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                     r = g;
                 result.Add(
                     exRefs.Single(er => er.Url == n.ExternalReferenceUrl).Key,
-                    new Coding.Neuron(
-                        Guid.Parse(n.Id),
-                        n.Tag,
-                        n.ExternalReferenceUrl,
-                        r
-                    )
+                    n.ToEnsemble()
                 );
             }
 
