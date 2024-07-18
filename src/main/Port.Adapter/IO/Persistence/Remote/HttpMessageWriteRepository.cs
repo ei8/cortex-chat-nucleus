@@ -67,8 +67,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             message.CreationTimestamp = DateTimeOffset.Now;
             message.UnifiedLastModificationTimestamp = DateTimeOffset.Now;
             var me = await nzer.neurULizeAsync(message, new neurULizerOptions(
+                this.serviceProvider,
                 coreSet,
-                this.serviceProvider.GetRequiredService<IEnsembleRepository>(),
                 userId
             ));
 

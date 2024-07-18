@@ -8,6 +8,7 @@ using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services;
 using ei8.Cortex.Coding;
+using ei8.Cortex.Coding.d23.Grannies;
 using ei8.Cortex.IdentityAccess.Client.In;
 using ei8.Cortex.IdentityAccess.Client.Out;
 using ei8.Cortex.Library.Client.Out;
@@ -83,6 +84,15 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             container.Register<IRepository>((tic, npo) => new Repository(container.Resolve<IInMemoryAuthoredEventStore>()));
             container.Register<ISession, Session>();
             container.Register<ITransaction, Transaction>();
+
+            container.Register<IExpression, Expression>();
+            container.Register<IInstantiatesClass, InstantiatesClass>();
+            container.Register<IPropertyAssignment, PropertyAssignment>();
+            container.Register<IPropertyAssociation, PropertyAssociation>();
+            container.Register<IPropertyValueExpression, PropertyValueExpression>();
+            container.Register<IUnit, Unit>();
+            container.Register<IValue, Value>();
+            container.Register<IValueExpression, ValueExpression>();
 
             #region Neuron
             // neuron
