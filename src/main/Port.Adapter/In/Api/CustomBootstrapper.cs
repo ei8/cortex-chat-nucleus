@@ -73,9 +73,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                 {
                     var ss = container.Resolve<ISettingsService>();
                     return new EventStoreUrlService(
-                                    ss.EventSourcingInBaseUrl + "/",
-                                    ss.EventSourcingOutBaseUrl + "/"
-                                    );
+                        ss.EventSourcingInBaseUrl + "/",
+                        ss.EventSourcingOutBaseUrl + "/"
+                        );
                 });
             container.Register<IEventSerializer, EventSerializer>();
 
@@ -85,14 +85,14 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             container.Register<ISession, Session>();
             container.Register<ITransaction, Transaction>();
 
-            container.Register<IExpression, Expression>();
-            container.Register<IInstantiatesClass, InstantiatesClass>();
-            container.Register<IPropertyAssignment, PropertyAssignment>();
-            container.Register<IPropertyAssociation, PropertyAssociation>();
-            container.Register<IPropertyValueExpression, PropertyValueExpression>();
-            container.Register<IUnit, Unit>();
-            container.Register<IValue, Value>();
-            container.Register<IValueExpression, ValueExpression>();
+            container.Register<IExpressionProcessor, ExpressionProcessor>();
+            container.Register<IInstantiatesClassProcessor, InstantiatesClassProcessor>();
+            container.Register<IPropertyAssignmentProcessor, PropertyAssignmentProcessor>();
+            container.Register<IPropertyAssociationProcessor, PropertyAssociationProcessor>();
+            container.Register<IPropertyValueExpressionProcessor, PropertyValueExpressionProcessor>();
+            container.Register<IUnitProcessor, UnitProcessor>();
+            container.Register<IValueProcessor, ValueProcessor>();
+            container.Register<IValueExpressionProcessor, ValueExpressionProcessor>();
 
             #region Neuron
             // neuron
