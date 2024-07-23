@@ -93,6 +93,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             container.Register<IUnitProcessor, UnitProcessor>();
             container.Register<IValueProcessor, ValueProcessor>();
             container.Register<IValueExpressionProcessor, ValueExpressionProcessor>();
+            container.Register<IInstanceProcessor, InstanceProcessor>();
 
             #region Neuron
             // neuron
