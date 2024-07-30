@@ -50,7 +50,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
            Guid authorId
            )
         {
-            foreach (var ei in ensemble.GetItems<IEnsembleItem>().Where(ei => ei.IsTransient))
+            var transientItems = ensemble.GetItems().Where(ei => ei.IsTransient);
+            foreach (var ei in transientItems)
                 await transaction.SaveItemAsync(serviceProvider, ei, authorId);
         }
 

@@ -63,9 +63,12 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                     Content = message.Content,
                     RegionId = message.RegionId,
                     SenderId = validationResult.UserNeuronId,
-                    ExternalReferenceUrl = message.ExternalReferenceUrl
+                    ExternalReferenceUrl = message.ExternalReferenceUrl,
+                    CreationTimestamp = DateTimeOffset.Now,
+                    LastModificationTimestamp = DateTimeOffset.Now,
+                    Version = message.ExpectedVersion
                 };
-                
+
                 await this.transaction.BeginAsync(validationResult.UserNeuronId);
 
                 await this.messageRepository.Save(dMessage, message.UserId);
@@ -80,7 +83,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                             }
                         ),
                         message.UserId
-                        );
+                    );
 
                 await this.transaction.CommitAsync();
             }

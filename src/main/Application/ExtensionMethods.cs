@@ -31,7 +31,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application
                     SenderId = value.SenderId,
                     ExternalReferenceUrl = value.ExternalReferenceUrl,
                     CreationTimestamp = value.CreationTimestamp,
-                    UnifiedLastModificationTimestamp = value.UnifiedLastModificationTimestamp,
+                    UnifiedLastModificationTimestamp = value.UnifiedLastModificationTimestamp
                 },
                 RegionTag = value.RegionTag,
                 SenderTag = value.SenderTag,

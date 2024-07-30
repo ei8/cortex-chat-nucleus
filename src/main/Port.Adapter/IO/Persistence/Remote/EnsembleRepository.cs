@@ -1,7 +1,5 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application;
 using ei8.Cortex.Coding;
-using ei8.Cortex.Coding.d23;
-using ei8.Cortex.Coding.d23.Grannies;
 using ei8.Cortex.Library.Client.Out;
 using ei8.Cortex.Library.Common;
 using Microsoft.Extensions.Options;
@@ -40,6 +38,11 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                     query,
                     userId
                     );
+
+            AssertionConcern.AssertStateTrue(
+                qr.Count < this.settingsService.QueryResultLimit, 
+                $"Query results cannot exceed {this.settingsService.QueryResultLimit} items. Query: {query.ToString()}"
+            );
 
             return qr.ToEnsemble();
         }

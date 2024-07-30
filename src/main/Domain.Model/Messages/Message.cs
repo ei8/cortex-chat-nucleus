@@ -43,5 +43,8 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Messages
         
         [neurULNeuronProperty(true)]
         public string UnifiedLastModificationAuthorTag { get; set; }
+
+        [neurULNeuronProperty(true)]
+        public int Version { get; set; }
     }
 }
