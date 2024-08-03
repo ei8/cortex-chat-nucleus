@@ -59,13 +59,15 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             };
 
             var nzer = new neurULizer();
-            var me = await nzer.neurULizeAsync(message, new neurULizerOptions(
+            var me = await nzer.neurULizeAsync(message, new d23neurULizerWriteOptions(
                 this.serviceProvider,
                 coreSet,
                 userId,
-                message.Version == 0 ?
-                    WriteMode.Create :
-                    WriteMode.Update
+                new WriteOptions(
+                    message.Version == 0 ?
+                        WriteMode.Create :
+                        WriteMode.Update
+                )
             ));
 
             await transaction.SaveEnsembleAsync(this.serviceProvider, me, message.SenderId);
