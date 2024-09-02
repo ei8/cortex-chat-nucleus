@@ -1,10 +1,16 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Domain.Model;
+using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
 using ei8.Cortex.Coding;
+using ei8.Cortex.Coding.d23.Grannies;
+using ei8.Cortex.Coding.d23.neurULization;
+using ei8.Cortex.Coding.d23.neurULization.Writers;
 using ei8.EventSourcing.Client;
 using Microsoft.Extensions.DependencyInjection;
+using neurUL.Common.Domain.Model;
 using neurUL.Cortex.Domain.Model.Neurons;
 using neurUL.Cortex.Port.Adapter.In.InProcess;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -39,6 +45,76 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             }
             var type = typeof(T);
             return string.Format("{0}.{1}.{2}", type.Namespace, type.Name, Enum.GetName(type, @this));
+        }
+
+        internal static async Task<PrimitiveSet> CreatePrimitives(this IEnsembleRepository ensembleRepository, string userId)
+        {
+            var refs = await ensembleRepository.GetExternalReferencesAsync(
+                userId,
+                ExternalReferenceKey.DirectObject,
+                ExternalReferenceKey.Idea,
+                ExternalReferenceKey.Instantiates,
+                ExternalReferenceKey.Simple,
+                ExternalReferenceKey.Subordination,
+                ExternalReferenceKey.Coordination,
+                ExternalReferenceKey.Unit,
+                ExternalReferenceKey.Of,
+                ExternalReferenceKey.Case,
+                ExternalReferenceKey.NominalModifier,
+                ExternalReferenceKey.Has
+            );
+
+            return new PrimitiveSet()
+            {
+                DirectObject = refs[ExternalReferenceKey.DirectObject],
+                Idea = refs[ExternalReferenceKey.Idea],
+                Instantiates = refs[ExternalReferenceKey.Instantiates],
+                Simple = refs[ExternalReferenceKey.Simple],
+                Subordination = refs[ExternalReferenceKey.Subordination],
+                Coordination = refs[ExternalReferenceKey.Coordination],
+                Unit = refs[ExternalReferenceKey.Unit],
+                Of = refs[ExternalReferenceKey.Of],
+                Case = refs[ExternalReferenceKey.Case],
+                NominalModifier = refs[ExternalReferenceKey.NominalModifier],
+                Has = refs[ExternalReferenceKey.Has]
+            };
+        }
+
+        public static async Task<IInstantiatesClass> GetInstantiatesClass(
+            this IEnsembleRepository ensembleRepository,
+            Id23neurULizerWriteOptions options, 
+            Coding.Neuron @class
+            )
+        {
+            var icProc = options.ServiceProvider.GetRequiredService<
+                Coding.d23.neurULization.Writers.IInstantiatesClassProcessor
+                >();
+            
+            var icParams = new InstantiatesClassParameterSet(@class);
+            var icPqs = icProc.GetQueries(
+                options,
+                icParams
+            );
+            var ensemble = new Ensemble();
+            await icPqs.Process(
+                new ProcessParameters(
+                    ensemble,
+                    options
+                ),
+                new List<IGranny>()
+            );
+
+            IInstantiatesClass instantiatesClass = null;
+            AssertionConcern.AssertStateTrue(
+                icProc.TryParse(
+                    ensemble,
+                    options,
+                    icParams,
+                    out instantiatesClass
+                ),
+                $"'{typeof(Coding.d23.Grannies.IInstantiatesClass).Name}' Granny is required to deneurULize 'Instantiates^{@class.Tag}'"
+                );
+            return instantiatesClass;
         }
 
         #region ITransaction

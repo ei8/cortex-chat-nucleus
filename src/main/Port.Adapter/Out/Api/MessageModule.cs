@@ -6,6 +6,7 @@ using neurUL.Common.Domain.Model;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
 {
@@ -40,6 +41,23 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
             AssertionConcern.AssertArgumentValid(k => k, (bool)value.Query["userid"].HasValue, "User Id was not found.", "userid");
 
             return value.Query["userid"].ToString();
+        }
+
+        // TODO: duplicated in ei8.Cortex.Library.Port.Adapter.Out.Api.NeuronModule etc.
+        internal static async Task<Response> ProcessRequest(Func<Task<Response>> action)
+        {
+            var result = new Response { StatusCode = HttpStatusCode.OK };
+
+            try
+            {
+                result = await action();
+            }
+            catch (Exception ex)
+            {
+                result = new TextResponse(HttpStatusCode.BadRequest, ex.ToString());
+            }
+
+            return result;
         }
     }
 }

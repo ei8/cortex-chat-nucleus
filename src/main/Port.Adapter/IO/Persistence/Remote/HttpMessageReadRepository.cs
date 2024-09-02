@@ -1,12 +1,13 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application;
 using ei8.Cortex.Chat.Nucleus.Client.Out;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
-using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Coding;
-using ei8.Cortex.Library.Client.Out;
+using ei8.Cortex.Coding.d23.neurULization;
+using ei8.Cortex.Coding.d23.neurULization.Writers;
 using ei8.Cortex.Library.Common;
 using IdentityModel.Client;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using neurUL.Common.Domain.Model;
 using System;
@@ -20,27 +21,27 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 {
     public class HttpMessageReadRepository : IMessageReadRepository
     {
-        private readonly INeuronQueryClient neuronQueryClient;
+        private readonly IServiceProvider serviceProvider;
         private readonly IMessageQueryClient messageQueryClient;
         private readonly ISettingsService settingsService;
         private readonly IHttpClientFactory httpClientFactory;
         private readonly IEnumerable<ExternalReference> externalReferences;
 
         public HttpMessageReadRepository(
-            INeuronQueryClient neuronQueryClient,
+            IServiceProvider serviceProvider,
             IMessageQueryClient messageQueryClient,
             ISettingsService settingsService,
             IHttpClientFactory httpClientFactory, 
             IOptions<List<ExternalReference>> externalReferences
-            )
+        )
         {
-            AssertionConcern.AssertArgumentNotNull(neuronQueryClient, nameof(neuronQueryClient));
+            AssertionConcern.AssertArgumentNotNull(serviceProvider, nameof(serviceProvider));
             AssertionConcern.AssertArgumentNotNull(messageQueryClient, nameof(messageQueryClient));
             AssertionConcern.AssertArgumentNotNull(settingsService, nameof(settingsService));
             AssertionConcern.AssertArgumentNotNull(httpClientFactory, nameof(httpClientFactory));
             AssertionConcern.AssertArgumentNotNull(externalReferences, nameof(externalReferences));
 
-            this.neuronQueryClient = neuronQueryClient;
+            this.serviceProvider = serviceProvider;
             this.messageQueryClient = messageQueryClient;
             this.settingsService = settingsService;
             this.httpClientFactory = httpClientFactory;
@@ -56,18 +57,47 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 pageSize = this.settingsService.PageSize;
 
             var neurons = new QueryResult<Library.Common.Neuron>();
-            
-            // TODO: use InstantiatesGranny to obtain Instantiates^Message~do and reference by PostsynapticId
-            //await this.neuronQueryClient.GetNeuronsInternal(
-            //    this.settingsService.CortexLibraryOutBaseUrl + "/",
-            //    new NeuronQuery()
-            //    {
-            //        PostsynapticExternalReferenceUrl = this.externalReferences.Where(er => er.Key == ExternalReferenceKey.InstantiatesMessage.ToString()).Select(er => er.Url),
-            //        SortBy = SortByValue.NeuronCreationTimestamp,
-            //        SortOrder = SortOrderValue.Descending
-            //    },
-            //    userId
-            //    );
+
+            var ensembleRepository = this.serviceProvider.GetRequiredService<IEnsembleRepository>();
+            // use IInstantiatesClass type to find instance ids
+            var primitives = await ensembleRepository.CreatePrimitives(userId);
+            var instantiatesClass = await ensembleRepository.GetInstantiatesClass(
+                new d23neurULizerWriteOptions(
+                    this.serviceProvider,
+                    primitives,
+                    userId,
+                    new WriteOptions(WriteMode.Update)
+                ),
+                await ensembleRepository.GetExternalReferenceAsync(
+                    userId,
+                    typeof(Message)
+                )
+            );
+
+            // TODO: specify maxTimestamp as a NeuronQuery parameter
+            var ensemble = await ensembleRepository.GetByQueryAsync(
+                userId,
+                new NeuronQuery()
+                {
+                    Postsynaptic = new string[] { instantiatesClass.Neuron.Id.ToString() },
+                    SortBy = SortByValue.NeuronCreationTimestamp,
+                    SortOrder = SortOrderValue.Descending,
+                    // from Instance granny to IValue-Instantiates
+                    Depth = 12,
+                    DirectionValues = DirectionValues.Outbound
+                }
+            );
+
+            var dMessages = await new neurULizer().DeneurULizeAsync<Message>(
+                ensemble,
+                new d23neurULizerReadOptions(
+                    this.serviceProvider,
+                    primitives,
+                    userId,
+                    new ReadOptions(ReadMode.All),
+                    instantiatesClass
+                )
+            );
 
             var result = neurons.Items
                 .Where(nr => DateTimeOffset.TryParse(nr.Creation.Timestamp, out DateTimeOffset currentCreationTimestamp) && currentCreationTimestamp <= maxTimestamp)

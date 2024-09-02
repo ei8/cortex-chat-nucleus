@@ -84,55 +84,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             container.Register<IRepository>((tic, npo) => new Repository(container.Resolve<IInMemoryAuthoredEventStore>()));
             container.Register<ISession, Session>();
             container.Register<ITransaction, Transaction>();
-            
-            // Write
-            container.Register<IExpressionProcessor, ExpressionProcessor>();
-            container.Register<IInstantiatesClassProcessor, InstantiatesClassProcessor>();
-            container.Register<IPropertyAssignmentProcessor, PropertyAssignmentProcessor>();
-            container.Register<IPropertyAssociationProcessor, PropertyAssociationProcessor>();
-            container.Register<IPropertyValueExpressionProcessor, PropertyValueExpressionProcessor>();
-            container.Register<IUnitProcessor, UnitProcessor>();
-            container.Register<IValueProcessor, ValueProcessor>();
-            container.Register<IValueExpressionProcessor, ValueExpressionProcessor>();
-            container.Register<IInstanceProcessor, InstanceProcessor>();
 
-            // Read
-            container.Register<
-                Coding.d23.neurULization.Readers.IExpressionProcessor,
-                Coding.d23.neurULization.Readers.ExpressionProcessor
-            >();
-            container.Register<
-                Coding.d23.neurULization.Readers.IInstantiatesClassProcessor, 
-                Coding.d23.neurULization.Readers.InstantiatesClassProcessor
-            >();
-            container.Register<
-                Coding.d23.neurULization.Readers.IPropertyAssignmentProcessor,
-                Coding.d23.neurULization.Readers.PropertyAssignmentProcessor
-                >();
-            container.Register<
-                Coding.d23.neurULization.Readers.IPropertyAssociationProcessor,
-                Coding.d23.neurULization.Readers.PropertyAssociationProcessor
-                >();
-            container.Register<
-               Coding.d23.neurULization.Readers.IPropertyValueExpressionProcessor,
-               Coding.d23.neurULization.Readers.PropertyValueExpressionProcessor
-            >();
-            container.Register<
-                Coding.d23.neurULization.Readers.IUnitProcessor,
-                Coding.d23.neurULization.Readers.UnitProcessor
-            >();
-            container.Register<
-                Coding.d23.neurULization.Readers.IValueProcessor,
-                Coding.d23.neurULization.Readers.ValueProcessor
-            >();
-            container.Register<
-                Coding.d23.neurULization.Readers.IValueExpressionProcessor,
-                Coding.d23.neurULization.Readers.ValueExpressionProcessor
-            >();
-            container.Register<
-                Coding.d23.neurULization.Readers.IInstanceProcessor,
-                Coding.d23.neurULization.Readers.InstanceProcessor
-            >();
+            container.AddWriteProcessors();
+            container.AddReadProcessors();
 
             #region Neuron
             // neuron

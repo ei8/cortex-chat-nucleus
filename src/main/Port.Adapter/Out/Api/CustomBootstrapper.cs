@@ -6,6 +6,7 @@ using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services;
 using ei8.Cortex.Coding;
+using ei8.Cortex.Coding.d23.neurULization.Writers;
 using ei8.Cortex.Library.Client.Out;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,6 +43,10 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
                    return rp;
                });
 
+
+            container.Register<IServiceProvider, TinyIoCServiceLocator>(
+                new TinyIoCServiceLocator(container)
+            );
             container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
             container.Register(this.configuration);
             container.Register<ISettingsService, SettingsService>();
@@ -49,9 +54,12 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
             container.Register<IAvatarReadRepository, HttpAvatarReadRepository>();
             container.Register<IMessageQueryClient, HttpMessageQueryClient>();
             container.Register(this.serviceProvider.GetService<IHttpClientFactory>());
+            container.Register<IEnsembleRepository, EnsembleRepository>();
             container.Register<IMessageReadRepository, HttpMessageReadRepository>();
             container.Register<IMessageQueryService, MessageQueryService>();
             container.Register<IAvatarQueryService, AvatarQueryService>();
+
+            container.AddWriteProcessors();
         }
     }
 }
