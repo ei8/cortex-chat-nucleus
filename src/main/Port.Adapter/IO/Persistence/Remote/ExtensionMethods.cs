@@ -3,7 +3,8 @@ using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
 using ei8.Cortex.Coding;
 using ei8.Cortex.Coding.d23.Grannies;
 using ei8.Cortex.Coding.d23.neurULization;
-using ei8.Cortex.Coding.d23.neurULization.Writers;
+using ei8.Cortex.Coding.d23.neurULization.Processors.Readers.Deductive;
+using ei8.Cortex.Coding.d23.neurULization.Processors.Writers;
 using ei8.EventSourcing.Client;
 using Microsoft.Extensions.DependencyInjection;
 using neurUL.Common.Domain.Model;
@@ -87,7 +88,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             )
         {
             var icProc = options.ServiceProvider.GetRequiredService<
-                Coding.d23.neurULization.Writers.IInstantiatesClassProcessor
+                Coding.d23.neurULization.Processors.Readers.Deductive.IInstantiatesClassProcessor
                 >();
             
             var icParams = new InstantiatesClassParameterSet(@class);
