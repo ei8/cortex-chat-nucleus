@@ -31,14 +31,15 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             var ensembleRepository = this.serviceProvider.GetRequiredService<IEnsembleRepository>();
 
             var me = await new neurULizer().neurULizeAsync(message, new d23neurULizerWriteOptions(
-                this.serviceProvider,
                 await ensembleRepository.CreatePrimitives(userId),
                 userId,
                 new WriteOptions(
                     message.Version == 0 ?
                         WriteMode.Create :
                         WriteMode.Update
-                )
+                ),
+                this.serviceProvider.GetRequiredService<ei8.Cortex.Coding.d23.neurULization.Processors.Writers.IInstanceProcessor>(),
+                this.serviceProvider.GetRequiredService<IEnsembleRepository>()
             ));
 
             await this.serviceProvider.GetRequiredService<ITransaction>()

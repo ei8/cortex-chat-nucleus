@@ -60,17 +60,20 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             var ensembleRepository = this.serviceProvider.GetRequiredService<IEnsembleRepository>();
             // use IInstantiatesClass type to find instance ids
             var primitives = await ensembleRepository.CreatePrimitives(userId);
-            var instantiatesClass = await ensembleRepository.GetInstantiatesClass(
-                new d23neurULizerWriteOptions(
-                    this.serviceProvider,
-                    primitives,
-                    userId,
-                    new WriteOptions(WriteMode.Update)
-                ),
-                await ensembleRepository.GetExternalReferenceAsync(
-                    userId,
-                    typeof(Message)
-                )
+            var instantiatesClass = await this.serviceProvider.GetRequiredService<
+                    Coding.d23.neurULization.Processors.Readers.Deductive.IInstantiatesClassProcessor
+                >().GetInstantiatesClass(
+                    new d23neurULizerWriteOptions(
+                        primitives,
+                        userId,
+                        new WriteOptions(WriteMode.Update),
+                        this.serviceProvider.GetRequiredService<Coding.d23.neurULization.Processors.Writers.IInstanceProcessor>(),
+                        this.serviceProvider.GetRequiredService<IEnsembleRepository>()
+                    ),
+                    await ensembleRepository.GetExternalReferenceAsync(
+                        userId,
+                        typeof(Message)
+                    )
             );
 
             // TODO: specify maxTimestamp as a NeuronQuery parameter
@@ -90,11 +93,12 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             var dMessages = await new neurULizer().DeneurULizeAsync<Message>(
                 ensemble,
                 new d23neurULizerReadOptions(
-                    this.serviceProvider,
                     primitives,
                     userId,
                     new ReadOptions(ReadMode.All),
-                    instantiatesClass
+                    instantiatesClass,
+                    this.serviceProvider.GetRequiredService<Coding.d23.neurULization.Processors.Readers.Inductive.IInstanceProcessor>(),
+                    this.serviceProvider.GetRequiredService<IEnsembleRepository>()
                 )
             );
 

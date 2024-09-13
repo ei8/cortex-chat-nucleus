@@ -82,15 +82,11 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         }
 
         public static async Task<IInstantiatesClass> GetInstantiatesClass(
-            this IEnsembleRepository ensembleRepository,
+            this Coding.d23.neurULization.Processors.Readers.Deductive.IInstantiatesClassProcessor icProc,
             Id23neurULizerWriteOptions options, 
             Coding.Neuron @class
             )
         {
-            var icProc = options.ServiceProvider.GetRequiredService<
-                Coding.d23.neurULization.Processors.Readers.Deductive.IInstantiatesClassProcessor
-                >();
-            
             var icParams = new InstantiatesClassParameterSet(@class);
             var icPqs = icProc.GetQueries(
                 options,
