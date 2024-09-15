@@ -37,6 +37,13 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             this.configuration = configuration;
         }
 
+        protected override void ConfigureApplicationContainer(TinyIoCContainer container)
+        {
+            base.ConfigureApplicationContainer(container);
+
+            container.Register<IDictionary<string, Ensemble>>(new Dictionary<string, Ensemble>());
+        }
+
         protected override void ConfigureRequestContainer(TinyIoCContainer container, NancyContext context)
         {
             base.ConfigureRequestContainer(container, context);

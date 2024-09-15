@@ -63,12 +63,15 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             var instantiatesClass = await this.serviceProvider.GetRequiredService<
                     Coding.d23.neurULization.Processors.Readers.Deductive.IInstantiatesClassProcessor
                 >().GetInstantiatesClass(
+                // TODO: ideally should not use Id23neurULizerWriteOptions in GetAll,
+                // but rather something like Id23neurULizerDeductiveReadOptions
                     new d23neurULizerWriteOptions(
                         primitives,
                         userId,
                         new WriteOptions(WriteMode.Update),
                         this.serviceProvider.GetRequiredService<Coding.d23.neurULization.Processors.Writers.IInstanceProcessor>(),
-                        this.serviceProvider.GetRequiredService<IEnsembleRepository>()
+                        this.serviceProvider.GetRequiredService<IEnsembleRepository>(),
+                        null
                     ),
                     await ensembleRepository.GetExternalReferenceAsync(
                         userId,
