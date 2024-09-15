@@ -27,6 +27,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         private readonly IEnumerable<ExternalReference> externalReferences;
 
         public HttpMessageReadRepository(
+            // TODO:DEL remove serviceProvider
             IServiceProvider serviceProvider,
             IMessageQueryClient messageQueryClient,
             ISettingsService settingsService,

@@ -118,27 +118,41 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         // TODO: Transfer ei8.Cortex.Coding.EventSourcing or Data?
         public static async Task SaveEnsembleAsync(
            this ITransaction transaction,
-           IServiceProvider serviceProvider,
            Ensemble ensemble,
-           Guid authorId
+           Guid authorId,
+           neurUL.Cortex.Port.Adapter.In.InProcess.INeuronAdapter neuronAdapter,
+           neurUL.Cortex.Port.Adapter.In.InProcess.ITerminalAdapter terminalAdapter,
+           ei8.Data.Tag.Port.Adapter.In.InProcess.IItemAdapter tagItemAdapter,
+           ei8.Data.Aggregate.Port.Adapter.In.InProcess.IItemAdapter aggregateItemAdapter,
+           ei8.Data.ExternalReference.Port.Adapter.In.InProcess.IItemAdapter externalReferenceItemAdapter
            )
         {
             var transientItems = ensemble.GetItems().Where(ei => ei.IsTransient);
             foreach (var ei in transientItems)
-                await transaction.SaveItemAsync(serviceProvider, ei, authorId);
+                await transaction.SaveItemAsync(
+                    ei, 
+                    authorId,
+                    neuronAdapter,
+                    terminalAdapter,
+                    tagItemAdapter,
+                    aggregateItemAdapter,
+                    externalReferenceItemAdapter
+                );
         }
 
         public static async Task SaveItemAsync(
            this ITransaction transaction,
-           IServiceProvider serviceProvider,
            IEnsembleItem item,
-           Guid authorId
+           Guid authorId,
+           neurUL.Cortex.Port.Adapter.In.InProcess.INeuronAdapter neuronAdapter,
+           neurUL.Cortex.Port.Adapter.In.InProcess.ITerminalAdapter terminalAdapter,
+           ei8.Data.Tag.Port.Adapter.In.InProcess.IItemAdapter tagItemAdapter,
+           ei8.Data.Aggregate.Port.Adapter.In.InProcess.IItemAdapter aggregateItemAdapter,
+           ei8.Data.ExternalReference.Port.Adapter.In.InProcess.IItemAdapter externalReferenceItemAdapter
            )
         {
             if (item is Coding.Terminal terminal)
             {
-                var terminalAdapter = serviceProvider.GetRequiredService<ITerminalAdapter>();
-
                 await transaction.InvokeAdapterAsync(
                     terminal.Id,
                     typeof(TerminalCreated).Assembly.GetEventTypes(),
@@ -154,11 +168,6 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             }
             else if (item is Coding.Neuron neuron)
             {
-                var neuronAdapter = serviceProvider.GetRequiredService<INeuronAdapter>();
-                var tagItemAdapter = serviceProvider.GetRequiredService<Data.Tag.Port.Adapter.In.InProcess.IItemAdapter>();
-                var aggregateItemAdapter = serviceProvider.GetRequiredService<Data.Aggregate.Port.Adapter.In.InProcess.IItemAdapter>();
-                var externalReferenceItemAdapter = serviceProvider.GetRequiredService<Data.ExternalReference.Port.Adapter.In.InProcess.IItemAdapter>();
-
                 #region Create instance neuron
                 int expectedVersion = await transaction.InvokeAdapterAsync(
                         neuron.Id,
