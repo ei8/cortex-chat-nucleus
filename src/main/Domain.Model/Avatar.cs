@@ -1,4 +1,5 @@
 ﻿using ei8.Cortex.Coding;
+using ei8.Cortex.Coding.Properties;
 using System;
 
 namespace ei8.Cortex.Chat.Nucleus.Domain.Model
@@ -14,7 +15,7 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model
         [neurULNeuronProperty]
         public string ExternalReferenceUrl { get; set; }
 
-        [neurULNeuronProperty(true)]
+        [neurULNeuronProperty]
         public string Url { get; set; }
     }
 }

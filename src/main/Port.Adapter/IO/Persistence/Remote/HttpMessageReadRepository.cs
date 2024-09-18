@@ -4,6 +4,7 @@ using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Coding;
 using ei8.Cortex.Coding.d23.neurULization;
+using ei8.Cortex.Coding.d23.neurULization.Processors.Readers.Deductive;
 using ei8.Cortex.Library.Common;
 using IdentityModel.Client;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,28 +21,35 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 {
     public class HttpMessageReadRepository : IMessageReadRepository
     {
-        private readonly IServiceProvider serviceProvider;
+        private readonly IEnsembleRepository ensembleRepository;
+        private readonly IInstantiatesClassProcessor readersDeductiveInstantiatesClassProcessor;
+        private readonly Coding.d23.neurULization.Processors.Writers.IInstanceProcessor writersInstanceProcessor;
+        private readonly Coding.d23.neurULization.Processors.Readers.Inductive.IInstanceProcessor readersInductiveInstanceProcessor;
         private readonly IMessageQueryClient messageQueryClient;
         private readonly ISettingsService settingsService;
         private readonly IHttpClientFactory httpClientFactory;
         private readonly IEnumerable<ExternalReference> externalReferences;
 
         public HttpMessageReadRepository(
-            // TODO:DEL remove serviceProvider
-            IServiceProvider serviceProvider,
+            IEnsembleRepository ensembleRepository,
+            Coding.d23.neurULization.Processors.Readers.Deductive.IInstantiatesClassProcessor readersDeductiveInstantiatesClassProcessor,
+            Coding.d23.neurULization.Processors.Writers.IInstanceProcessor writersInstanceProcessor,
+            Coding.d23.neurULization.Processors.Readers.Inductive.IInstanceProcessor readersInductiveInstanceProcessor,
             IMessageQueryClient messageQueryClient,
             ISettingsService settingsService,
             IHttpClientFactory httpClientFactory, 
             IOptions<List<ExternalReference>> externalReferences
         )
         {
-            AssertionConcern.AssertArgumentNotNull(serviceProvider, nameof(serviceProvider));
             AssertionConcern.AssertArgumentNotNull(messageQueryClient, nameof(messageQueryClient));
             AssertionConcern.AssertArgumentNotNull(settingsService, nameof(settingsService));
             AssertionConcern.AssertArgumentNotNull(httpClientFactory, nameof(httpClientFactory));
             AssertionConcern.AssertArgumentNotNull(externalReferences, nameof(externalReferences));
 
-            this.serviceProvider = serviceProvider;
+            this.ensembleRepository = ensembleRepository;
+            this.readersDeductiveInstantiatesClassProcessor = readersDeductiveInstantiatesClassProcessor;
+            this.writersInstanceProcessor = writersInstanceProcessor;
+            this.readersInductiveInstanceProcessor = readersInductiveInstanceProcessor;
             this.messageQueryClient = messageQueryClient;
             this.settingsService = settingsService;
             this.httpClientFactory = httpClientFactory;
@@ -58,20 +66,17 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 
             var neurons = new QueryResult<Library.Common.Neuron>();
 
-            var ensembleRepository = this.serviceProvider.GetRequiredService<IEnsembleRepository>();
             // use IInstantiatesClass type to find instance ids
             var primitives = await ensembleRepository.CreatePrimitives(userId);
-            var instantiatesClass = await this.serviceProvider.GetRequiredService<
-                    Coding.d23.neurULization.Processors.Readers.Deductive.IInstantiatesClassProcessor
-                >().GetInstantiatesClass(
+            var instantiatesClass = await this.readersDeductiveInstantiatesClassProcessor.GetInstantiatesClass(
                 // TODO: ideally should not use Id23neurULizerWriteOptions in GetAll,
                 // but rather something like Id23neurULizerDeductiveReadOptions
                     new d23neurULizerWriteOptions(
                         primitives,
                         userId,
                         new WriteOptions(WriteMode.Update),
-                        this.serviceProvider.GetRequiredService<Coding.d23.neurULization.Processors.Writers.IInstanceProcessor>(),
-                        this.serviceProvider.GetRequiredService<IEnsembleRepository>(),
+                        this.writersInstanceProcessor,
+                        this.ensembleRepository,
                         null
                     ),
                     await ensembleRepository.GetExternalReferenceAsync(
@@ -101,8 +106,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                     userId,
                     new ReadOptions(ReadMode.All),
                     instantiatesClass,
-                    this.serviceProvider.GetRequiredService<Coding.d23.neurULization.Processors.Readers.Inductive.IInstanceProcessor>(),
-                    this.serviceProvider.GetRequiredService<IEnsembleRepository>()
+                    this.readersInductiveInstanceProcessor,
+                    this.ensembleRepository
                 )
             );
 

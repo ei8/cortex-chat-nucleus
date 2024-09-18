@@ -36,7 +36,13 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             )
         {
             AssertionConcern.AssertArgumentNotNull(ensembleRepository, nameof(ensembleRepository));
+            AssertionConcern.AssertArgumentNotNull(transaction, nameof(transaction));
             AssertionConcern.AssertArgumentNotNull(instanceProcessor, nameof(instanceProcessor));
+            AssertionConcern.AssertArgumentNotNull(neuronAdapter, nameof(neuronAdapter));
+            AssertionConcern.AssertArgumentNotNull(terminalAdapter, nameof(terminalAdapter));
+            AssertionConcern.AssertArgumentNotNull(tagItemAdapter, nameof(tagItemAdapter));
+            AssertionConcern.AssertArgumentNotNull(aggregateItemAdapter, nameof(aggregateItemAdapter));
+            AssertionConcern.AssertArgumentNotNull(externalReferenceItemAdapter, nameof(externalReferenceItemAdapter));
             AssertionConcern.AssertArgumentNotNull(ensembleCache, nameof(ensembleCache));
 
             this.ensembleRepository = ensembleRepository;
