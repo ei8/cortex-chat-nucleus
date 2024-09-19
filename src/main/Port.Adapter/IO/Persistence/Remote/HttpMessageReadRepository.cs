@@ -113,29 +113,17 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 )
             );
 
-            var result = neurons.Items
-                .Where(nr => DateTimeOffset.TryParse(nr.Creation.Timestamp, out DateTimeOffset currentCreationTimestamp) && currentCreationTimestamp <= maxTimestamp)
-                .Take(pageSize.Value)
+            var result = dMessages.Take(pageSize.Value)
                 .Reverse()
-                .Select(n => new MessageResult()
+                .Select(m => new MessageResult()
                 {
-                    Message = new Message()
-                    {
-                        Id = Guid.Parse(n.Id),
-                        Content = n.Tag,
-                        RegionId = Guid.TryParse(n.Region?.Id, out Guid newRegionId) ? (Guid?)newRegionId : null,
-                        SenderId = Guid.Parse(n.Creation.Author.Id),
-                        CreationTimestamp = DateTimeOffset.TryParse(n.Creation.Timestamp, out DateTimeOffset creation) ? (DateTimeOffset?)creation : null,
-                        UnifiedLastModificationTimestamp =
-                        DateTimeOffset.TryParse(
-                            n.UnifiedLastModification.Timestamp,
-                            out DateTimeOffset unifiedLastModification) ?
-                                (DateTimeOffset?)unifiedLastModification :
-                                null
-                    },
-                    RegionTag = n.Region?.Tag,
-                    SenderTag = n.Creation.Author.Tag,
-                    IsCurrentUserCreationAuthor = n.Validation.IsCurrentUserCreationAuthor
+                    Message = m,
+                    RegionTag = m.RegionTag,
+                    // TODO: should be based on SenderId
+                    SenderTag = m.CreationAuthorTag,
+                    // TODO: base on senderId
+                    IsCurrentUserCreationAuthor = new Random().Next(100) < 50
+                    // TODO:DEL m.Validation.IsCurrentUserCreationAuthor
                 });
 
             if (avatars.Any())
