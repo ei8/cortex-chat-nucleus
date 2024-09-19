@@ -4,10 +4,8 @@ using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Coding;
 using ei8.Cortex.Coding.d23.neurULization;
-using ei8.Cortex.Coding.d23.neurULization.Processors.Readers.Deductive;
 using ei8.Cortex.Library.Common;
 using IdentityModel.Client;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using neurUL.Common.Domain.Model;
 using System;
@@ -22,7 +20,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
     public class HttpMessageReadRepository : IMessageReadRepository
     {
         private readonly IEnsembleRepository ensembleRepository;
-        private readonly IInstantiatesClassProcessor readersDeductiveInstantiatesClassProcessor;
+        private readonly Coding.d23.neurULization.Processors.Readers.Deductive.IInstantiatesClassProcessor readersDeductiveInstantiatesClassProcessor;
         private readonly Coding.d23.neurULization.Processors.Writers.IInstanceProcessor writersInstanceProcessor;
         private readonly Coding.d23.neurULization.Processors.Readers.Inductive.IInstanceProcessor readersInductiveInstanceProcessor;
         private readonly IMessageQueryClient messageQueryClient;
@@ -41,6 +39,10 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             IOptions<List<ExternalReference>> externalReferences
         )
         {
+            AssertionConcern.AssertArgumentNotNull(ensembleRepository, nameof(ensembleRepository));
+            AssertionConcern.AssertArgumentNotNull(readersDeductiveInstantiatesClassProcessor, nameof(readersDeductiveInstantiatesClassProcessor));
+            AssertionConcern.AssertArgumentNotNull(writersInstanceProcessor, nameof(writersInstanceProcessor));
+            AssertionConcern.AssertArgumentNotNull(readersInductiveInstanceProcessor, nameof(readersInductiveInstanceProcessor));
             AssertionConcern.AssertArgumentNotNull(messageQueryClient, nameof(messageQueryClient));
             AssertionConcern.AssertArgumentNotNull(settingsService, nameof(settingsService));
             AssertionConcern.AssertArgumentNotNull(httpClientFactory, nameof(httpClientFactory));
