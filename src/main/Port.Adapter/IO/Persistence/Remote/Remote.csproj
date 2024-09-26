@@ -17,7 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\..\..\cortex-coding-d23-neurULization-persistence\src\main\d23.neurULization.Persistence.csproj" />
     <ProjectReference Include="..\..\..\..\..\..\..\cortex-coding-d23\src\main\d23.csproj" />
+    <ProjectReference Include="..\..\..\..\..\..\..\cortex-coding-persistence\src\main\Coding.Persistence.csproj" />
     <ProjectReference Include="..\..\..\..\..\..\..\cortex-coding\src\main\Coding.csproj" />
     <ProjectReference Include="..\..\..\..\Application\Application.csproj" />
     <ProjectReference Include="..\..\..\..\Domain.Model\Domain.Model.csproj" />

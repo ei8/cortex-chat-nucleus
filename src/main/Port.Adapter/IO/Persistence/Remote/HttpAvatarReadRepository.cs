@@ -1,10 +1,10 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
-using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
 using ei8.Cortex.Coding;
+using ei8.Cortex.Coding.d23.Grannies;
+using ei8.Cortex.Coding.d23.neurULization.Persistence;
 using ei8.Cortex.Library.Client.Out;
 using ei8.Cortex.Library.Common;
-using Microsoft.Extensions.Options;
 using neurUL.Common.Domain.Model;
 using System;
 using System.Collections.Generic;
@@ -16,37 +16,66 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 {
     public class HttpAvatarReadRepository : IAvatarReadRepository
     {
+        private readonly IEnsembleRepository ensembleRepository;
         private readonly INeuronQueryClient neuronQueryClient;
         private readonly ISettingsService settingsService;
-        private readonly IEnumerable<ExternalReference> externalReferences;
+        private readonly IGrannyService grannyService;
 
         public HttpAvatarReadRepository(
+            IEnsembleRepository ensembleRepository,
             INeuronQueryClient neuronQueryClient,
             ISettingsService settingsService,
-            IOptions<List<ExternalReference>> externalReferences
-            )
+            IGrannyService grannyService
+        )
         {
+            AssertionConcern.AssertArgumentNotNull(ensembleRepository, nameof(ensembleRepository));
             AssertionConcern.AssertArgumentNotNull(neuronQueryClient, nameof(neuronQueryClient));
             AssertionConcern.AssertArgumentNotNull(settingsService, nameof(settingsService));
-            AssertionConcern.AssertArgumentNotNull(externalReferences, nameof(externalReferences));
-            
+            AssertionConcern.AssertArgumentNotNull(grannyService, nameof(grannyService));
+
+            this.ensembleRepository = ensembleRepository;
             this.neuronQueryClient = neuronQueryClient;
             this.settingsService = settingsService;
-            this.externalReferences = externalReferences.Value.ToArray();
+            this.grannyService = grannyService;
         }
 
         public async Task<IEnumerable<Avatar>> GetAll(string userId, CancellationToken token = default)
         {
+            var instantiatesAvatarResult = await this.grannyService.TryObtainPersistAsync<
+                IInstantiatesClass,
+                Coding.d23.neurULization.Processors.Readers.Deductive.IInstantiatesClassProcessor,
+                Coding.d23.neurULization.Processors.Readers.Deductive.IInstantiatesClassParameterSet,
+                Coding.d23.neurULization.Processors.Writers.IInstantiatesClassProcessor
+            >(
+                new Coding.d23.neurULization.Processors.Readers.Deductive.InstantiatesClassParameterSet(
+                    await ensembleRepository.GetExternalReferenceAsync(
+                        this.settingsService.AppUserId,
+                        this.settingsService.CortexLibraryOutBaseUrl,
+                        typeof(Avatar)
+                    )
+                ),
+                this.settingsService.AppUserId,
+                this.settingsService.IdentityAccessOutBaseUrl + "/",
+                this.settingsService.CortexLibraryOutBaseUrl + "/",
+                this.settingsService.QueryResultLimit,
+                token
+            );
+
+            AssertionConcern.AssertStateTrue(
+                instantiatesAvatarResult.Item1,
+                $"'Instantiates^Avatar' is required to invoke {nameof(HttpAvatarReadRepository.GetAll)}"
+            );
+                       
             var neurons = await this.neuronQueryClient.GetNeuronsInternal(
                 this.settingsService.CortexLibraryOutBaseUrl + "/",
                 new NeuronQuery()
                 {
-                    PostsynapticExternalReferenceUrl = this.externalReferences.Where(er => er.Key == ExternalReferenceKey.InstantiatesAvatar.ToString()).Select(er => er.Url),
+                    Postsynaptic = new string[] { instantiatesAvatarResult.Item2.Neuron.Id.ToString() },
                     SortBy = SortByValue.NeuronExternalReferenceUrl,
                     SortOrder = SortOrderValue.Ascending
                 },
                 userId
-                );
+            );
 
             return neurons.Items.Select(n => n.ToDomainAvatar());
         }

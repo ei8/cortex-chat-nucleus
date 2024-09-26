@@ -7,6 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CqrsLite" Version="0.18.1" />
+    <PackageReference Include="ei8.EventSourcing.Client" Version="0.2.12" />
+    <PackageReference Include="Nancy" Version="2.0.0-clinteastwood" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Application\Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="mscorlib">
       <HintPath>..\..\..\..\..\..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.2\mscorlib.dll</HintPath>
     </Reference>

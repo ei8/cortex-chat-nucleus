@@ -45,6 +45,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "d23", "..\..\cortex-coding-
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Coding", "..\..\cortex-coding\src\main\Coding.csproj", "{3974029F-A375-409D-812D-622507D0F198}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Coding.Persistence", "..\..\cortex-coding-persistence\src\main\Coding.Persistence.csproj", "{AA2BFDE4-389B-4333-B2F2-8465BE74AEFD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "d23.neurULization.Persistence", "..\..\cortex-coding-d23-neurULization-persistence\src\main\d23.neurULization.Persistence.csproj", "{F2282C3D-2408-415C-9C1F-002DE35E7023}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -107,6 +111,14 @@ Global
 		{3974029F-A375-409D-812D-622507D0F198}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3974029F-A375-409D-812D-622507D0F198}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3974029F-A375-409D-812D-622507D0F198}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA2BFDE4-389B-4333-B2F2-8465BE74AEFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA2BFDE4-389B-4333-B2F2-8465BE74AEFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA2BFDE4-389B-4333-B2F2-8465BE74AEFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA2BFDE4-389B-4333-B2F2-8465BE74AEFD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2282C3D-2408-415C-9C1F-002DE35E7023}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2282C3D-2408-415C-9C1F-002DE35E7023}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2282C3D-2408-415C-9C1F-002DE35E7023}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2282C3D-2408-415C-9C1F-002DE35E7023}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -126,6 +138,8 @@ Global
 		{B05A2B21-AFF0-4BD1-80DB-E131DEF27087} = {74ACED5E-AF8A-4E08-B50E-F1443657854B}
 		{80D17C07-C59C-4E0A-8374-077509EDD8B9} = {7081B2DF-B72B-4F56-AD42-D7CF7CAF569A}
 		{3974029F-A375-409D-812D-622507D0F198} = {7081B2DF-B72B-4F56-AD42-D7CF7CAF569A}
+		{AA2BFDE4-389B-4333-B2F2-8465BE74AEFD} = {7081B2DF-B72B-4F56-AD42-D7CF7CAF569A}
+		{F2282C3D-2408-415C-9C1F-002DE35E7023} = {7081B2DF-B72B-4F56-AD42-D7CF7CAF569A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {52C9D9EC-9427-4D12-AC67-B848B8A8C45A}

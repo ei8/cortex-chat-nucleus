@@ -3,10 +3,14 @@ using ei8.Cortex.Chat.Nucleus.Application.Messages;
 using ei8.Cortex.Chat.Nucleus.Client.Out;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
+using ei8.Cortex.Chat.Nucleus.Port.Adapter.Common;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services;
 using ei8.Cortex.Coding;
 using ei8.Cortex.Coding.d23.neurULization;
+using ei8.Cortex.Coding.d23.neurULization.Persistence;
+using ei8.Cortex.Coding.Persistence;
+using ei8.Cortex.IdentityAccess.Client.Out;
 using ei8.Cortex.Library.Client.Out;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,35 +35,47 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
             this.configuration = configuration;
         }
 
+        protected override void ConfigureApplicationContainer(TinyIoCContainer container)
+        {
+            base.ConfigureApplicationContainer(container);
+
+            container.Register<IDictionary<string, Ensemble>>(new Dictionary<string, Ensemble>());
+            container.Register(this.serviceProvider.GetService<IOptions<List<ExternalReference>>>());
+            container.Register(this.configuration);
+            container.Register<ISettingsService, SettingsService>();
+
+            var rp = new RequestProvider();
+            rp.SetHttpClientHandler(new HttpClientHandler());
+            container.Register<IRequestProvider>(rp);
+            container.Register<INeuronQueryClient, HttpNeuronQueryClient>().AsMultiInstance();
+            container.Register<IEnsembleRepository, EnsembleRepository>().AsMultiInstance();
+
+            container.Register((c, npo) =>
+                c.Resolve<IEnsembleRepository>().GetPrimitives(
+                    c.Resolve<ISettingsService>().AppUserId,
+                    c.Resolve<ISettingsService>().CortexLibraryOutBaseUrl
+                ).Result
+            );
+        }
+
         protected override void ConfigureRequestContainer(TinyIoCContainer container, NancyContext context)
         {
             base.ConfigureRequestContainer(container, context);
 
-            container.Register<IRequestProvider>(
-               (tic, npo) =>
-               {
-                   var rp = new RequestProvider();
-                   rp.SetHttpClientHandler(new HttpClientHandler());
-                   return rp;
-               });
-
-
-            container.Register<IServiceProvider, TinyIoCServiceLocator>(
-                new TinyIoCServiceLocator(container)
-            );
-            container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
-            container.Register(this.configuration);
-            container.Register<ISettingsService, SettingsService>();
-            container.Register(this.serviceProvider.GetService<IOptions<List<ExternalReference>>>());
+            container.Register<IValidationClient, HttpValidationClient>();
             container.Register<IAvatarReadRepository, HttpAvatarReadRepository>();
             container.Register<IMessageQueryClient, HttpMessageQueryClient>();
             container.Register(this.serviceProvider.GetService<IHttpClientFactory>());
-            container.Register<IEnsembleRepository, EnsembleRepository>();
+            container.Register<IEnsembleTransactionService, EnsembleTransactionService>();
+            container.Register<IGrannyService, GrannyService>();
+            container.Register<IneurULizer, neurULizer>();
             container.Register<IMessageReadRepository, HttpMessageReadRepository>();
             container.Register<IMessageQueryService, MessageQueryService>();
             container.Register<IAvatarQueryService, AvatarQueryService>();
 
+            container.AddTransactions();
             container.AddWriteProcessors();
+            container.AddDataAdapters();
         }
     }
 }

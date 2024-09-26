@@ -11,6 +11,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
         public const string IdentityAccessOutBaseUrl = "IDENTITY_ACCESS_OUT_BASE_URL";
         public const string PageSize = "PAGE_SIZE";
         public const string QueryResultLimit = "QUERY_RESULT_LIMIT";
+        public const string AppUserId = "APP_USER_ID";
     }
 
     public struct Default

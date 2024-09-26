@@ -3,7 +3,9 @@ using ei8.Cortex.Chat.Nucleus.Client.Out;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Coding;
+using ei8.Cortex.Coding.d23.Grannies;
 using ei8.Cortex.Coding.d23.neurULization;
+using ei8.Cortex.Coding.d23.neurULization.Persistence;
 using ei8.Cortex.Library.Common;
 using IdentityModel.Client;
 using Microsoft.Extensions.Options;
@@ -27,6 +29,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         private readonly ISettingsService settingsService;
         private readonly IHttpClientFactory httpClientFactory;
         private readonly IEnumerable<ExternalReference> externalReferences;
+        private readonly IPrimitiveSet primitives;
+        private readonly IneurULizer neurULizer;
+        private readonly IGrannyService grannyService;
 
         public HttpMessageReadRepository(
             IEnsembleRepository ensembleRepository,
@@ -35,8 +40,11 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             Coding.d23.neurULization.Processors.Readers.Inductive.IInstanceProcessor readersInductiveInstanceProcessor,
             IMessageQueryClient messageQueryClient,
             ISettingsService settingsService,
-            IHttpClientFactory httpClientFactory, 
-            IOptions<List<ExternalReference>> externalReferences
+            IHttpClientFactory httpClientFactory,
+            IOptions<List<ExternalReference>> externalReferences,
+            IPrimitiveSet primitives,
+            IneurULizer neurULizer,
+            IGrannyService grannyService
         )
         {
             AssertionConcern.AssertArgumentNotNull(ensembleRepository, nameof(ensembleRepository));
@@ -47,6 +55,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             AssertionConcern.AssertArgumentNotNull(settingsService, nameof(settingsService));
             AssertionConcern.AssertArgumentNotNull(httpClientFactory, nameof(httpClientFactory));
             AssertionConcern.AssertArgumentNotNull(externalReferences, nameof(externalReferences));
+            AssertionConcern.AssertArgumentNotNull(primitives, nameof(primitives));
+            AssertionConcern.AssertArgumentNotNull(neurULizer, nameof(neurULizer));
+            AssertionConcern.AssertArgumentNotNull(grannyService, nameof(grannyService));
 
             this.ensembleRepository = ensembleRepository;
             this.readersDeductiveInstantiatesClassProcessor = readersDeductiveInstantiatesClassProcessor;
@@ -56,6 +67,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             this.settingsService = settingsService;
             this.httpClientFactory = httpClientFactory;
             this.externalReferences = externalReferences.Value.ToArray();
+            this.primitives = primitives;
+            this.neurULizer = neurULizer;
+            this.grannyService = grannyService;
         }
 
         public async Task<IEnumerable<MessageResult>> GetAll(DateTimeOffset? maxTimestamp, int? pageSize, IEnumerable<Avatar> avatars, string userId, CancellationToken token = default)
@@ -68,23 +82,29 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 
             var neurons = new QueryResult<Library.Common.Neuron>();
 
-            // use IInstantiatesClass type to find instance ids
-            var primitives = await ensembleRepository.CreatePrimitives(userId);
-            var instantiatesClass = await this.readersDeductiveInstantiatesClassProcessor.GetInstantiatesClass(
-                // TODO: ideally should not use Id23neurULizerWriteOptions in GetAll,
-                // but rather something like Id23neurULizerDeductiveReadOptions
-                    new d23neurULizerWriteOptions(
-                        primitives,
-                        userId,
-                        new WriteOptions(WriteMode.Update),
-                        this.writersInstanceProcessor,
-                        this.ensembleRepository,
-                        null
-                    ),
+            var instantiatesMessageResult = await this.grannyService.TryObtainPersistAsync<
+                IInstantiatesClass,
+                Coding.d23.neurULization.Processors.Readers.Deductive.IInstantiatesClassProcessor,
+                Coding.d23.neurULization.Processors.Readers.Deductive.IInstantiatesClassParameterSet,
+                Coding.d23.neurULization.Processors.Writers.IInstantiatesClassProcessor
+            >(
+                new Coding.d23.neurULization.Processors.Readers.Deductive.InstantiatesClassParameterSet(
                     await ensembleRepository.GetExternalReferenceAsync(
-                        userId,
+                        this.settingsService.AppUserId,
+                        this.settingsService.CortexLibraryOutBaseUrl,
                         typeof(Message)
                     )
+                ),
+                this.settingsService.AppUserId,
+                this.settingsService.IdentityAccessOutBaseUrl + "/",
+                this.settingsService.CortexLibraryOutBaseUrl + "/",
+                this.settingsService.QueryResultLimit,
+                token
+            );
+
+            AssertionConcern.AssertStateTrue(
+                instantiatesMessageResult.Item1,
+                $"'Instantiates^Message' is required to invoke {nameof(HttpMessageReadRepository.GetAll)}"
             );
 
             // TODO: specify maxTimestamp as a NeuronQuery parameter
@@ -92,25 +112,20 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 userId,
                 new NeuronQuery()
                 {
-                    Postsynaptic = new string[] { instantiatesClass.Neuron.Id.ToString() },
+                    Postsynaptic = new string[] { instantiatesMessageResult.Item2.Neuron.Id.ToString() },
                     SortBy = SortByValue.NeuronCreationTimestamp,
                     SortOrder = SortOrderValue.Descending,
                     // from Instance granny to IValue-Instantiates
                     Depth = 12,
                     DirectionValues = DirectionValues.Outbound
-                }
+                },
+                this.settingsService.CortexLibraryOutBaseUrl + "/",
+                this.settingsService.QueryResultLimit
             );
 
-            var dMessages = await new neurULizer().DeneurULizeAsync<Message>(
+            var dMessages = await this.neurULizer.DeneurULizeAsync<Message>(
                 ensemble,
-                new d23neurULizerReadOptions(
-                    primitives,
-                    userId,
-                    new ReadOptions(ReadMode.All),
-                    instantiatesClass,
-                    this.readersInductiveInstanceProcessor,
-                    this.ensembleRepository
-                )
+                userId
             );
 
             var result = dMessages.Take(pageSize.Value)

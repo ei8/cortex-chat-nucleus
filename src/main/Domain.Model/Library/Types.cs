@@ -10,16 +10,8 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Library
         Has,
         [Display(Name = "Instantiates")]
         Instantiates,
-        [Display(Name = "Instantiates^Avatar~do")]
-        InstantiatesAvatar,
-        [Display(Name = "Instantiates^(Date Time Offset)~do")]
-        InstantiatesDateTimeOffset,
         [Display(Name = "Idea")]
         Idea,
-        [Display(Name = "Instantiates^(Receipt Info)~do")]
-        InstantiatesReceiptInfo,
-        [Display(Name = "Instantiates^(Receipt Status)~do")]
-        InstantiatesReceiptStatus,
         [Display(Name = "(Defines^((Have^Must~ax,(Author Instance)~do)^(Avatar^As~cs)~nm)~do)^")]
         Message_MustHaveAuthor,
         [Display(Name = "(Defines^((Have^Must~ax,(Content)~do)^(Avatar^Idea~cs)~nm)~do)^")]

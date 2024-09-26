@@ -30,5 +30,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services
         public IEnumerable<Authority> Authorities => this.configuration.GetSection(nameof(Authorities)).Get<IEnumerable<Authority>>();
 
         public int QueryResultLimit => int.TryParse(Environment.GetEnvironmentVariable(EnvironmentVariableKeys.QueryResultLimit), out int size) ? size : Default.QueryResultLimit;
+
+        public string AppUserId => Environment.GetEnvironmentVariable(EnvironmentVariableKeys.AppUserId);
     }
 }

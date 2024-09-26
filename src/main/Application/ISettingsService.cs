@@ -15,5 +15,6 @@ namespace ei8.Cortex.Chat.Nucleus.Application
         int PageSize { get; }
         IEnumerable<Authority> Authorities { get; }
         int QueryResultLimit { get; }
+        string AppUserId { get; }
     }
 }
