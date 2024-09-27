@@ -1,7 +1,4 @@
-﻿using CQRSlite.Commands;
-using CQRSlite.Domain;
-using CQRSlite.Routing;
-using ei8.Cortex.Chat.Nucleus.Application;
+﻿using ei8.Cortex.Chat.Nucleus.Application;
 using ei8.Cortex.Chat.Nucleus.Application.Messages;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
@@ -15,14 +12,12 @@ using ei8.Cortex.Coding.Persistence;
 using ei8.Cortex.IdentityAccess.Client.In;
 using ei8.Cortex.IdentityAccess.Client.Out;
 using ei8.Cortex.Library.Client.Out;
-using ei8.EventSourcing.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Nancy;
 using Nancy.TinyIoc;
 using neurUL.Common.Http;
-using neurUL.Cortex.Port.Adapter.In.InProcess;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -50,16 +45,10 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             container.Register(this.configuration);
             container.Register<ISettingsService, SettingsService>();
 
-            var rp = new RequestProvider();
-            rp.SetHttpClientHandler(new HttpClientHandler());
-            container.Register<IRequestProvider>(rp);
-            container.Register<INeuronQueryClient, HttpNeuronQueryClient>().AsMultiInstance();
-            container.Register<IEnsembleRepository, EnsembleRepository>().AsMultiInstance();
-
-            container.Register((c, npo) =>
-                c.Resolve<IEnsembleRepository>().GetPrimitives(
-                    c.Resolve<ISettingsService>().AppUserId,
-                    c.Resolve<ISettingsService>().CortexLibraryOutBaseUrl
+            container.Register(
+                container.CreateTransientEnsembleRepository().GetPrimitives(
+                    container.Resolve<ISettingsService>().AppUserId,
+                    container.Resolve<ISettingsService>().CortexLibraryOutBaseUrl
                 ).Result
             );
         }
@@ -74,7 +63,11 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             container.Register<IPermitClient, HttpPermitClient>();
             container.Register<IRecipientWriteRepository, HttpRecipientWriteRepository>();
             container.Register<IEnsembleTransactionService, EnsembleTransactionService>();
+            container.AddRequestProvider();
+            container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
+            container.Register<IEnsembleRepository, EnsembleRepository>();
             container.Register<IGrannyService, GrannyService>();
+            container.AddneurULizerOptions();
             container.Register<IneurULizer, neurULizer>();
             container.Register<IMessageWriteRepository, HttpMessageWriteRepository>();
             container.Register<MessageCommandHandlers>();

@@ -4,12 +4,21 @@ using CQRSlite.Routing;
 using ei8.Cortex.Chat.Nucleus.Application;
 using ei8.Cortex.Chat.Nucleus.Application.Messages;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
+using ei8.Cortex.Coding;
+using ei8.Cortex.Coding.d23.neurULization;
+using ei8.Cortex.Coding.d23.neurULization.Persistence;
+using ei8.Cortex.Coding.Persistence;
+using ei8.Cortex.Library.Client.Out;
 using ei8.EventSourcing.Client;
+using Microsoft.Extensions.Options;
 using Nancy.TinyIoc;
 using neurUL.Common.Http;
 using neurUL.Cortex.Port.Adapter.In.InProcess;
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Net.Http;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
 {
@@ -94,6 +103,41 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
             registrar.Register(typeof(ei8.Data.ExternalReference.Application.ItemCommandHandlers));
 
             ((TinyIoCServiceLocator)container.Resolve<IServiceProvider>()).SetRequestContainer(container);
+        }
+
+        public static IEnsembleRepository CreateTransientEnsembleRepository(this TinyIoCContainer container)
+        {
+            var rp = new RequestProvider();
+            rp.SetHttpClientHandler(new HttpClientHandler());
+            var nqc = new HttpNeuronQueryClient(rp);
+            return new EnsembleRepository(nqc, container.Resolve<IOptions<List<ExternalReference>>>());
+        }
+
+        public static void AddRequestProvider(this TinyIoCContainer container)
+        {
+            var rp = new RequestProvider();
+            rp.SetHttpClientHandler(new HttpClientHandler());
+            container.Register<IRequestProvider>(rp);
+        }
+
+        public static void AddneurULizerOptions(this TinyIoCContainer container)
+        {
+            container.Register<IneurULizerOptions>((tic, npo) =>
+            {
+                var ss = tic.Resolve<ISettingsService>();
+                return new neurULizerOptions(
+                    tic.Resolve<IEnsembleRepository>(),
+                    tic.Resolve<Coding.d23.neurULization.Processors.Writers.IInstanceProcessor>(),
+                    tic.Resolve<Coding.d23.neurULization.Processors.Readers.Inductive.IInstanceProcessor>(),
+                    tic.Resolve<IPrimitiveSet>(),
+                    tic.Resolve<IDictionary<string, Ensemble>>(),
+                    tic.Resolve<IGrannyService>(),
+                    ss.AppUserId,
+                    ss.CortexLibraryOutBaseUrl + "/",
+                    ss.IdentityAccessInBaseUrl + "/",
+                    ss.QueryResultLimit
+                );
+            });
         }
     }
 }

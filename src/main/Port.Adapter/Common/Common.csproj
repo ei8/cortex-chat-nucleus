@@ -13,6 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\cortex-coding-d23-neurULization-persistence\src\main\d23.neurULization.Persistence.csproj" />
+    <ProjectReference Include="..\..\..\..\..\cortex-coding-persistence\src\main\Coding.Persistence.csproj" />
     <ProjectReference Include="..\..\Application\Application.csproj" />
   </ItemGroup>
 

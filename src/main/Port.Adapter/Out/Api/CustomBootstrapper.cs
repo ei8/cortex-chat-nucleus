@@ -41,19 +41,14 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
 
             container.Register<IDictionary<string, Ensemble>>(new Dictionary<string, Ensemble>());
             container.Register(this.serviceProvider.GetService<IOptions<List<ExternalReference>>>());
+            // TODO: remove when Authorities is removed from settings
             container.Register(this.configuration);
             container.Register<ISettingsService, SettingsService>();
 
-            var rp = new RequestProvider();
-            rp.SetHttpClientHandler(new HttpClientHandler());
-            container.Register<IRequestProvider>(rp);
-            container.Register<INeuronQueryClient, HttpNeuronQueryClient>().AsMultiInstance();
-            container.Register<IEnsembleRepository, EnsembleRepository>().AsMultiInstance();
-
-            container.Register((c, npo) =>
-                c.Resolve<IEnsembleRepository>().GetPrimitives(
-                    c.Resolve<ISettingsService>().AppUserId,
-                    c.Resolve<ISettingsService>().CortexLibraryOutBaseUrl
+            container.Register(
+                container.CreateTransientEnsembleRepository().GetPrimitives(
+                    container.Resolve<ISettingsService>().AppUserId,
+                    container.Resolve<ISettingsService>().CortexLibraryOutBaseUrl
                 ).Result
             );
         }
@@ -67,7 +62,11 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
             container.Register<IMessageQueryClient, HttpMessageQueryClient>();
             container.Register(this.serviceProvider.GetService<IHttpClientFactory>());
             container.Register<IEnsembleTransactionService, EnsembleTransactionService>();
+            container.AddRequestProvider();
+            container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
+            container.Register<IEnsembleRepository, EnsembleRepository>();
             container.Register<IGrannyService, GrannyService>();
+            container.AddneurULizerOptions();
             container.Register<IneurULizer, neurULizer>();
             container.Register<IMessageReadRepository, HttpMessageReadRepository>();
             container.Register<IMessageQueryService, MessageQueryService>();
