@@ -67,7 +67,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
             container.Register<IEnsembleRepository, EnsembleRepository>();
             container.Register<IGrannyService, GrannyService>();
-            container.AddneurULizerOptions();
+            container.Addd23neurULizerOptions();
             container.Register<IneurULizer, neurULizer>();
             container.Register<IMessageWriteRepository, HttpMessageWriteRepository>();
             container.Register<MessageCommandHandlers>();

@@ -120,9 +120,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
             container.Register<IRequestProvider>(rp);
         }
 
-        public static void AddneurULizerOptions(this TinyIoCContainer container)
+        public static void Addd23neurULizerOptions(this TinyIoCContainer container)
         {
-            container.Register<IneurULizerOptions>((tic, npo) =>
+            container.Register<Id23neurULizerOptions>((tic, npo) =>
             {
                 var ss = tic.Resolve<ISettingsService>();
                 return new neurULizerOptions(
