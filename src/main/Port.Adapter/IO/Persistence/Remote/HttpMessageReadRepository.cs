@@ -60,7 +60,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 
             var neurons = new QueryResult<Library.Common.Neuron>();
 
-            var instantiatesMessageResult = await this.grannyService.TryObtainPersistAsync<
+            var instantiatesMessageResult = await this.grannyService.TryGetBuildPersistAsync<
                 IInstantiatesClass,
                 Coding.d23.neurULization.Processors.Readers.Deductive.IInstantiatesClassProcessor,
                 Coding.d23.neurULization.Processors.Readers.Deductive.IInstantiatesClassParameterSet,
@@ -69,7 +69,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 new Coding.d23.neurULization.Processors.Readers.Deductive.InstantiatesClassParameterSet(
                     await ensembleRepository.GetExternalReferenceAsync(
                         this.settingsService.AppUserId,
-                        this.settingsService.CortexLibraryOutBaseUrl,
+                        this.settingsService.CortexLibraryOutBaseUrl + "/",
                         typeof(Message)
                     )
                 ),
@@ -85,12 +85,51 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 $"'Instantiates^Message' is required to invoke {nameof(HttpMessageReadRepository.GetAll)}"
             );
 
+            // TODO: transfer to grannyService eg. GetPropertyAssociation
+            var hasSenderResult = await this.grannyService.TryGetGrannyAsync<
+                IPropertyAssociation,
+                Coding.d23.neurULization.Processors.Readers.Deductive.IPropertyAssociationProcessor,
+                Coding.d23.neurULization.Processors.Readers.Deductive.IPropertyAssociationParameterSet
+            >(
+                new Coding.d23.neurULization.Processors.Readers.Deductive.PropertyAssociationParameterSet(
+                    await ensembleRepository.GetExternalReferenceAsync(
+                        this.settingsService.AppUserId,
+                        this.settingsService.CortexLibraryOutBaseUrl + "/",
+                        typeof(Message).GetProperty(nameof(Message.SenderId))
+                    ),
+                    (await ensembleRepository.GetByQueryAsync(
+                        userId,
+                        new NeuronQuery()
+                        {
+                            Id = new string[] {avatars.Single().Id.ToString()}
+                        },
+                        this.settingsService.CortexLibraryOutBaseUrl + "/",
+                        int.MaxValue
+                    )).GetItems<Coding.Neuron>().Single(),
+                    // TODO: can't this be retrieved from the property granny as it is specified
+                    // as the first parameter of PropertyAssociationParameterSet
+                    // or, rather from the [neurULClass(typeof(Avatar))] attribute of the Message class
+                    await ensembleRepository.GetExternalReferenceAsync(
+                        this.settingsService.AppUserId,
+                        this.settingsService.CortexLibraryOutBaseUrl + "/",
+                        typeof(Avatar)
+                    ),
+                    ValueMatchBy.Id
+                ),
+                this.settingsService.AppUserId,
+                this.settingsService.CortexLibraryOutBaseUrl + "/",
+                this.settingsService.QueryResultLimit
+            );
+
             // TODO: specify maxTimestamp as a NeuronQuery parameter
             var ensemble = await ensembleRepository.GetByQueryAsync(
                 userId,
                 new NeuronQuery()
                 {
-                    Postsynaptic = new string[] { instantiatesMessageResult.Item2.Neuron.Id.ToString() },
+                    Postsynaptic = new string[] { 
+                        instantiatesMessageResult.Item2.Neuron.Id.ToString(),
+                        hasSenderResult.Item2.Neuron.Id.ToString()
+                    },
                     SortBy = SortByValue.NeuronCreationTimestamp,
                     SortOrder = SortOrderValue.Descending,
                     // from Instance granny to IValue-Instantiates

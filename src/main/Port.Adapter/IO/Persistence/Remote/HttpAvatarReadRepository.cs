@@ -41,7 +41,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 
         public async Task<IEnumerable<Avatar>> GetAll(string userId, CancellationToken token = default)
         {
-            var instantiatesAvatarResult = await this.grannyService.TryObtainPersistAsync<
+            var instantiatesAvatarResult = await this.grannyService.TryGetBuildPersistAsync<
                 IInstantiatesClass,
                 Coding.d23.neurULization.Processors.Readers.Deductive.IInstantiatesClassProcessor,
                 Coding.d23.neurULization.Processors.Readers.Deductive.IInstantiatesClassParameterSet,
@@ -50,7 +50,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 new Coding.d23.neurULization.Processors.Readers.Deductive.InstantiatesClassParameterSet(
                     await ensembleRepository.GetExternalReferenceAsync(
                         this.settingsService.AppUserId,
-                        this.settingsService.CortexLibraryOutBaseUrl,
+                        this.settingsService.CortexLibraryOutBaseUrl + "/",
                         typeof(Avatar)
                     )
                 ),
