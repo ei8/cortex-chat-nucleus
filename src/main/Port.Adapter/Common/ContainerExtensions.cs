@@ -127,8 +127,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
                 var ss = tic.Resolve<ISettingsService>();
                 return new neurULizerOptions(
                     tic.Resolve<IEnsembleRepository>(),
-                    tic.Resolve<Coding.d23.neurULization.Processors.Writers.IInstanceProcessor>(),
-                    tic.Resolve<Coding.d23.neurULization.Processors.Readers.Inductive.IInstanceProcessor>(),
+                    tic.Resolve<Coding.d23.neurULization.Processors.Writers.IInstanceWriter>(),
+                    tic.Resolve<Coding.d23.neurULization.Processors.Readers.Inductive.IInstanceReader>(),
                     tic.Resolve<IPrimitiveSet>(),
                     tic.Resolve<IDictionary<string, Ensemble>>(),
                     tic.Resolve<IGrannyService>(),

@@ -62,9 +62,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 
             var instantiatesMessageResult = await this.grannyService.TryGetBuildPersistAsync<
                 IInstantiatesClass,
-                Coding.d23.neurULization.Processors.Readers.Deductive.IInstantiatesClassProcessor,
+                Coding.d23.neurULization.Processors.Readers.Deductive.IInstantiatesClassReader,
                 Coding.d23.neurULization.Processors.Readers.Deductive.IInstantiatesClassParameterSet,
-                Coding.d23.neurULization.Processors.Writers.IInstantiatesClassProcessor
+                Coding.d23.neurULization.Processors.Writers.IInstantiatesClassWriter
             >(
                 new Coding.d23.neurULization.Processors.Readers.Deductive.InstantiatesClassParameterSet(
                     await ensembleRepository.GetExternalReferenceAsync(
@@ -88,7 +88,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             // TODO: transfer to grannyService eg. GetPropertyAssociation
             var hasSenderResult = await this.grannyService.TryGetGrannyAsync<
                 IPropertyAssociation,
-                Coding.d23.neurULization.Processors.Readers.Deductive.IPropertyAssociationProcessor,
+                Coding.d23.neurULization.Processors.Readers.Deductive.IPropertyAssociationReader,
                 Coding.d23.neurULization.Processors.Readers.Deductive.IPropertyAssociationParameterSet
             >(
                 new Coding.d23.neurULization.Processors.Readers.Deductive.PropertyAssociationParameterSet(

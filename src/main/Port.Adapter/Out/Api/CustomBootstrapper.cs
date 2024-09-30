@@ -17,7 +17,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Nancy;
 using Nancy.TinyIoc;
-using neurUL.Common.Http;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -73,7 +72,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
             container.Register<IAvatarQueryService, AvatarQueryService>();
 
             container.AddTransactions();
-            container.AddWriteProcessors();
+            container.AddWriters();
             container.AddDataAdapters();
         }
     }

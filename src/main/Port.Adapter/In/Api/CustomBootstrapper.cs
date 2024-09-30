@@ -73,8 +73,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             container.Register<MessageCommandHandlers>();
 
             container.AddTransactions();
-            container.AddWriteProcessors();
-            container.AddReadProcessors();
+            container.AddWriters();
+            container.AddReaders();
             container.AddDataAdapters(typeof(MessageCommandHandlers));
         }
     }
