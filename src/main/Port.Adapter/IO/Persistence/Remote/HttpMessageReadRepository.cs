@@ -60,17 +60,14 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 
             var neurons = new QueryResult<Library.Common.Neuron>();
 
-            var instantiatesMessageResult = await this.grannyService.TryGetBuildPersistAsync<
-                IInstantiatesClass,
-                Coding.d23.neurULization.Processors.Readers.Deductive.IInstantiatesClassReader,
-                Coding.d23.neurULization.Processors.Readers.Deductive.IInstantiatesClassParameterSet,
-                Coding.d23.neurULization.Processors.Writers.IInstantiatesClassWriter
-            >(
-                new Coding.d23.neurULization.Processors.Readers.Deductive.InstantiatesClassParameterSet(
-                    await ensembleRepository.GetExternalReferenceAsync(
-                        this.settingsService.AppUserId,
-                        this.settingsService.CortexLibraryOutBaseUrl + "/",
-                        typeof(Message)
+            var instantiatesMessageResult = await this.grannyService.TryGetBuildPersistAsync(
+                new InstantiatesClassGrannyInfo(
+                    new Coding.d23.neurULization.Processors.Readers.Deductive.InstantiatesClassParameterSet(
+                        await ensembleRepository.GetExternalReferenceAsync(
+                            this.settingsService.AppUserId,
+                            this.settingsService.CortexLibraryOutBaseUrl + "/",
+                            typeof(Message)
+                        )
                     )
                 ),
                 this.settingsService.AppUserId,
@@ -85,36 +82,14 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 $"'Instantiates^Message' is required to invoke {nameof(HttpMessageReadRepository.GetAll)}"
             );
 
-            // TODO: transfer to grannyService eg. GetPropertyAssociation
-            var hasSenderResult = await this.grannyService.TryGetGrannyAsync<
-                IPropertyAssociation,
-                Coding.d23.neurULization.Processors.Readers.Deductive.IPropertyAssociationReader,
-                Coding.d23.neurULization.Processors.Readers.Deductive.IPropertyAssociationParameterSet
-            >(
-                new Coding.d23.neurULization.Processors.Readers.Deductive.PropertyAssociationParameterSet(
-                    await ensembleRepository.GetExternalReferenceAsync(
-                        this.settingsService.AppUserId,
-                        this.settingsService.CortexLibraryOutBaseUrl + "/",
-                        typeof(Message).GetProperty(nameof(Message.SenderId))
-                    ),
-                    (await ensembleRepository.GetByQueryAsync(
-                        userId,
-                        new NeuronQuery()
-                        {
-                            Id = new string[] {avatars.Single().Id.ToString()}
-                        },
-                        this.settingsService.CortexLibraryOutBaseUrl + "/",
-                        int.MaxValue
-                    )).GetItems<Coding.Neuron>().Single(),
-                    // TODO: can't this be retrieved from the property granny as it is specified
-                    // as the first parameter of PropertyAssociationParameterSet
-                    // or, rather from the [neurULClass(typeof(Avatar))] attribute of the Message class
-                    await ensembleRepository.GetExternalReferenceAsync(
-                        this.settingsService.AppUserId,
-                        this.settingsService.CortexLibraryOutBaseUrl + "/",
-                        typeof(Avatar)
-                    ),
-                    ValueMatchBy.Id
+            var hasSenderResult = await this.grannyService.TryGetGrannyAsync(
+                await PropertyAssociationGrannyInfo.CreateById<Message, Avatar>(
+                    nameof(Message.SenderId),
+                    this.ensembleRepository,
+                    avatars.Single().Id,
+                    this.settingsService.AppUserId,
+                    this.settingsService.CortexLibraryOutBaseUrl,
+                    userId
                 ),
                 this.settingsService.AppUserId,
                 this.settingsService.CortexLibraryOutBaseUrl + "/",
