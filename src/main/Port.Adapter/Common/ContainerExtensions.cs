@@ -8,6 +8,7 @@ using ei8.Cortex.Coding;
 using ei8.Cortex.Coding.d23.neurULization;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
 using ei8.Cortex.Coding.Persistence;
+using ei8.Cortex.IdentityAccess.Client.Out;
 using ei8.Cortex.Library.Client.Out;
 using ei8.EventSourcing.Client;
 using Microsoft.Extensions.Options;
@@ -19,6 +20,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.InteropServices.ComTypes;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
 {
@@ -110,7 +112,14 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
             var rp = new RequestProvider();
             rp.SetHttpClientHandler(new HttpClientHandler());
             var nqc = new HttpNeuronQueryClient(rp);
-            return new EnsembleRepository(nqc, container.Resolve<IOptions<List<ExternalReference>>>());
+            var ss = container.Resolve<ISettingsService>();
+            var ers = container.Resolve<IOptions<List<ExternalReference>>>();
+            return new EnsembleRepository(
+                nqc, 
+                ers,
+                ss.CortexLibraryOutBaseUrl + "/",
+                int.MaxValue
+            );
         }
 
         public static void AddRequestProvider(this TinyIoCContainer container)
@@ -118,6 +127,39 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
             var rp = new RequestProvider();
             rp.SetHttpClientHandler(new HttpClientHandler());
             container.Register<IRequestProvider>(rp);
+        }
+
+        public static void AddGrannyService(this TinyIoCContainer container)
+        {
+            container.Register<IGrannyService>(
+                (tic, npo) =>
+                {
+                    var ss = container.Resolve<ISettingsService>();
+                    return new GrannyService(
+                        container.Resolve<IServiceProvider>(),
+                        container.Resolve<IEnsembleRepository>(),
+                        container.Resolve<IDictionary<string, Ensemble>>(),
+                        container.Resolve<ITransaction>(),
+                        container.Resolve<IEnsembleTransactionService>(),
+                        container.Resolve<IValidationClient>(),
+                        ss.IdentityAccessOutBaseUrl + "/"
+                    );
+                });
+        }
+
+        public static void AddEnsembleRepository(this TinyIoCContainer container)
+        {
+            container.Register<IEnsembleRepository>(
+                (tic, npo) =>
+                {
+                    var ss = container.Resolve<ISettingsService>();
+                    return new EnsembleRepository(
+                        container.Resolve<INeuronQueryClient>(),
+                        container.Resolve<IOptions<List<ExternalReference>>>(),
+                        ss.CortexLibraryOutBaseUrl + "/",
+                        ss.QueryResultLimit
+                        );
+                });
         }
 
         public static void Addd23neurULizerOptions(this TinyIoCContainer container)
@@ -132,10 +174,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
                     tic.Resolve<IPrimitiveSet>(),
                     tic.Resolve<IDictionary<string, Ensemble>>(),
                     tic.Resolve<IGrannyService>(),
-                    ss.AppUserId,
-                    ss.CortexLibraryOutBaseUrl + "/",
-                    ss.IdentityAccessInBaseUrl + "/",
-                    ss.QueryResultLimit
+                    ss.AppUserId 
                 );
             });
         }

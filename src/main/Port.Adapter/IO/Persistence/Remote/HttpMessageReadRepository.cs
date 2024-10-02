@@ -65,15 +65,11 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                     new Coding.d23.neurULization.Processors.Readers.Deductive.InstantiatesClassParameterSet(
                         await ensembleRepository.GetExternalReferenceAsync(
                             this.settingsService.AppUserId,
-                            this.settingsService.CortexLibraryOutBaseUrl + "/",
                             typeof(Message)
                         )
                     )
                 ),
                 this.settingsService.AppUserId,
-                this.settingsService.IdentityAccessOutBaseUrl + "/",
-                this.settingsService.CortexLibraryOutBaseUrl + "/",
-                this.settingsService.QueryResultLimit,
                 token
             );
 
@@ -88,12 +84,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                     this.ensembleRepository,
                     avatars.Single().Id,
                     this.settingsService.AppUserId,
-                    this.settingsService.CortexLibraryOutBaseUrl,
                     userId
                 ),
-                this.settingsService.AppUserId,
-                this.settingsService.CortexLibraryOutBaseUrl + "/",
-                this.settingsService.QueryResultLimit
+                this.settingsService.AppUserId
             );
 
             // TODO: specify maxTimestamp as a NeuronQuery parameter
@@ -110,9 +103,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                     // from Instance granny to IValue-Instantiates
                     Depth = 12,
                     DirectionValues = DirectionValues.Outbound
-                },
-                this.settingsService.CortexLibraryOutBaseUrl + "/",
-                this.settingsService.QueryResultLimit
+                }
             );
 
             var dMessages = await this.neurULizer.DeneurULizeAsync<Message>(

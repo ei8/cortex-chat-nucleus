@@ -47,8 +47,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
 
             container.Register(
                 container.CreateTransientEnsembleRepository().GetPrimitives(
-                    container.Resolve<ISettingsService>().AppUserId,
-                    container.Resolve<ISettingsService>().CortexLibraryOutBaseUrl
+                    container.Resolve<ISettingsService>().AppUserId
                 ).Result
             );
         }
@@ -65,8 +64,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             container.Register<IEnsembleTransactionService, EnsembleTransactionService>();
             container.AddRequestProvider();
             container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
-            container.Register<IEnsembleRepository, EnsembleRepository>();
-            container.Register<IGrannyService, GrannyService>();
+            container.AddEnsembleRepository();
+            container.AddGrannyService();
             container.Addd23neurULizerOptions();
             container.Register<IneurULizer, neurULizer>();
             container.Register<IMessageWriteRepository, HttpMessageWriteRepository>();
