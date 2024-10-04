@@ -4,6 +4,7 @@ using ei8.Cortex.Coding.d23.neurULization.Persistence;
 using ei8.Cortex.Coding.Persistence;
 using ei8.EventSourcing.Client;
 using neurUL.Common.Domain.Model;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,12 +31,12 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             this.neurULizer = neurULizer;
         }
 
-        public async Task Save(Message message, string userId, CancellationToken token = default)
+        public async Task Save(Message message, CancellationToken token = default)
         {
             // TODO: handle updates - message.Version == 0 ? WriteMode.Create : WriteMode.Update
-            var me = await this.neurULizer.neurULizeAsync(message, userId);
+            var me = await this.neurULizer.neurULizeAsync(message);
 
-            await this.ensembleTransactionService.SaveAsync(this.transaction, me, message.SenderId);
+            await this.ensembleTransactionService.SaveAsync(this.transaction, me);
         }
     }
 }

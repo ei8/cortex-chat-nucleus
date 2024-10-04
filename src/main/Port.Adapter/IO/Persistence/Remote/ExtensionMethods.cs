@@ -38,21 +38,23 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             return string.Format("{0}.{1}.{2}", type.Namespace, type.Name, Enum.GetName(type, @this));
         }
 
-        public static async Task<IPrimitiveSet> GetPrimitives(this IEnsembleRepository ensembleRepository, string userId)
+        public static async Task<IPrimitiveSet> GetPrimitives(this IEnsembleRepository ensembleRepository)
         {
             var refs = await ensembleRepository.GetExternalReferencesAsync(
-                userId,
-                ExternalReferenceKey.DirectObject,
-                ExternalReferenceKey.Idea,
-                ExternalReferenceKey.Instantiates,
-                ExternalReferenceKey.Simple,
-                ExternalReferenceKey.Subordination,
-                ExternalReferenceKey.Coordination,
-                ExternalReferenceKey.Unit,
-                ExternalReferenceKey.Of,
-                ExternalReferenceKey.Case,
-                ExternalReferenceKey.NominalModifier,
-                ExternalReferenceKey.Has
+                new object[]
+                {
+                    ExternalReferenceKey.DirectObject,
+                    ExternalReferenceKey.Idea,
+                    ExternalReferenceKey.Instantiates,
+                    ExternalReferenceKey.Simple,
+                    ExternalReferenceKey.Subordination,
+                    ExternalReferenceKey.Coordination,
+                    ExternalReferenceKey.Unit,
+                    ExternalReferenceKey.Of,
+                    ExternalReferenceKey.Case,
+                    ExternalReferenceKey.NominalModifier,
+                    ExternalReferenceKey.Has
+                }
             );
 
             return new PrimitiveSet()

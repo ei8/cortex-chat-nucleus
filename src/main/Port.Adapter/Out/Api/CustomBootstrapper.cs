@@ -44,11 +44,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
             container.Register(this.configuration);
             container.Register<ISettingsService, SettingsService>();
 
-            container.Register(
-                container.CreateTransientEnsembleRepository().GetPrimitives(
-                    container.Resolve<ISettingsService>().AppUserId
-                ).Result
-            );
+            container.Register(container.CreateTransientEnsembleRepository().GetPrimitives().Result);
         }
 
         protected override void ConfigureRequestContainer(TinyIoCContainer container, NancyContext context)

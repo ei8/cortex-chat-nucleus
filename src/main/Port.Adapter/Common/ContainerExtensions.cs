@@ -2,8 +2,6 @@
 using CQRSlite.Domain;
 using CQRSlite.Routing;
 using ei8.Cortex.Chat.Nucleus.Application;
-using ei8.Cortex.Chat.Nucleus.Application.Messages;
-using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Coding;
 using ei8.Cortex.Coding.d23.neurULization;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
@@ -17,10 +15,8 @@ using neurUL.Common.Http;
 using neurUL.Cortex.Port.Adapter.In.InProcess;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Net.Http;
-using System.Runtime.InteropServices.ComTypes;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
 {
@@ -118,7 +114,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
                 nqc, 
                 ers,
                 ss.CortexLibraryOutBaseUrl + "/",
-                int.MaxValue
+                int.MaxValue,
+                ss.AppUserId
             );
         }
 
@@ -142,7 +139,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
                         container.Resolve<ITransaction>(),
                         container.Resolve<IEnsembleTransactionService>(),
                         container.Resolve<IValidationClient>(),
-                        ss.IdentityAccessOutBaseUrl + "/"
+                        ss.IdentityAccessOutBaseUrl + "/",
+                        ss.AppUserId
                     );
                 });
         }
@@ -157,7 +155,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
                         container.Resolve<INeuronQueryClient>(),
                         container.Resolve<IOptions<List<ExternalReference>>>(),
                         ss.CortexLibraryOutBaseUrl + "/",
-                        ss.QueryResultLimit
+                        ss.QueryResultLimit,
+                        ss.AppUserId
                         );
                 });
         }
@@ -173,8 +172,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
                     tic.Resolve<Coding.d23.neurULization.Processors.Readers.Inductive.IInstanceReader>(),
                     tic.Resolve<IPrimitiveSet>(),
                     tic.Resolve<IDictionary<string, Ensemble>>(),
-                    tic.Resolve<IGrannyService>(),
-                    ss.AppUserId 
+                    tic.Resolve<IGrannyService>()
                 );
             });
         }

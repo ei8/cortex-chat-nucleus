@@ -45,12 +45,10 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 new InstantiatesClassGrannyInfo(
                     new Coding.d23.neurULization.Processors.Readers.Deductive.InstantiatesClassParameterSet(
                         await ensembleRepository.GetExternalReferenceAsync(
-                            this.settingsService.AppUserId,
                             typeof(Avatar)
                         )
                     )
                 ),
-                this.settingsService.AppUserId,
                 token
             );
 

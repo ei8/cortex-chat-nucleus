@@ -1,6 +1,5 @@
 using CQRSlite.Commands;
 using ei8.Cortex.Chat.Nucleus.Application.Messages.Commands;
-using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.IdentityAccess.Client.Out;
 using ei8.EventSourcing.Client;
@@ -71,7 +70,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
 
                 await this.transaction.BeginAsync(validationResult.UserNeuronId);
 
-                await this.messageRepository.Save(dMessage, message.UserId);
+                await this.messageRepository.Save(dMessage);
                 if (message.RecipientAvatarIds != null) 
                     await this.recipientRepository.SaveAll(
                         message.RecipientAvatarIds.Select(dri =>

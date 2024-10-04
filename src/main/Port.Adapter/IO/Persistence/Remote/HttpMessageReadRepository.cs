@@ -64,12 +64,10 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 new InstantiatesClassGrannyInfo(
                     new Coding.d23.neurULization.Processors.Readers.Deductive.InstantiatesClassParameterSet(
                         await ensembleRepository.GetExternalReferenceAsync(
-                            this.settingsService.AppUserId,
                             typeof(Message)
                         )
                     )
                 ),
-                this.settingsService.AppUserId,
                 token
             );
 
@@ -79,19 +77,15 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             );
 
             var hasSenderResult = await this.grannyService.TryGetGrannyAsync(
-                await PropertyAssociationGrannyInfo.CreateById<Message, Avatar>(
+                await PropertyAssociationGrannyInfo.CreateById<Message>(
                     nameof(Message.SenderId),
                     this.ensembleRepository,
-                    avatars.Single().Id,
-                    this.settingsService.AppUserId,
-                    userId
-                ),
-                this.settingsService.AppUserId
+                    avatars.Single().Id
+                )
             );
 
             // TODO: specify maxTimestamp as a NeuronQuery parameter
             var ensemble = await ensembleRepository.GetByQueryAsync(
-                userId,
                 new NeuronQuery()
                 {
                     Postsynaptic = new string[] { 
@@ -103,13 +97,11 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                     // from Instance granny to IValue-Instantiates
                     Depth = 12,
                     DirectionValues = DirectionValues.Outbound
-                }
-            );
-
-            var dMessages = await this.neurULizer.DeneurULizeAsync<Message>(
-                ensemble,
+                },
                 userId
             );
+
+            var dMessages = await this.neurULizer.DeneurULizeAsync<Message>(ensemble);
 
             var result = dMessages.Take(pageSize.Value)
                 .Reverse()
