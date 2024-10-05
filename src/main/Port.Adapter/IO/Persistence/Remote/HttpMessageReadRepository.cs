@@ -90,6 +90,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 {
                     Postsynaptic = new string[] { 
                         instantiatesMessageResult.Item2.Neuron.Id.ToString(),
+                        // TODO: Add support for OR conditions in Cortex.Graph so that 
+                        // messages with different senders can be retrieved
                         hasSenderResult.Item2.Neuron.Id.ToString()
                     },
                     SortBy = SortByValue.NeuronCreationTimestamp,
