@@ -85,7 +85,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             );
 
             // TODO: specify maxTimestamp as a NeuronQuery parameter
-            var ensemble = await ensembleRepository.GetByQueryAsync(
+            var queryResult = await ensembleRepository.GetByQueryAsync(
                 new NeuronQuery()
                 {
                     Postsynaptic = new string[] { 
@@ -101,7 +101,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 userId
             );
 
-            var dMessages = await this.neurULizer.DeneurULizeAsync<Message>(ensemble);
+            var dMessages = await this.neurULizer.DeneurULizeAsync<Message>(queryResult.Ensemble);
 
             var result = dMessages.Take(pageSize.Value)
                 .Reverse()
@@ -109,10 +109,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 {
                     Message = m,
                     RegionTag = m.RegionTag,
-                    // TODO: should be based on SenderId
                     SenderTag = m.CreationAuthorTag,
-                    // TODO: base on senderId
-                    IsCurrentUserCreationAuthor = new Random().Next(100) < 50
+                    IsCurrentUserSender = m.SenderId == queryResult.UserNeuronId
                 });
 
             if (avatars.Any())

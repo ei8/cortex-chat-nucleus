@@ -17,7 +17,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application
                 ExternalReferenceUrl = value.Message.ExternalReferenceUrl,
                 CreationTimestamp = value.Message.CreationTimestamp,
                 UnifiedLastModificationTimestamp = value.Message.UnifiedLastModificationTimestamp,
-                IsCurrentUserCreationAuthor = value.IsCurrentUserCreationAuthor
+                IsCurrentUserCreationAuthor = value.IsCurrentUserSender
             };
 
         public static MessageResult ToDomain(this Common.MessageResult value) =>
@@ -35,7 +35,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application
                 },
                 RegionTag = value.RegionTag,
                 SenderTag = value.SenderTag,
-                IsCurrentUserCreationAuthor = value.IsCurrentUserCreationAuthor
+                IsCurrentUserSender = value.IsCurrentUserCreationAuthor
             };
 
         public static Common.AvatarResult ToCommon(this Avatar value) =>

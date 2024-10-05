@@ -14,6 +14,6 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Messages
 
         public string SenderTag { get; set; }
 
-        public bool IsCurrentUserCreationAuthor { get; set; }
+        public bool IsCurrentUserSender { get; set; }
     }
 }
