@@ -10,6 +10,8 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Messages
 
         public Message Message { get; set; }
 
+        public string ContentString { get; set; }
+
         public string RegionTag { get; set; }
 
         public string SenderTag { get; set; }

@@ -3,8 +3,8 @@ using ei8.Cortex.Chat.Nucleus.Client.Out;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Coding;
-using ei8.Cortex.Coding.d23.Grannies;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
+using ei8.Cortex.Coding.Persistence;
 using ei8.Cortex.Library.Common;
 using IdentityModel.Client;
 using neurUL.Common.Domain.Model;
@@ -60,10 +60,10 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 
             var neurons = new QueryResult<Library.Common.Neuron>();
 
-            var instantiatesMessageResult = await this.grannyService.TryGetBuildPersistAsync(
+            var instantiatesMessageResult = await this.grannyService.TryGetParseBuildPersistAsync(
                 new InstantiatesClassGrannyInfo(
                     new Coding.d23.neurULization.Processors.Readers.Deductive.InstantiatesClassParameterSet(
-                        await ensembleRepository.GetExternalReferenceAsync(
+                        await this.ensembleRepository.GetExternalReferenceAsync(
                             typeof(Message)
                         )
                     )
@@ -76,93 +76,115 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 $"'Instantiates^Message' is required to invoke {nameof(HttpMessageReadRepository.GetAll)}"
             );
 
-            var hasSenderResult = await this.grannyService.TryGetGrannyAsync(
-                await PropertyAssociationGrannyInfo.CreateById<Message>(
-                    nameof(Message.SenderId),
-                    this.ensembleRepository,
-                    avatars.Single().Id
-                )
-            );
+            var hasSenderResult = (await this.grannyService.TryGetParseAsync(
+                new[] {
+                    await PropertyAssociationGrannyInfo.CreateById<Message>(
+                        nameof(Message.SenderId),
+                        this.ensembleRepository,
+                        avatars.Single().Id
+                    )
+                }
+            // TODO: should ideally be able to use multiple senders in query below
+            )).Single();
 
             // TODO: specify maxTimestamp as a NeuronQuery parameter
             var queryResult = await ensembleRepository.GetByQueryAsync(
                 new NeuronQuery()
                 {
-                    Postsynaptic = new string[] { 
+                    Postsynaptic = new string[] {
                         instantiatesMessageResult.Item2.Neuron.Id.ToString(),
                         // TODO: Add support for OR conditions in Cortex.Graph so that 
                         // messages with different senders can be retrieved
-                        hasSenderResult.Item2.Neuron.Id.ToString()
+                        hasSenderResult.Granny.Neuron.Id.ToString()
                     },
                     SortBy = SortByValue.NeuronCreationTimestamp,
                     SortOrder = SortOrderValue.Descending,
-                    // from Instance granny to IValue-Instantiates
-                    Depth = 12,
+                    Depth = Coding.d23.neurULization.Constants.InstanceToValueInstantiatesClassDepth,
                     DirectionValues = DirectionValues.Outbound
                 },
                 userId
             );
 
             var dMessages = await this.neurULizer.DeneurULizeAsync<Message>(queryResult.Ensemble);
+            IEnumerable<Message> pagedMessages = dMessages.Take(pageSize.Value);
 
-            var result = dMessages.Take(pageSize.Value)
-                .Reverse()
-                .Select(m => new MessageResult()
-                {
-                    Message = m,
-                    RegionTag = m.RegionTag,
-                    SenderTag = m.CreationAuthorTag,
-                    IsCurrentUserSender = m.SenderId == queryResult.UserNeuronId
-                });
+            var contentStringValues = await this.ensembleRepository.GetStringValues(
+                this.grannyService,
+                queryResult.Ensemble,
+                pagedMessages.Select(m => m.ContentId).Distinct(),
+                userId
+            );
 
-            if (avatars.Any())
+            var senderNeuronsResult = await ensembleRepository.GetByQueryAsync(
+                new NeuronQuery() { Id = pagedMessages.Select(m => m.SenderId.ToString()).Distinct() }
+            );
+
+            var result = new List<MessageResult>();
+
+            foreach (var pm in pagedMessages.Reverse())
             {
-                var externalAvatarUrls = avatars
-                    .Select(a =>
-                        {
-                            new Uri(a.ExternalReferenceUrl).ExtractParts(out string au, out string id);
-                            return au;
-                        })
-                    .Distinct();
-
-                var client = this.httpClientFactory.CreateClient("ignoreSSL");
-
-                foreach (var eau in externalAvatarUrls)
+                var mr = new MessageResult()
                 {
-                    var authority = this.settingsService.Authorities.SingleOrDefault(au => au.Avatars.SingleOrDefault(av => av == eau) != null);
-
-                    if (authority != null)
-                    {
-                        var response = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
-                        {
-                            Address = authority.Address + "/connect/token",
-                            ClientId = authority.ClientId,
-                            ClientSecret = authority.ClientSecret
-                        });
-
-                        try
-                        {
-                            var remoteMessages = (await this.messageQueryClient.GetMessagesAsync(
-                                eau + "/",
-                                response.AccessToken, 
-                                maxTimestamp,
-                                pageSize,
-                                token: token
-                                )).Select(md => md.ToDomain());
-
-                            result = result.Concat(remoteMessages);
-                        }
-                        catch (Exception ex)
-                        {
-                            var e = ex;
-                        }
-                    }
-                    else
-                    {
-                        // TODO: log if authority for avatarurl was not found
-                    }
-                }
+                    Message = pm,
+                    ContentString = contentStringValues.GetTagById(pm.ContentId),
+                    RegionTag = pm.RegionTag,
+                    SenderTag = senderNeuronsResult.Ensemble.TryGetById(pm.SenderId, out Coding.Neuron sender) ?
+                        sender.Tag :
+                        "[Sender not found]",
+                    IsCurrentUserSender = pm.SenderId == queryResult.UserNeuronId
+                };
+                result.Add(mr);
             }
+
+            // TODO:
+            //if (avatars.Any())
+            //{
+            //    var externalAvatarUrls = avatars
+            //        .Select(a =>
+            //        {
+            //            new Uri(a.ExternalReferenceUrl).ExtractParts(out string au, out string id);
+            //            return au;
+            //        })
+            //        .Distinct();
+
+            //    var client = this.httpClientFactory.CreateClient("ignoreSSL");
+
+            //    foreach (var eau in externalAvatarUrls)
+            //    {
+            //        var authority = this.settingsService.Authorities.SingleOrDefault(au => au.Avatars.SingleOrDefault(av => av == eau) != null);
+
+            //        if (authority != null)
+            //        {
+            //            var response = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
+            //            {
+            //                Address = authority.Address + "/connect/token",
+            //                ClientId = authority.ClientId,
+            //                ClientSecret = authority.ClientSecret
+            //            });
+
+            //            try
+            //            {
+            //                var remoteMessages = (await this.messageQueryClient.GetMessagesAsync(
+            //                    eau + "/",
+            //                    response.AccessToken,
+            //                    maxTimestamp,
+            //                    pageSize,
+            //                    token: token
+            //                    )).Select(md => md.ToDomain());
+
+            //                result = result.Concat(remoteMessages);
+            //            }
+            //            catch (Exception ex)
+            //            {
+            //                var e = ex;
+            //            }
+            //        }
+            //        else
+            //        {
+            //            // TODO: log if authority for avatarurl was not found
+            //        }
+            //    }
+            //}
 
             return result;
         }

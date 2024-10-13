@@ -1,7 +1,7 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Coding;
-using ei8.Cortex.Coding.d23.Grannies;
+using ei8.Cortex.Coding.Persistence;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
 using ei8.Cortex.Library.Client.Out;
 using ei8.Cortex.Library.Common;
@@ -41,7 +41,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 
         public async Task<IEnumerable<Avatar>> GetAll(string userId, CancellationToken token = default)
         {
-            var instantiatesAvatarResult = await this.grannyService.TryGetBuildPersistAsync(
+            var instantiatesAvatarResult = await this.grannyService.TryGetParseBuildPersistAsync(
                 new InstantiatesClassGrannyInfo(
                     new Coding.d23.neurULization.Processors.Readers.Deductive.InstantiatesClassParameterSet(
                         await ensembleRepository.GetExternalReferenceAsync(

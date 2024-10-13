@@ -1,8 +1,6 @@
 ﻿using CQRSlite.Commands;
-using Newtonsoft.Json;
 using neurUL.Common.Domain.Model;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace ei8.Cortex.Chat.Nucleus.Application.Messages.Commands

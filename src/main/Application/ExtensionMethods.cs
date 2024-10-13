@@ -9,7 +9,8 @@ namespace ei8.Cortex.Chat.Nucleus.Application
             new Common.MessageResult()
             {
                 Id = value.Message.Id,
-                Content = value.Message.Content,
+                ContentId = value.Message.ContentId,
+                ContentString = value.ContentString,
                 RegionTag = value.RegionTag,
                 RegionId = value.Message.RegionId,
                 SenderTag = value.SenderTag,
@@ -26,13 +27,14 @@ namespace ei8.Cortex.Chat.Nucleus.Application
                 Message = new Message
                 {
                     Id = value.Id,
-                    Content = value.Content,
+                    ContentId = value.ContentId,
                     RegionId = value.RegionId,
                     SenderId = value.SenderId,
                     ExternalReferenceUrl = value.ExternalReferenceUrl,
                     CreationTimestamp = value.CreationTimestamp,
                     UnifiedLastModificationTimestamp = value.UnifiedLastModificationTimestamp
                 },
+                ContentString = value.ContentString,
                 RegionTag = value.RegionTag,
                 SenderTag = value.SenderTag,
                 IsCurrentUserSender = value.IsCurrentUserCreationAuthor

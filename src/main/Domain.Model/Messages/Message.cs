@@ -12,7 +12,8 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Messages
         [neurULNeuronProperty]
         public Guid Id { get; set; }
 
-        public string Content { get; set; }
+        [neurULClass]
+        public Guid ContentId { get; set; }
 
         [neurULClass(typeof(Avatar))]
         public Guid SenderId { get; set; }

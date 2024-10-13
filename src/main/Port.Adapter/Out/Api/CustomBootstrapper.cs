@@ -55,12 +55,13 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
             container.Register<IAvatarReadRepository, HttpAvatarReadRepository>();
             container.Register<IMessageQueryClient, HttpMessageQueryClient>();
             container.Register(this.serviceProvider.GetService<IHttpClientFactory>());
+            container.Register<IEnsembleTransactionData, EnsembleTransactionData>();
             container.Register<IEnsembleTransactionService, EnsembleTransactionService>();
             container.AddRequestProvider();
             container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
             container.AddEnsembleRepository();
             container.AddGrannyService();
-            container.Addd23neurULizerOptions();
+            container.Register<Id23neurULizerOptions, neurULizerOptions>();
             container.Register<IneurULizer, neurULizer>();
             container.Register<IMessageReadRepository, HttpMessageReadRepository>();
             container.Register<IMessageQueryService, MessageQueryService>();

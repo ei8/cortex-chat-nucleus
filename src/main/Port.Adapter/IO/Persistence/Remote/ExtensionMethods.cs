@@ -1,6 +1,7 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
 using ei8.Cortex.Coding;
+using ei8.Cortex.Coding.Persistence;
 using ei8.Cortex.Coding.d23.neurULization;
 using System;
 using System.Text.RegularExpressions;

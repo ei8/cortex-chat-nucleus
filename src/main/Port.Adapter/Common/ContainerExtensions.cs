@@ -3,7 +3,6 @@ using CQRSlite.Domain;
 using CQRSlite.Routing;
 using ei8.Cortex.Chat.Nucleus.Application;
 using ei8.Cortex.Coding;
-using ei8.Cortex.Coding.d23.neurULization;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
 using ei8.Cortex.Coding.Persistence;
 using ei8.Cortex.IdentityAccess.Client.Out;
@@ -159,22 +158,6 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
                         ss.AppUserId
                         );
                 });
-        }
-
-        public static void Addd23neurULizerOptions(this TinyIoCContainer container)
-        {
-            container.Register<Id23neurULizerOptions>((tic, npo) =>
-            {
-                var ss = tic.Resolve<ISettingsService>();
-                return new neurULizerOptions(
-                    tic.Resolve<IEnsembleRepository>(),
-                    tic.Resolve<Coding.d23.neurULization.Processors.Writers.IInstanceWriter>(),
-                    tic.Resolve<Coding.d23.neurULization.Processors.Readers.Inductive.IInstanceReader>(),
-                    tic.Resolve<IPrimitiveSet>(),
-                    tic.Resolve<IDictionary<string, Ensemble>>(),
-                    tic.Resolve<IGrannyService>()
-                );
-            });
         }
     }
 }

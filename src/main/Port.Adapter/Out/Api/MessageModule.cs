@@ -14,24 +14,28 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
     {
         public MessageModule(IMessageQueryService messageQueryService) : base("/nuclei/chat/messages")
         {
-            this.Get("/", async (parameters) => {
-                return new TextResponse(JsonConvert.SerializeObject(
-                   await messageQueryService.GetMessages(
-                       Request.Query.maxTimestamp.HasValue ?
-                           DateTimeOffset.Parse(HttpUtility.UrlDecode(Request.Query.maxTimestamp.Value)) :
-                           null,
-                       Request.Query.pageSize.HasValue ?
-                           int.Parse(Request.Query.pageSize.Value) :
-                           null,
-                       Request.Query.avatarId.HasValue ?
-                           ((string) Request.Query.avatarId.Value.ToString())
+            this.Get("/", async (parameters) => 
+            {
+                return await MessageModule.ProcessRequest(async () =>
+                {
+                    var messages = await messageQueryService.GetMessages(
+                        Request.Query.maxTimestamp.HasValue ?
+                            DateTimeOffset.Parse(HttpUtility.UrlDecode(Request.Query.maxTimestamp.Value)) :
+                            null,
+                        Request.Query.pageSize.HasValue ?
+                            int.Parse(Request.Query.pageSize.Value) :
+                            null,
+                        Request.Query.avatarId.HasValue ?
+                            ((string)Request.Query.avatarId.Value.ToString())
                             .Split(',')
-                            .Select(s => Guid.Parse(s)):
-                           Array.Empty<Guid>(),
-                       MessageModule.GetUserId(Request)
-                   )
-                   ));
+                            .Select(s => Guid.Parse(s)) :
+                            Array.Empty<Guid>(),
+                        MessageModule.GetUserId(Request)
+                    );
+                    return new TextResponse(JsonConvert.SerializeObject(messages));
                 }
+                );
+            }
             );
         }
 
