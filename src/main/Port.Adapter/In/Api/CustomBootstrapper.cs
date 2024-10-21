@@ -39,6 +39,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
         {
             base.ConfigureApplicationContainer(container);
 
+            // TODO: change IDictionary<string, Ensemble> to EnsembleCache
             container.Register<IDictionary<string, Ensemble>>(new Dictionary<string, Ensemble>());
             container.Register(this.serviceProvider.GetService<IOptions<List<ExternalReference>>>());
             // TODO: remove when Authorities is removed from settings
