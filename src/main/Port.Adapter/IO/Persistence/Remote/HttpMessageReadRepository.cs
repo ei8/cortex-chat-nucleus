@@ -3,15 +3,17 @@ using ei8.Cortex.Chat.Nucleus.Client.Out;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Coding;
+using ei8.Cortex.Coding.d23.Grannies;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
 using ei8.Cortex.Coding.Persistence;
+using ei8.Cortex.Coding.Properties;
 using ei8.Cortex.Library.Common;
-using IdentityModel.Client;
 using neurUL.Common.Domain.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,6 +27,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         private readonly IHttpClientFactory httpClientFactory;
         private readonly IneurULizer neurULizer;
         private readonly IGrannyService grannyService;
+        private readonly IDictionary<string, IGranny> propertyAssociationCache;
 
         public HttpMessageReadRepository(
             IEnsembleRepository ensembleRepository,
@@ -32,7 +35,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             ISettingsService settingsService,
             IHttpClientFactory httpClientFactory,
             IneurULizer neurULizer,
-            IGrannyService grannyService
+            IGrannyService grannyService,
+            IDictionary<string, IGranny> propertyAssociationCache
         )
         {
             AssertionConcern.AssertArgumentNotNull(ensembleRepository, nameof(ensembleRepository));
@@ -41,6 +45,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             AssertionConcern.AssertArgumentNotNull(httpClientFactory, nameof(httpClientFactory));
             AssertionConcern.AssertArgumentNotNull(neurULizer, nameof(neurULizer));
             AssertionConcern.AssertArgumentNotNull(grannyService, nameof(grannyService));
+            AssertionConcern.AssertArgumentNotNull(propertyAssociationCache, nameof(propertyAssociationCache));
 
             this.ensembleRepository = ensembleRepository;
             this.messageQueryClient = messageQueryClient;
@@ -48,6 +53,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             this.httpClientFactory = httpClientFactory;
             this.neurULizer = neurULizer;
             this.grannyService = grannyService;
+            this.propertyAssociationCache = propertyAssociationCache;
         }
 
         public async Task<IEnumerable<MessageResult>> GetAll(DateTimeOffset? maxTimestamp, int? pageSize, IEnumerable<Avatar> avatars, string userId, CancellationToken token = default)
@@ -59,6 +65,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 pageSize = this.settingsService.PageSize;
 
             var neurons = new QueryResult<Library.Common.Neuron>();
+
+            var watch = System.Diagnostics.Stopwatch.StartNew();
 
             var instantiatesMessageResult = await this.grannyService.TryGetParseBuildPersistAsync(
                 new InstantiatesClassGrannyInfo(
@@ -76,16 +84,12 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 $"'Instantiates^Message' is required to invoke {nameof(HttpMessageReadRepository.GetAll)}"
             );
 
-            var hasSenderResult = (await this.grannyService.TryGetParseAsync(
-                new[] {
-                    await PropertyAssociationGrannyInfo.CreateById<Message>(
-                        nameof(Message.SenderId),
-                        this.ensembleRepository,
-                        avatars.Single().Id
-                    )
-                }
-            // TODO: should ideally be able to use multiple senders in query below
-            )).Single();
+            IGranny hasSender = await this.grannyService.GetPropertyAssociationFromCacheOrDb<Message>(
+                this.ensembleRepository,
+                nameof(Message.SenderId), 
+                avatars.Single().Id,
+                this.propertyAssociationCache
+            );
 
             // TODO: specify maxTimestamp as a NeuronQuery parameter
             var queryResult = await ensembleRepository.GetByQueryAsync(
@@ -95,7 +99,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                         instantiatesMessageResult.Item2.Neuron.Id.ToString(),
                         // TODO: Add support for OR conditions in Cortex.Graph so that 
                         // messages with different senders can be retrieved
-                        hasSenderResult.Granny.Neuron.Id.ToString()
+                        hasSender.Neuron.Id.ToString()
                     },
                     SortBy = SortByValue.NeuronCreationTimestamp,
                     SortOrder = SortOrderValue.Descending,
@@ -106,6 +110,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             );
 
             var dMessages = await this.neurULizer.DeneurULizeAsync<Message>(queryResult.Ensemble);
+            watch.Stop();
+            System.Diagnostics.Debug.WriteLine($"Local GetAll took (secs): {watch.Elapsed.TotalSeconds}");
             IEnumerable<Message> pagedMessages = dMessages.Take(pageSize.Value);
 
             var contentStringValues = await this.ensembleRepository.GetStringValues(

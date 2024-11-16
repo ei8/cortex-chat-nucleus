@@ -7,6 +7,7 @@ using ei8.Cortex.Chat.Nucleus.Port.Adapter.Common;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services;
 using ei8.Cortex.Coding;
+using ei8.Cortex.Coding.d23.Grannies;
 using ei8.Cortex.Coding.d23.neurULization;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
 using ei8.Cortex.Coding.Persistence;
@@ -39,6 +40,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
             base.ConfigureApplicationContainer(container);
 
             container.Register<IDictionary<string, Ensemble>>(new Dictionary<string, Ensemble>());
+            container.Register<IDictionary<string, IGranny>>(new Dictionary<string, IGranny>());
             container.Register(this.serviceProvider.GetService<IOptions<List<ExternalReference>>>());
             // TODO: remove when Authorities is removed from settings
             container.Register(this.configuration);
