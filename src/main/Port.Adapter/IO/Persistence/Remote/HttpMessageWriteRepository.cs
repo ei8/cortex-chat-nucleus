@@ -34,9 +34,17 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         public async Task Save(Message message, CancellationToken token = default)
         {
             // TODO: handle updates - message.Version == 0 ? WriteMode.Create : WriteMode.Update
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             var me = await this.neurULizer.neurULizeAsync(message);
+            
+            watch.Stop();
+            System.Diagnostics.Debug.WriteLine($"neurULization (secs): {watch.Elapsed.TotalSeconds}");
+            watch.Restart();
 
             await this.ensembleTransactionService.SaveAsync(this.transaction, me);
+
+            watch.Stop();
+            System.Diagnostics.Debug.WriteLine($"Ensemble save (secs): {watch.Elapsed.TotalSeconds}");
         }
     }
 }
