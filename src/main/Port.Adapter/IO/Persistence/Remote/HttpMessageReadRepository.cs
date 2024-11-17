@@ -104,7 +104,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                     Depth = Coding.d23.neurULization.Constants.InstanceToValueInstantiatesClassDepth,
                     DirectionValues = DirectionValues.Outbound
                 },
-                userId
+                userId,
+                false
             );
 
             var dMessages = await this.neurULizer.DeneurULizeAsync<Message>(queryResult.Ensemble);
