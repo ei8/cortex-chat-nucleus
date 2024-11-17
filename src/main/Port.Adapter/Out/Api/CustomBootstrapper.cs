@@ -13,7 +13,6 @@ using ei8.Cortex.Coding.d23.neurULization.Persistence;
 using ei8.Cortex.Coding.Persistence;
 using ei8.Cortex.IdentityAccess.Client.Out;
 using ei8.Cortex.Library.Client.Out;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Nancy;
@@ -27,12 +26,10 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
     public class CustomBootstrapper : DefaultNancyBootstrapper
     {
         private readonly IServiceProvider serviceProvider;
-        private readonly IConfiguration configuration;
-
-        public CustomBootstrapper(IServiceProvider serviceProvider, IConfiguration configuration)
+        
+        public CustomBootstrapper(IServiceProvider serviceProvider)
         {
             this.serviceProvider = serviceProvider;
-            this.configuration = configuration;
         }
 
         protected override void ConfigureApplicationContainer(TinyIoCContainer container)
@@ -42,8 +39,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
             container.Register<IDictionary<string, Ensemble>>(new Dictionary<string, Ensemble>());
             container.Register<IDictionary<string, IGranny>>(new Dictionary<string, IGranny>());
             container.Register(this.serviceProvider.GetService<IOptions<List<ExternalReference>>>());
-            // TODO: remove when Authorities is removed from settings
-            container.Register(this.configuration);
+            container.Register(this.serviceProvider.GetService<IOptions<List<Authority>>>());
             container.Register<ISettingsService, SettingsService>();
 
             container.Register(container.CreateTransientEnsembleRepository().GetPrimitives().Result);

@@ -27,12 +27,10 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
     public class CustomBootstrapper : DefaultNancyBootstrapper
     {
         private readonly IServiceProvider serviceProvider;
-        private readonly IConfiguration configuration;
 
-        public CustomBootstrapper(IServiceProvider serviceProvider, IConfiguration configuration)
+        public CustomBootstrapper(IServiceProvider serviceProvider)
         {
             this.serviceProvider = serviceProvider;
-            this.configuration = configuration;
         }
 
         protected override void ConfigureApplicationContainer(TinyIoCContainer container)
@@ -42,8 +40,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             // TODO: change IDictionary<string, Ensemble> to EnsembleCache
             container.Register<IDictionary<string, Ensemble>>(new Dictionary<string, Ensemble>());
             container.Register(this.serviceProvider.GetService<IOptions<List<ExternalReference>>>());
-            // TODO: remove when Authorities is removed from settings
-            container.Register(this.configuration);
+            container.Register(this.serviceProvider.GetService<IOptions<List<Authority>>>());
             container.Register<ISettingsService, SettingsService>();
 
             container.Register(container.CreateTransientEnsembleRepository().GetPrimitives().Result);

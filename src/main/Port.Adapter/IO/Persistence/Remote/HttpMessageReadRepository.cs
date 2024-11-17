@@ -6,14 +6,12 @@ using ei8.Cortex.Coding;
 using ei8.Cortex.Coding.d23.Grannies;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
 using ei8.Cortex.Coding.Persistence;
-using ei8.Cortex.Coding.Properties;
 using ei8.Cortex.Library.Common;
 using neurUL.Common.Domain.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 

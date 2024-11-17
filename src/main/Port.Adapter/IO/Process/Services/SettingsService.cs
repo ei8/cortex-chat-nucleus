@@ -1,7 +1,6 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application;
-using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
 using ei8.Cortex.Chat.Nucleus.Port.Adapter.Common;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 
@@ -9,10 +8,11 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services
 {
     public class SettingsService : ISettingsService
     {
-        private readonly IConfiguration configuration;
-        public SettingsService(IConfiguration configuration)
+        private readonly IEnumerable<Authority> authorities;
+
+        public SettingsService(IOptions<List<Authority>> authorities)
         {
-            this.configuration = configuration;
+            this.authorities = authorities.Value.ToArray();
         }
 
         public string CortexLibraryOutBaseUrl => Environment.GetEnvironmentVariable(EnvironmentVariableKeys.CortexLibraryOutBaseUrl);
@@ -27,7 +27,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services
 
         public int PageSize => int.TryParse(Environment.GetEnvironmentVariable(EnvironmentVariableKeys.PageSize), out int size) ? size : Default.PageSize;
 
-        public IEnumerable<Authority> Authorities => this.configuration.GetSection(nameof(Authorities)).Get<IEnumerable<Authority>>();
+        public IEnumerable<Authority> Authorities => this.authorities;
 
         public int QueryResultLimit => int.TryParse(Environment.GetEnvironmentVariable(EnvironmentVariableKeys.QueryResultLimit), out int size) ? size : Default.QueryResultLimit;
 

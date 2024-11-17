@@ -1,4 +1,5 @@
-﻿using ei8.Cortex.Coding;
+﻿using ei8.Cortex.Chat.Nucleus.Application;
+using ei8.Cortex.Coding;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
@@ -37,11 +38,12 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
             });
             services.AddOptions();
             services.Configure<List<ExternalReference>>(configuration.GetSection("ExternalReferences"));
+            services.Configure<List<Authority>>(configuration.GetSection("Authorities"));
         }
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseOwin(buildFunc => buildFunc.UseNancy(o => o.Bootstrapper = new CustomBootstrapper(app.ApplicationServices, this.configuration)));
+            app.UseOwin(buildFunc => buildFunc.UseNancy(o => o.Bootstrapper = new CustomBootstrapper(app.ApplicationServices)));
         }
     }
 }
