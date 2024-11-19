@@ -7,6 +7,7 @@ using ei8.Cortex.Coding.d23.Grannies;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
 using ei8.Cortex.Coding.Persistence;
 using ei8.Cortex.Library.Common;
+using IdentityModel.Client;
 using neurUL.Common.Domain.Model;
 using System;
 using System.Collections.Generic;
@@ -141,55 +142,54 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 result.Add(mr);
             }
 
-            // TODO:
-            //if (avatars.Any())
-            //{
-            //    var externalAvatarUrls = avatars
-            //        .Select(a =>
-            //        {
-            //            new Uri(a.ExternalReferenceUrl).ExtractParts(out string au, out string id);
-            //            return au;
-            //        })
-            //        .Distinct();
+            if (avatars.Any())
+            {
+                var externalAvatarUrls = avatars
+                    .Select(a =>
+                    {
+                        new Uri(a.ExternalReferenceUrl).ExtractParts(out string au, out string id);
+                        return au;
+                    })
+                    .Distinct();
 
-            //    var client = this.httpClientFactory.CreateClient("ignoreSSL");
+                var client = this.httpClientFactory.CreateClient("ignoreSSL");
 
-            //    foreach (var eau in externalAvatarUrls)
-            //    {
-            //        var authority = this.settingsService.Authorities.SingleOrDefault(au => au.Avatars.SingleOrDefault(av => av == eau) != null);
+                foreach (var eau in externalAvatarUrls)
+                {
+                    var authority = this.settingsService.Authorities.SingleOrDefault(au => au.Avatars.SingleOrDefault(av => av == eau) != null);
 
-            //        if (authority != null)
-            //        {
-            //            var response = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
-            //            {
-            //                Address = authority.Address + "/connect/token",
-            //                ClientId = authority.ClientId,
-            //                ClientSecret = authority.ClientSecret
-            //            });
+                    if (authority != null)
+                    {
+                        var response = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
+                        {
+                            Address = authority.Address + "/connect/token",
+                            ClientId = authority.ClientId,
+                            ClientSecret = authority.ClientSecret
+                        });
 
-            //            try
-            //            {
-            //                var remoteMessages = (await this.messageQueryClient.GetMessagesAsync(
-            //                    eau + "/",
-            //                    response.AccessToken,
-            //                    maxTimestamp,
-            //                    pageSize,
-            //                    token: token
-            //                    )).Select(md => md.ToDomain());
+                        try
+                        {
+                            var remoteMessages = (await this.messageQueryClient.GetMessagesAsync(
+                                eau + "/",
+                                response.AccessToken,
+                                maxTimestamp,
+                                pageSize,
+                                token: token
+                                )).Select(md => md.ToDomain());
 
-            //                result = result.Concat(remoteMessages);
-            //            }
-            //            catch (Exception ex)
-            //            {
-            //                var e = ex;
-            //            }
-            //        }
-            //        else
-            //        {
-            //            // TODO: log if authority for avatarurl was not found
-            //        }
-            //    }
-            //}
+                            result = result.Concat(remoteMessages).ToList();
+                        }
+                        catch (Exception ex)
+                        {
+                            var e = ex;
+                        }
+                    }
+                    else
+                    {
+                        // TODO: log if authority for avatarurl was not found
+                    }
+                }
+            }
 
             return result;
         }
