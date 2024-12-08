@@ -2,12 +2,12 @@ version: '3.4'
 
 services:
   cortex.chat.nucleus.in.api:
-    image: ei8io/cortex.chat.nucleus.in.api:0.2.11
+    image: ei8io/cortex.chat.nucleus.in.api:0.3.0
     build:
       context: .
       dockerfile: ./main/Port.Adapter/In/Api/Dockerfile
   cortex.chat.nucleus.out.api:
-    image: ei8io/cortex.chat.nucleus.out.api:0.2.11
+    image: ei8io/cortex.chat.nucleus.out.api:0.3.0
     build:
       context: .
       dockerfile: ./main/Port.Adapter/Out/Api/Dockerfile

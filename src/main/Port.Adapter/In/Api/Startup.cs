@@ -1,4 +1,5 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application;
+using ei8.Cortex.Chat.Nucleus.Port.Adapter.Common;
 using ei8.Cortex.Coding;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -6,7 +7,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Nancy.Owin;
 using System.Collections.Generic;
-using System.Net.Http;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
 {
@@ -21,17 +21,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-#if DEBUG
-            services.AddHttpClient("ignoreSSL").ConfigurePrimaryHttpMessageHandler(() =>
-            {
-                return new HttpClientHandler
-                {
-                    ServerCertificateCustomValidationCallback = (m, crt, chn, e) => true
-                };
-            });
-#else
-            services.AddHttpClient("ignoreSSL");
-#endif
+            services.AddDevHttpClient();
             services.Configure<KestrelServerOptions>(options =>
             {
                 options.AllowSynchronousIO = true;

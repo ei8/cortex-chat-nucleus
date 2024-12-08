@@ -103,10 +103,10 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                             ClientSecret = authority.ClientSecret
                         });
 
-
                         AssertionConcern.AssertStateFalse(
                             response.IsError,
-                            $"Failed obtaining access token for Avatar '{eau.Item1}': {response.Error} - {response.ErrorDescription} - {response.HttpErrorReason}"
+                            $"Failed obtaining access token for Avatar '{eau.Item1}': " +
+                            $"{response.Error} - {response.ErrorDescription} - {response.HttpErrorReason} - {response.Exception}"
                         );
 
                         try
