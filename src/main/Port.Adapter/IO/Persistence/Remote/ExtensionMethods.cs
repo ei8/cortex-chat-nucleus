@@ -1,11 +1,6 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Domain.Model;
-using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
-using ei8.Cortex.Coding;
-using ei8.Cortex.Coding.Persistence;
-using ei8.Cortex.Coding.d23.neurULization;
 using System;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 {
@@ -37,41 +32,6 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             }
             var type = typeof(T);
             return string.Format("{0}.{1}.{2}", type.Namespace, type.Name, Enum.GetName(type, @this));
-        }
-
-        public static async Task<IPrimitiveSet> GetPrimitives(this IEnsembleRepository ensembleRepository)
-        {
-            var refs = await ensembleRepository.GetExternalReferencesAsync(
-                new object[]
-                {
-                    ExternalReferenceKey.DirectObject,
-                    ExternalReferenceKey.Idea,
-                    ExternalReferenceKey.Instantiates,
-                    ExternalReferenceKey.Simple,
-                    ExternalReferenceKey.Subordination,
-                    ExternalReferenceKey.Coordination,
-                    ExternalReferenceKey.Unit,
-                    ExternalReferenceKey.Of,
-                    ExternalReferenceKey.Case,
-                    ExternalReferenceKey.NominalModifier,
-                    ExternalReferenceKey.Has
-                }
-            );
-
-            return new PrimitiveSet()
-            {
-                DirectObject = refs[ExternalReferenceKey.DirectObject],
-                Idea = refs[ExternalReferenceKey.Idea],
-                Instantiates = refs[ExternalReferenceKey.Instantiates],
-                Simple = refs[ExternalReferenceKey.Simple],
-                Subordination = refs[ExternalReferenceKey.Subordination],
-                Coordination = refs[ExternalReferenceKey.Coordination],
-                Unit = refs[ExternalReferenceKey.Unit],
-                Of = refs[ExternalReferenceKey.Of],
-                Case = refs[ExternalReferenceKey.Case],
-                NominalModifier = refs[ExternalReferenceKey.NominalModifier],
-                Has = refs[ExternalReferenceKey.Has]
-            };
-        }
+        }        
     }
 }

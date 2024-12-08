@@ -32,5 +32,12 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services
         public int QueryResultLimit => int.TryParse(Environment.GetEnvironmentVariable(EnvironmentVariableKeys.QueryResultLimit), out int size) ? size : Default.QueryResultLimit;
 
         public string AppUserId => Environment.GetEnvironmentVariable(EnvironmentVariableKeys.AppUserId);
+
+        public bool CreateExternalReferencesIfNotFound => 
+            bool.TryParse(
+                Environment.GetEnvironmentVariable(EnvironmentVariableKeys.CreateExternalReferencesIfNotFound), 
+                out bool create
+            ) && 
+            create;
     }
 }

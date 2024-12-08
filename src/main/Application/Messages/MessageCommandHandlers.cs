@@ -1,7 +1,6 @@
 using CQRSlite.Commands;
 using ei8.Cortex.Chat.Nucleus.Application.Messages.Commands;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
-using ei8.Cortex.Coding;
 using ei8.Cortex.Coding.Persistence;
 using ei8.Cortex.Coding.Persistence.Wrappers;
 using ei8.Cortex.IdentityAccess.Client.Out;

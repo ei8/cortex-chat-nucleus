@@ -1,7 +1,4 @@
-﻿using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace ei8.Cortex.Chat.Nucleus.Application
 {
@@ -16,5 +13,6 @@ namespace ei8.Cortex.Chat.Nucleus.Application
         IEnumerable<Authority> Authorities { get; }
         int QueryResultLimit { get; }
         string AppUserId { get; }
+        bool CreateExternalReferencesIfNotFound { get; }
     }
 }

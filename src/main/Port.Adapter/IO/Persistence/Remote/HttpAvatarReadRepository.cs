@@ -16,24 +16,24 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 {
     public class HttpAvatarReadRepository : IAvatarReadRepository
     {
-        private readonly IEnsembleRepository ensembleRepository;
+        private readonly IExternalReferenceRepository externalReferenceRepository;
         private readonly INeuronQueryClient neuronQueryClient;
         private readonly ISettingsService settingsService;
         private readonly IGrannyService grannyService;
 
         public HttpAvatarReadRepository(
-            IEnsembleRepository ensembleRepository,
+            IExternalReferenceRepository externalReferenceRepository,
             INeuronQueryClient neuronQueryClient,
             ISettingsService settingsService,
             IGrannyService grannyService
         )
         {
-            AssertionConcern.AssertArgumentNotNull(ensembleRepository, nameof(ensembleRepository));
+            AssertionConcern.AssertArgumentNotNull(externalReferenceRepository, nameof(externalReferenceRepository));
             AssertionConcern.AssertArgumentNotNull(neuronQueryClient, nameof(neuronQueryClient));
             AssertionConcern.AssertArgumentNotNull(settingsService, nameof(settingsService));
             AssertionConcern.AssertArgumentNotNull(grannyService, nameof(grannyService));
 
-            this.ensembleRepository = ensembleRepository;
+            this.externalReferenceRepository = externalReferenceRepository;
             this.neuronQueryClient = neuronQueryClient;
             this.settingsService = settingsService;
             this.grannyService = grannyService;
@@ -44,7 +44,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             var instantiatesAvatarResult = await this.grannyService.TryGetParseBuildPersistAsync(
                 new InstantiatesClassGrannyInfo(
                     new Coding.d23.neurULization.Processors.Readers.Deductive.InstantiatesClassParameterSet(
-                        await ensembleRepository.GetExternalReferenceAsync(
+                        await this.externalReferenceRepository.GetByKeyAsync(
                             typeof(Avatar)
                         )
                     )

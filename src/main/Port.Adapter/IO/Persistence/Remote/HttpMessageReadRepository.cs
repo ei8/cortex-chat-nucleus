@@ -11,6 +11,7 @@ using IdentityModel.Client;
 using neurUL.Common.Domain.Model;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -21,6 +22,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
     public class HttpMessageReadRepository : IMessageReadRepository
     {
         private readonly IEnsembleRepository ensembleRepository;
+        private readonly IExternalReferenceRepository externalReferenceRepository;
         private readonly IMessageQueryClient messageQueryClient;
         private readonly ISettingsService settingsService;
         private readonly IHttpClientFactory httpClientFactory;
@@ -30,6 +32,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 
         public HttpMessageReadRepository(
             IEnsembleRepository ensembleRepository,
+            IExternalReferenceRepository externalReferenceRepository,
             IMessageQueryClient messageQueryClient,
             ISettingsService settingsService,
             IHttpClientFactory httpClientFactory,
@@ -39,6 +42,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         )
         {
             AssertionConcern.AssertArgumentNotNull(ensembleRepository, nameof(ensembleRepository));
+            AssertionConcern.AssertArgumentNotNull(externalReferenceRepository, nameof(externalReferenceRepository));
             AssertionConcern.AssertArgumentNotNull(messageQueryClient, nameof(messageQueryClient));
             AssertionConcern.AssertArgumentNotNull(settingsService, nameof(settingsService));
             AssertionConcern.AssertArgumentNotNull(httpClientFactory, nameof(httpClientFactory));
@@ -47,6 +51,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             AssertionConcern.AssertArgumentNotNull(propertyAssociationCache, nameof(propertyAssociationCache));
 
             this.ensembleRepository = ensembleRepository;
+            this.externalReferenceRepository = externalReferenceRepository;
             this.messageQueryClient = messageQueryClient;
             this.settingsService = settingsService;
             this.httpClientFactory = httpClientFactory;
@@ -63,100 +68,26 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             if (!pageSize.HasValue)
                 pageSize = this.settingsService.PageSize;
 
-            var neurons = new QueryResult<Library.Common.Neuron>();
-
-            var watch = System.Diagnostics.Stopwatch.StartNew();
-
-            var instantiatesMessageResult = await this.grannyService.TryGetParseBuildPersistAsync(
-                new InstantiatesClassGrannyInfo(
-                    new Coding.d23.neurULization.Processors.Readers.Deductive.InstantiatesClassParameterSet(
-                        await this.ensembleRepository.GetExternalReferenceAsync(
-                            typeof(Message)
-                        )
-                    )
-                ),
-                token
-            );
-
-            AssertionConcern.AssertStateTrue(
-                instantiatesMessageResult.Item1,
-                $"'Instantiates^Message' is required to invoke {nameof(HttpMessageReadRepository.GetAll)}"
-            );
-
-            IGranny hasSender = await this.grannyService.GetPropertyAssociationFromCacheOrDb<Message>(
-                this.ensembleRepository,
-                nameof(Message.SenderId), 
-                avatars.Single().Id,
-                this.propertyAssociationCache
-            );
-
-            // TODO: specify maxTimestamp as a NeuronQuery parameter
-            var queryResult = await ensembleRepository.GetByQueryAsync(
-                new NeuronQuery()
-                {
-                    Postsynaptic = new string[] {
-                        instantiatesMessageResult.Item2.Neuron.Id.ToString(),
-                        // TODO: Add support for OR conditions in Cortex.Graph so that 
-                        // messages with different senders can be retrieved
-                        hasSender.Neuron.Id.ToString()
-                    },
-                    SortBy = SortByValue.NeuronCreationTimestamp,
-                    SortOrder = SortOrderValue.Descending,
-                    Depth = Coding.d23.neurULization.Constants.InstanceToValueInstantiatesClassDepth,
-                    DirectionValues = DirectionValues.Outbound
-                },
-                userId,
-                false
-            );
-
-            var dMessages = await this.neurULizer.DeneurULizeAsync<Message>(queryResult.Ensemble);
-            watch.Stop();
-            System.Diagnostics.Debug.WriteLine($"Local GetAll took (secs): {watch.Elapsed.TotalSeconds}");
-            IEnumerable<Message> pagedMessages = dMessages.Take(pageSize.Value);
-
-            var contentStringValues = await this.ensembleRepository.GetStringValues(
-                this.grannyService,
-                queryResult.Ensemble,
-                pagedMessages.Select(m => m.ContentId).Distinct(),
-                userId
-            );
-
-            var senderNeuronsResult = await ensembleRepository.GetByQueryAsync(
-                new NeuronQuery() { Id = pagedMessages.Select(m => m.SenderId.ToString()).Distinct() }
-            );
-
             var result = new List<MessageResult>();
-
-            foreach (var pm in pagedMessages.Reverse())
-            {
-                var mr = new MessageResult()
-                {
-                    Message = pm,
-                    ContentString = contentStringValues.GetTagById(pm.ContentId),
-                    RegionTag = pm.RegionTag,
-                    SenderTag = senderNeuronsResult.Ensemble.TryGetById(pm.SenderId, out Coding.Neuron sender) ?
-                        sender.Tag :
-                        "[Sender not found]",
-                    IsCurrentUserSender = pm.SenderId == queryResult.UserNeuronId
-                };
-                result.Add(mr);
-            }
+            var localMessages = await this.GetLocalMessages(pageSize, avatars, userId, token);
+            result.AddRange(localMessages);
 
             if (avatars.Any())
             {
-                var externalAvatarUrls = avatars
+                var externalAvatars = avatars
+                    .Where(a => !string.IsNullOrWhiteSpace(a.ExternalReferenceUrl))
                     .Select(a =>
                     {
                         new Uri(a.ExternalReferenceUrl).ExtractParts(out string au, out string id);
-                        return au;
+                        return Tuple.Create(au, Guid.Parse(id));
                     })
                     .Distinct();
 
                 var client = this.httpClientFactory.CreateClient("ignoreSSL");
 
-                foreach (var eau in externalAvatarUrls)
+                foreach (var eau in externalAvatars)
                 {
-                    var authority = this.settingsService.Authorities.SingleOrDefault(au => au.Avatars.SingleOrDefault(av => av == eau) != null);
+                    var authority = this.settingsService.Authorities.SingleOrDefault(au => au.Avatars.SingleOrDefault(av => av == eau.Item1) != null);
 
                     if (authority != null)
                     {
@@ -169,25 +100,113 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 
                         try
                         {
+                            Trace.WriteLine($"Getting messages from '{eau.Item1}' using avatarId '{eau.Item2}'.");
+
                             var remoteMessages = (await this.messageQueryClient.GetMessagesAsync(
-                                eau + "/",
+                                eau.Item1 + "/",
                                 response.AccessToken,
-                                maxTimestamp,
+                                null,
                                 pageSize,
-                                token: token
+                                new[] { eau.Item2 },
+                                token
                                 )).Select(md => md.ToDomain());
 
                             result = result.Concat(remoteMessages).ToList();
                         }
                         catch (Exception ex)
                         {
-                            var e = ex;
+                            throw new ApplicationException($"An error occurred while sending a request to Avatar '{eau.Item1}'", ex);
                         }
                     }
                     else
                     {
                         // TODO: log if authority for avatarurl was not found
                     }
+                }
+            }
+
+            return result;
+        }
+
+        private async Task<IEnumerable<MessageResult>> GetLocalMessages(int? pageSize, IEnumerable<Avatar> avatars, string userId, CancellationToken token)
+        {
+            var result = new List<MessageResult>();
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+
+            var instantiatesMessageResult = await this.grannyService.TryGetParseBuildPersistAsync(
+                new InstantiatesClassGrannyInfo(
+                    new Coding.d23.neurULization.Processors.Readers.Deductive.InstantiatesClassParameterSet(
+                        await this.externalReferenceRepository.GetByKeyAsync(
+                            typeof(Message)
+                        )
+                    )
+                ),
+                token
+            );
+
+            AssertionConcern.AssertStateTrue(
+                instantiatesMessageResult.Item1,
+                $"'Instantiates^Message' is required to invoke {nameof(HttpMessageReadRepository.GetAll)}"
+            );
+
+            var hasSenderResult = await this.grannyService.TryGetPropertyAssociationFromCacheOrDb<Message>(
+                this.externalReferenceRepository,
+                nameof(Message.SenderId),
+                avatars.Single().Id,
+                this.propertyAssociationCache
+            );
+
+            if (hasSenderResult.Success)
+            {
+                // TODO: specify maxTimestamp as a NeuronQuery parameter
+                var queryResult = await ensembleRepository.GetByQueryAsync(
+                    new NeuronQuery()
+                    {
+                        Postsynaptic = new string[] {
+                        instantiatesMessageResult.Item2.Neuron.Id.ToString(),
+                        // TODO: Add support for OR conditions in Cortex.Graph so that 
+                        // messages with different senders can be retrieved
+                        hasSenderResult.Granny.Neuron.Id.ToString()
+                        },
+                        SortBy = SortByValue.NeuronCreationTimestamp,
+                        SortOrder = SortOrderValue.Descending,
+                        Depth = Coding.d23.neurULization.Constants.InstanceToValueInstantiatesClassDepth,
+                        DirectionValues = DirectionValues.Outbound
+                    },
+                    userId,
+                    false
+                );
+
+                var dMessages = await this.neurULizer.DeneurULizeAsync<Message>(queryResult.Ensemble);
+                watch.Stop();
+                System.Diagnostics.Debug.WriteLine($"Local GetAll took (secs): {watch.Elapsed.TotalSeconds}");
+                IEnumerable<Message> pagedMessages = dMessages.Take(pageSize.Value);
+
+                var contentStringValues = await this.ensembleRepository.GetStringValues(
+                    this.externalReferenceRepository,
+                    this.grannyService,
+                    queryResult.Ensemble,
+                    pagedMessages.Select(m => m.ContentId).Distinct(),
+                    userId
+                );
+
+                var senderNeuronsResult = await ensembleRepository.GetByQueryAsync(
+                    new NeuronQuery() { Id = pagedMessages.Select(m => m.SenderId.ToString()).Distinct() }
+                );
+
+                foreach (var pm in pagedMessages.Reverse())
+                {
+                    var mr = new MessageResult()
+                    {
+                        Message = pm,
+                        ContentString = contentStringValues.GetTagById(pm.ContentId),
+                        RegionTag = pm.RegionTag,
+                        SenderTag = senderNeuronsResult.Ensemble.TryGetById(pm.SenderId, out Coding.Neuron sender) ?
+                            sender.Tag :
+                            "[Sender not found]",
+                        IsCurrentUserSender = pm.SenderId == queryResult.UserNeuronId
+                    };
+                    result.Add(mr);
                 }
             }
 

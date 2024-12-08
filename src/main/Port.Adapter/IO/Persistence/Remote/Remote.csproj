@@ -8,19 +8,18 @@
 
   <ItemGroup>
     <PackageReference Include="ei8.Cortex.Chat.Common" Version="0.2.3" />
-    <PackageReference Include="ei8.Cortex.Chat.Nucleus.Client" Version="0.2.4" />
-    <PackageReference Include="ei8.Cortex.IdentityAccess.Client" Version="0.2.2" />
-    <PackageReference Include="ei8.Cortex.Library.Client" Version="0.3.15" />
+    <PackageReference Include="ei8.Cortex.Chat.Nucleus.Client" Version="0.2.7" />
+    <PackageReference Include="ei8.Cortex.Coding" Version="0.0.6" />
+    <PackageReference Include="ei8.Cortex.Coding.d23" Version="0.0.5" />
+    <PackageReference Include="ei8.Cortex.Coding.d23.neurULization.Persistence" Version="0.0.9" />
+    <PackageReference Include="ei8.Cortex.IdentityAccess.Client" Version="0.2.3" />
+    <PackageReference Include="ei8.Cortex.Library.Client" Version="0.3.16" />
     <PackageReference Include="ei8.Cortex.Library.Common" Version="0.3.11" />
     <PackageReference Include="ei8.EventSourcing.Client" Version="0.2.12" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\..\..\cortex-coding-d23-neurULization-persistence\src\main\d23.neurULization.Persistence.csproj" />
-    <ProjectReference Include="..\..\..\..\..\..\..\cortex-coding-d23\src\main\d23.csproj" />
-    <ProjectReference Include="..\..\..\..\..\..\..\cortex-coding-persistence\src\main\Coding.Persistence.csproj" />
-    <ProjectReference Include="..\..\..\..\..\..\..\cortex-coding\src\main\Coding.csproj" />
     <ProjectReference Include="..\..\..\..\Application\Application.csproj" />
     <ProjectReference Include="..\..\..\..\Domain.Model\Domain.Model.csproj" />
   </ItemGroup>
