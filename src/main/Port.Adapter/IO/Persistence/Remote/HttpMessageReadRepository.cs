@@ -89,6 +89,11 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 {
                     var authority = this.settingsService.Authorities.SingleOrDefault(au => au.Avatars.SingleOrDefault(av => av == eau.Item1) != null);
 
+                    AssertionConcern.AssertStateTrue(
+                        authority != null,
+                        $"Authority for Avatar '{eau.Item1}' was not found."
+                    );
+
                     if (authority != null)
                     {
                         var response = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
@@ -97,6 +102,12 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                             ClientId = authority.ClientId,
                             ClientSecret = authority.ClientSecret
                         });
+
+
+                        AssertionConcern.AssertStateFalse(
+                            response.IsError,
+                            $"Failed obtaining access token for Avatar '{eau.Item1}': {response.Error} - {response.ErrorDescription} - {response.HttpErrorReason}"
+                        );
 
                         try
                         {
@@ -117,10 +128,6 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                         {
                             throw new ApplicationException($"An error occurred while sending a request to Avatar '{eau.Item1}'", ex);
                         }
-                    }
-                    else
-                    {
-                        // TODO: log if authority for avatarurl was not found
                     }
                 }
             }
