@@ -13,21 +13,21 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
     public class HttpMessageWriteRepository : IMessageWriteRepository
     {
         private readonly ITransaction transaction;
-        private readonly IEnsembleTransactionService ensembleTransactionService;
+        private readonly INetworkTransactionService networkTransactionService;
         private readonly IneurULizer neurULizer;
 
         public HttpMessageWriteRepository(
             ITransaction transaction,
-            IEnsembleTransactionService ensembleTransactionService,
+            INetworkTransactionService networkTransactionService,
             IneurULizer neurULizer
         )
         {
             AssertionConcern.AssertArgumentNotNull(transaction, nameof(transaction));
-            AssertionConcern.AssertArgumentNotNull(ensembleTransactionService, nameof(ensembleTransactionService));
+            AssertionConcern.AssertArgumentNotNull(networkTransactionService, nameof(networkTransactionService));
             AssertionConcern.AssertArgumentNotNull(neurULizer, nameof(neurULizer));
 
             this.transaction = transaction;
-            this.ensembleTransactionService = ensembleTransactionService;
+            this.networkTransactionService = networkTransactionService;
             this.neurULizer = neurULizer;
         }
 
@@ -41,10 +41,10 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             System.Diagnostics.Debug.WriteLine($"neurULization (secs): {watch.Elapsed.TotalSeconds}");
             watch.Restart();
 
-            await this.ensembleTransactionService.SaveAsync(this.transaction, me);
+            await this.networkTransactionService.SaveAsync(this.transaction, me);
 
             watch.Stop();
-            System.Diagnostics.Debug.WriteLine($"Ensemble save (secs): {watch.Elapsed.TotalSeconds}");
+            System.Diagnostics.Debug.WriteLine($"Network save (secs): {watch.Elapsed.TotalSeconds}");
         }
     }
 }

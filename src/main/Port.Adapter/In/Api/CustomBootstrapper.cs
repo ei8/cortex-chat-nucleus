@@ -39,8 +39,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
         {
             base.ConfigureApplicationContainer(container);
 
-            // TODO: change IDictionary<string, Ensemble> to EnsembleCache
-            container.Register<IDictionary<string, Ensemble>>(new Dictionary<string, Ensemble>());
+            // TODO: change IDictionary<string, Network> to NetworkCache
+            container.Register<IDictionary<string, Network>>(new Dictionary<string, Network>());
             container.Register(this.serviceProvider.GetService<IOptions<List<ExternalReference>>>());
             container.Register(this.serviceProvider.GetService<IOptions<List<Authority>>>());
             container.Register<ISettingsService, SettingsService>();
@@ -71,8 +71,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             container.Register<IAvatarReadRepository, HttpAvatarReadRepository>();
             container.Register<IPermitClient, HttpPermitClient>();
             container.Register<IRecipientWriteRepository, HttpRecipientWriteRepository>();
-            container.Register<IEnsembleTransactionData, EnsembleTransactionData>();
-            container.Register<IEnsembleTransactionService, EnsembleTransactionService>();
+            container.Register<INetworkTransactionData, NetworkTransactionData>();
+            container.Register<INetworkTransactionService, NetworkTransactionService>();
             container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
             var ss = container.Resolve<ISettingsService>();
             container.AddExternalReferenceRepository(
@@ -82,7 +82,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                 ss.IdentityAccessOutBaseUrl + "/",
                 ss.AppUserId
             );
-            container.AddEnsembleRepository(ss.CortexLibraryOutBaseUrl + "/", ss.QueryResultLimit, ss.AppUserId);
+            container.AddNetworkRepository(ss.CortexLibraryOutBaseUrl + "/", ss.QueryResultLimit, ss.AppUserId);
             container.AddGrannyService(ss.IdentityAccessOutBaseUrl + "/", ss.AppUserId);
             container.Register<Id23neurULizerOptions, neurULizerOptions>();
             container.Register<IneurULizer, neurULizer>();

@@ -21,7 +21,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 {
     public class HttpMessageReadRepository : IMessageReadRepository
     {
-        private readonly IEnsembleRepository ensembleRepository;
+        private readonly INetworkRepository networkRepository;
         private readonly IExternalReferenceRepository externalReferenceRepository;
         private readonly IMessageQueryClient messageQueryClient;
         private readonly ISettingsService settingsService;
@@ -31,7 +31,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         private readonly IDictionary<string, IGranny> propertyAssociationCache;
 
         public HttpMessageReadRepository(
-            IEnsembleRepository ensembleRepository,
+            INetworkRepository networkRepository,
             IExternalReferenceRepository externalReferenceRepository,
             IMessageQueryClient messageQueryClient,
             ISettingsService settingsService,
@@ -41,7 +41,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             IDictionary<string, IGranny> propertyAssociationCache
         )
         {
-            AssertionConcern.AssertArgumentNotNull(ensembleRepository, nameof(ensembleRepository));
+            AssertionConcern.AssertArgumentNotNull(networkRepository, nameof(networkRepository));
             AssertionConcern.AssertArgumentNotNull(externalReferenceRepository, nameof(externalReferenceRepository));
             AssertionConcern.AssertArgumentNotNull(messageQueryClient, nameof(messageQueryClient));
             AssertionConcern.AssertArgumentNotNull(settingsService, nameof(settingsService));
@@ -50,7 +50,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             AssertionConcern.AssertArgumentNotNull(grannyService, nameof(grannyService));
             AssertionConcern.AssertArgumentNotNull(propertyAssociationCache, nameof(propertyAssociationCache));
 
-            this.ensembleRepository = ensembleRepository;
+            this.networkRepository = networkRepository;
             this.externalReferenceRepository = externalReferenceRepository;
             this.messageQueryClient = messageQueryClient;
             this.settingsService = settingsService;
@@ -166,7 +166,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             if (hasSenderResult.Success)
             {
                 // TODO: specify maxTimestamp as a NeuronQuery parameter
-                var queryResult = await ensembleRepository.GetByQueryAsync(
+                var queryResult = await networkRepository.GetByQueryAsync(
                     new NeuronQuery()
                     {
                         Postsynaptic = new string[] {
@@ -184,20 +184,20 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                     false
                 );
 
-                var dMessages = await this.neurULizer.DeneurULizeAsync<Message>(queryResult.Ensemble);
+                var dMessages = await this.neurULizer.DeneurULizeAsync<Message>(queryResult.Network);
                 watch.Stop();
                 System.Diagnostics.Debug.WriteLine($"Local GetAll took (secs): {watch.Elapsed.TotalSeconds}");
                 IEnumerable<Message> pagedMessages = dMessages.Take(pageSize.Value);
 
-                var contentStringValues = await this.ensembleRepository.GetStringValues(
+                var contentStringValues = await this.networkRepository.GetStringValues(
                     this.externalReferenceRepository,
                     this.grannyService,
-                    queryResult.Ensemble,
+                    queryResult.Network,
                     pagedMessages.Select(m => m.ContentId).Distinct(),
                     userId
                 );
 
-                var senderNeuronsResult = await ensembleRepository.GetByQueryAsync(
+                var senderNeuronsResult = await networkRepository.GetByQueryAsync(
                     new NeuronQuery() { Id = pagedMessages.Select(m => m.SenderId.ToString()).Distinct() }
                 );
 
@@ -208,7 +208,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                         Message = pm,
                         ContentString = contentStringValues.GetTagById(pm.ContentId),
                         RegionTag = pm.RegionTag,
-                        SenderTag = senderNeuronsResult.Ensemble.TryGetById(pm.SenderId, out Coding.Neuron sender) ?
+                        SenderTag = senderNeuronsResult.Network.TryGetById(pm.SenderId, out Coding.Neuron sender) ?
                             sender.Tag :
                             "[Sender not found]",
                         IsCurrentUserSender = pm.SenderId == queryResult.UserNeuronId

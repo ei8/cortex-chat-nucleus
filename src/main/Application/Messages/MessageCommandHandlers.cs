@@ -22,7 +22,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         private readonly IStringWrapperRepository stringWrapperRepository;
         private readonly IValidationClient validationClient;
         private readonly ISettingsService settingsService;
-        private readonly IEnsembleTransactionData ensembleTransactionData;
+        private readonly INetworkTransactionData networkTransactionData;
 
         public MessageCommandHandlers(
             ITransaction transaction,
@@ -31,7 +31,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             IStringWrapperRepository stringWrapperRepository,
             IValidationClient validationClient, 
             ISettingsService settingsService,
-            IEnsembleTransactionData ensembleTransactionData
+            INetworkTransactionData networkTransactionData
         )
         {
             AssertionConcern.AssertArgumentNotNull(transaction, nameof(transaction));
@@ -40,7 +40,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             AssertionConcern.AssertArgumentNotNull(stringWrapperRepository, nameof(stringWrapperRepository));
             AssertionConcern.AssertArgumentNotNull(validationClient, nameof(validationClient));
             AssertionConcern.AssertArgumentNotNull(settingsService, nameof(settingsService));
-            AssertionConcern.AssertArgumentNotNull(ensembleTransactionData, nameof(ensembleTransactionData));
+            AssertionConcern.AssertArgumentNotNull(networkTransactionData, nameof(networkTransactionData));
 
             this.transaction = transaction;
             this.messageRepository = messageRepository;
@@ -48,7 +48,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             this.stringWrapperRepository = stringWrapperRepository;
             this.validationClient = validationClient;
             this.settingsService = settingsService;
-            this.ensembleTransactionData = ensembleTransactionData;
+            this.networkTransactionData = networkTransactionData;
         }
 
         public async Task Handle(CreateMessage message, CancellationToken token = default)
@@ -75,11 +75,13 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                 var dMessage = new Message()
                 {
                     Id = message.Id,
-                    ContentId = this.ensembleTransactionData.GetReplacementIdIfExists(stringValue.Id),
+                    ContentId = this.networkTransactionData.GetReplacementIdIfExists(stringValue.Id),
                     RegionId = message.RegionId,
                     SenderId = validationResult.UserNeuronId,
                     ExternalReferenceUrl = message.ExternalReferenceUrl,
                     CreationTimestamp = DateTimeOffset.Now,
+                    // DEL:
+                    // TempComment = "02/25/2025 08:18:42 +00:00",
                     LastModificationTimestamp = DateTimeOffset.Now,
                     Version = message.ExpectedVersion
                 };

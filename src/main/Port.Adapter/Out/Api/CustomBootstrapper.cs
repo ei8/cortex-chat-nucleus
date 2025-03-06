@@ -41,7 +41,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
         {
             base.ConfigureApplicationContainer(container);
 
-            container.Register<IDictionary<string, Ensemble>>(new Dictionary<string, Ensemble>());
+            container.Register<IDictionary<string, Network>>(new Dictionary<string, Network>());
             container.Register<IDictionary<string, IGranny>>(new Dictionary<string, IGranny>());
             container.Register(this.serviceProvider.GetService<IOptions<List<ExternalReference>>>());
             container.Register(this.serviceProvider.GetService<IOptions<List<Authority>>>());
@@ -73,8 +73,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
             container.Register<IValidationClient, HttpValidationClient>();
             container.Register<IAvatarReadRepository, HttpAvatarReadRepository>();
             container.Register<IMessageQueryClient, HttpMessageQueryClient>();
-            container.Register<IEnsembleTransactionData, EnsembleTransactionData>();
-            container.Register<IEnsembleTransactionService, EnsembleTransactionService>();
+            container.Register<INetworkTransactionData, NetworkTransactionData>();
+            container.Register<INetworkTransactionService, NetworkTransactionService>();
             container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
             var ss = container.Resolve<ISettingsService>();
             container.AddExternalReferenceRepository(
@@ -84,7 +84,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
                 ss.IdentityAccessOutBaseUrl + "/",
                 ss.AppUserId
             );
-            container.AddEnsembleRepository(ss.CortexLibraryOutBaseUrl + "/", ss.QueryResultLimit, ss.AppUserId);
+            container.AddNetworkRepository(ss.CortexLibraryOutBaseUrl + "/", ss.QueryResultLimit, ss.AppUserId);
             container.AddGrannyService(ss.IdentityAccessOutBaseUrl + "/", ss.AppUserId);
             container.Register<Id23neurULizerOptions, neurULizerOptions>();
             container.Register<IneurULizer, neurULizer>();
@@ -93,6 +93,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
             container.Register<IAvatarQueryService, AvatarQueryService>();
             container.AddTransactions(ss.EventSourcingInBaseUrl + "/", ss.EventSourcingOutBaseUrl + "/");
             container.AddWriters();
+            container.AddReaders();
             container.AddDataAdapters();
         }
     }

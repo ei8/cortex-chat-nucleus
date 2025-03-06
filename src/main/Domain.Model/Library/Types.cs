@@ -14,6 +14,8 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Library
         Idea,
         [Display(Name = "Nominal Modifier:Dependency:Dependent:Unit")]
         NominalModifier,
+        [Display(Name = "Nominal Subject:Dependency:Dependent:Unit")]
+        NominalSubject,
         [Display(Name = "Of")]
         Of,
         [Display(Name = "Case")]
