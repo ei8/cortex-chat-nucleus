@@ -11,7 +11,6 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Messages
             DateTimeOffset? maxTimestamp, 
             int? pageSize, 
             IEnumerable<Avatar> avatars, 
-            string userId, 
             CancellationToken token = default
         );
     }

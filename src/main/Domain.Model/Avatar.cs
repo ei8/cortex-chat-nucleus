@@ -1,5 +1,4 @@
-﻿using ei8.Cortex.Coding;
-using ei8.Cortex.Coding.Properties;
+﻿using ei8.Cortex.Coding.Properties;
 using System;
 
 namespace ei8.Cortex.Chat.Nucleus.Domain.Model
@@ -9,7 +8,6 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model
         [neurULNeuronProperty]
         public Guid Id { get; set; }
 
-        [neurULNeuronProperty(nameof(Neuron.Tag))]
         public string Name { get; set; }
 
         [neurULNeuronProperty]

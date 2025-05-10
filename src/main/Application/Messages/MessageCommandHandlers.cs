@@ -3,6 +3,7 @@ using ei8.Cortex.Chat.Nucleus.Application.Messages.Commands;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Coding.Persistence;
 using ei8.Cortex.Coding.Persistence.Wrappers;
+using ei8.Cortex.Coding.Wrappers;
 using ei8.Cortex.IdentityAccess.Client.Out;
 using ei8.EventSourcing.Client;
 using neurUL.Common.Domain.Model;
@@ -56,6 +57,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             AssertionConcern.AssertArgumentNotNull(message, nameof(message));
 
             // validate
+            // TODO:1 Revalidate later prior to creation of transient neurons?
             var validationResult = await this.validationClient.CreateNeuron(
                 this.settingsService.IdentityAccessOutBaseUrl + "/",
                 message.Id,
@@ -80,8 +82,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                     SenderId = validationResult.UserNeuronId,
                     ExternalReferenceUrl = message.ExternalReferenceUrl,
                     CreationTimestamp = DateTimeOffset.Now,
-                    // DEL:
-                    // TempComment = "02/25/2025 08:18:42 +00:00",
+                    // DEL: TempComment = "02/25/2025 08:18:42 +00:00",
                     LastModificationTimestamp = DateTimeOffset.Now,
                     Version = message.ExpectedVersion
                 };
@@ -99,7 +100,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                         ),
                         message.UserId
                     );
-
+                // TODO:1 using validationClient, validate transient neurons against userId in network prior to commit?
                 await this.transaction.CommitAsync();
             }
         }

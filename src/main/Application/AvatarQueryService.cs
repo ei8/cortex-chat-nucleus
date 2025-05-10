@@ -20,12 +20,16 @@ namespace ei8.Cortex.Chat.Nucleus.Application
             this.avatarRepository = avatarRepository;
         }
 
-        public async Task<IEnumerable<AvatarResult>> GetAvatars(string userId, CancellationToken token = default) => 
-            (await this.avatarRepository.GetAll(userId, token)).Select(r => r.ToCommon());
+        public async Task<IEnumerable<AvatarResult>> GetAvatars(string userId, CancellationToken token = default)
+        {
+            // TODO:1 validate if user has access to neurons in result using validationClient
+            return (await this.avatarRepository.GetAll(token)).Select(r => r.ToCommon());
+        }
 
         public async Task<IEnumerable<AvatarResult>> GetAvatarsByIds(IEnumerable<Guid> ids, string userId, CancellationToken token = default)
         {
-            return (await this.avatarRepository.GetByIds(ids, userId, token)).Select(r => r.ToCommon());
+            // TODO:1 validate if user has access to neurons in result using validationClient
+            return (await this.avatarRepository.GetByIds(ids, token)).Select(r => r.ToCommon());
         }
     }
 }

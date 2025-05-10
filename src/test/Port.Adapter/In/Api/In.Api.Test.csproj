@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <AssemblyName>ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api.Test</AssemblyName>
     <RootNamespace>ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api.Test</RootNamespace>

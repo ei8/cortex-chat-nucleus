@@ -15,6 +15,7 @@ using ei8.Cortex.Coding.Persistence;
 using ei8.Cortex.IdentityAccess.Client.Out;
 using ei8.Cortex.Library.Client.Out;
 using ei8.Extensions.DependencyInjection;
+using ei8.Extensions.DependencyInjection.Coding.d23.neurULization;
 using ei8.Extensions.DependencyInjection.Coding.d23.neurULization.Persistence;
 using ei8.Extensions.DependencyInjection.Coding.Persistence;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,7 +52,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
             container.AddExternalReferences(
                 ExternalReferenceRepository.CreateTransient(
                     this.serviceProvider.GetService<IHttpClientFactory>(),
-                    // TODO:append of "/" should automatically happen in client assemblies
+                    // TODO: append of "/" should automatically happen in client assemblies
                     ss.EventSourcingInBaseUrl + "/",
                     ss.EventSourcingOutBaseUrl + "/",
                     ss.CortexLibraryOutBaseUrl + "/",

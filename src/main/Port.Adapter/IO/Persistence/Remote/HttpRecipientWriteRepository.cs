@@ -37,7 +37,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         {
             if (recipients.Any())
             { 
-                var avatarsDict = (await this.avatarReadRepository.GetByIds(recipients.Select(d => d.AvatarId), userId))
+                var avatarsDict = (await this.avatarReadRepository.GetByIds(recipients.Select(d => d.AvatarId)))
                     .ToDictionary(r => r.Id);
 
                 foreach (var r in recipients)

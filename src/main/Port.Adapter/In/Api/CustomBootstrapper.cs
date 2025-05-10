@@ -13,7 +13,9 @@ using ei8.Cortex.Coding.Persistence.Wrappers;
 using ei8.Cortex.IdentityAccess.Client.In;
 using ei8.Cortex.IdentityAccess.Client.Out;
 using ei8.Cortex.Library.Client.Out;
+using ei8.EventSourcing.Client;
 using ei8.Extensions.DependencyInjection;
+using ei8.Extensions.DependencyInjection.Coding.d23.neurULization;
 using ei8.Extensions.DependencyInjection.Coding.d23.neurULization.Persistence;
 using ei8.Extensions.DependencyInjection.Coding.Persistence;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +24,7 @@ using Nancy;
 using Nancy.TinyIoc;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.Http;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
@@ -93,6 +96,23 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             container.AddWriters();
             container.AddReaders();
             container.AddDataAdapters(typeof(MessageCommandHandlers));
+
+            CustomBootstrapper.CreateAvatar(container, string.Empty, Guid.Parse(string.Empty));
+        }
+
+        [Conditional("INITAVATAR")]
+        private static void CreateAvatar(TinyIoCContainer container, string avatarName, Guid userNeuronId)
+        {
+            container.Register<IAvatarWriteRepository, HttpAvatarWriteRepository>();
+            var tr = container.Resolve<ITransaction>();
+            var awr = container.Resolve<IAvatarWriteRepository>();
+            tr.BeginAsync(userNeuronId).Wait();
+            awr.Save(new Avatar()
+            {
+                Id = Guid.NewGuid(),
+                Name = avatarName
+            }).Wait();
+            tr.CommitAsync().Wait();
         }
     }
 }

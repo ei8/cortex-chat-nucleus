@@ -27,12 +27,14 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         {
             AssertionConcern.AssertArgumentNotNull(avatarIds, nameof(avatarIds));
 
+            var avatars = await this.avatarRepository.GetByIds(avatarIds);
+
+            // TODO:1 Using validationClient, validate neurons against userId used during deneurULization prior to returning results
             return (
                 await this.messageRepository.GetAll(
                     maxTimestamp, 
                     pageSize,
-                    await this.avatarRepository.GetByIds(avatarIds, userId),
-                    userId,
+                    avatars,
                     token
                 )
             ).Select(m => m.ToCommon());

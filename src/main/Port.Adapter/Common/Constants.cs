@@ -27,13 +27,17 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
         public const int QueryResultLimit = 10;
         public static readonly IEnumerable<object> ExternalReferenceKeys =
             Enum.GetValues(typeof(ExternalReferenceKey)).Cast<object>()
-                .Concat(new[] { typeof(Avatar) })
+                .Concat(new object[] { 
+                    typeof(Avatar),
+                    typeof(Avatar).GetProperty(nameof(Avatar.Name))
+                })
                 .Concat(new object[] {
                     typeof(Message),
                     typeof(Message).GetProperty(nameof(Message.ContentId)),
                     typeof(Message).GetProperty(nameof(Message.SenderId)),
                     typeof(Message).GetProperty(nameof(Message.CreationTimestamp)),
-                    typeof(Message).GetProperty(nameof(Message.LastModificationTimestamp))
+                    typeof(Message).GetProperty(nameof(Message.LastModificationTimestamp)),
+                    // DEL: typeof(Message).GetProperty(nameof(Message.TempComment))
                 })
                 .Concat(new[] {
                     typeof(string),
