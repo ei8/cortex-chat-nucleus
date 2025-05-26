@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
 {
@@ -44,24 +45,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
 
             // TODO: change IDictionary<string, Network> to NetworkCache
             container.Register<IDictionary<string, Network>>(new Dictionary<string, Network>());
-            container.Register(this.serviceProvider.GetService<IOptions<List<ExternalReference>>>());
+            container.Register(this.serviceProvider.GetService<IOptions<List<MirrorConfig>>>());
             container.Register(this.serviceProvider.GetService<IOptions<List<Authority>>>());
             container.Register<ISettingsService, SettingsService>();
-
-            var ss = container.Resolve<ISettingsService>();
-            container.AddExternalReferences(
-                ExternalReferenceRepository.CreateTransient(
-                    this.serviceProvider.GetService<IHttpClientFactory>(),
-                    ss.EventSourcingInBaseUrl + "/",
-                    ss.EventSourcingOutBaseUrl + "/",
-                    ss.CortexLibraryOutBaseUrl + "/",
-                    ss.IdentityAccessOutBaseUrl + "/",
-                    container.Resolve<IOptions<List<ExternalReference>>>(),
-                    ss.AppUserId
-                ),
-                Default.ExternalReferenceKeys,
-                ss.CreateExternalReferencesIfNotFound
-            ).Wait();
         }
 
         protected override void ConfigureRequestContainer(TinyIoCContainer container, NancyContext context)
@@ -71,6 +57,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             container.AddRequestProvider();
             container.Register(this.serviceProvider.GetService<IHttpClientFactory>());
             container.Register<IValidationClient, HttpValidationClient>();
+            container.Register<IClassInstanceNeuronsRetriever, ClassInstanceNeuronsRetriever>();
+            container.Register<IIdInstanceNeuronsRetriever, IdInstanceNeuronsRetriever>();
             container.Register<IAvatarReadRepository, HttpAvatarReadRepository>();
             container.Register<IPermitClient, HttpPermitClient>();
             container.Register<IRecipientWriteRepository, HttpRecipientWriteRepository>();
@@ -78,28 +66,38 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             container.Register<INetworkTransactionService, NetworkTransactionService>();
             container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
             var ss = container.Resolve<ISettingsService>();
-            container.AddExternalReferenceRepository(
-                ss.EventSourcingInBaseUrl + "/",
-                ss.EventSourcingOutBaseUrl + "/",
-                ss.CortexLibraryOutBaseUrl + "/",
-                ss.IdentityAccessOutBaseUrl + "/",
-                ss.AppUserId
-            );
             container.AddNetworkRepository(ss.CortexLibraryOutBaseUrl + "/", ss.QueryResultLimit, ss.AppUserId);
             container.AddGrannyService(ss.IdentityAccessOutBaseUrl + "/", ss.AppUserId);
-            container.Register<Id23neurULizerOptions, neurULizerOptions>();
-            container.Register<IneurULizer, neurULizer>();
-            container.Register<IStringWrapperRepository, StringWrapperRepository>();
-            container.Register<IMessageWriteRepository, HttpMessageWriteRepository>();
-            container.Register<MessageCommandHandlers>();
             container.AddTransactions(ss.EventSourcingInBaseUrl + "/", ss.EventSourcingOutBaseUrl + "/");
-            container.AddWriters();
-            container.AddReaders();
             container.AddDataAdapters(typeof(MessageCommandHandlers));
+            container.Register<IMirrorRepository, MirrorRepository>();
 
-            CustomBootstrapper.CreateAvatar(container, string.Empty, Guid.Parse(string.Empty));
+            var result = Task.Run(() => container.AddMirrors(
+                Default.InitMirrorKeys,
+                ss.CreateMirrorsIfNotFound,
+                Guid.Empty
+            )).Result;
+
+            if (result)
+            {
+                container.Register<Id23neurULizerOptions, neurULizerOptions>();
+                container.Register<IneurULizer, neurULizer>();
+                container.Register<IStringWrapperRepository, StringWrapperRepository>();
+                container.Register<IMessageWriteRepository, HttpMessageWriteRepository>();
+                container.Register<MessageCommandHandlers>();
+                container.AddWriters();
+                container.AddReaders();
+
+                CustomBootstrapper.CreateAvatar(container, string.Empty, Guid.Empty);
+            }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="container"></param>
+        /// <param name="avatarName">Name of Avatar to be created.</param>
+        /// <param name="userNeuronId">Author Neuron (first) of avatar.</param>
         [Conditional("INITAVATAR")]
         private static void CreateAvatar(TinyIoCContainer container, string avatarName, Guid userNeuronId)
         {

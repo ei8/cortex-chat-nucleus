@@ -13,6 +13,6 @@ namespace ei8.Cortex.Chat.Nucleus.Application
         IEnumerable<Authority> Authorities { get; }
         int QueryResultLimit { get; }
         string AppUserId { get; }
-        bool CreateExternalReferencesIfNotFound { get; }
+        bool CreateMirrorsIfNotFound { get; }
     }
 }

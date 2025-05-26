@@ -1,8 +1,7 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Domain.Model;
-using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
+using ei8.Cortex.Coding.d23.neurULization;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -18,15 +17,15 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
         public const string PageSize = "PAGE_SIZE";
         public const string QueryResultLimit = "QUERY_RESULT_LIMIT";
         public const string AppUserId = "APP_USER_ID";
-        public const string CreateExternalReferencesIfNotFound = "CREATE_EXTERNAL_REFERENCES_IF_NOT_FOUND";
+        public const string CreateMirrorsIfNotFound = "CREATE_EXTERNAL_REFERENCES_IF_NOT_FOUND";
     }
 
     public struct Default
     {
         public const int PageSize = 20;
         public const int QueryResultLimit = 10;
-        public static readonly IEnumerable<object> ExternalReferenceKeys =
-            Enum.GetValues(typeof(ExternalReferenceKey)).Cast<object>()
+        public static readonly IEnumerable<object> InitMirrorKeys =
+            typeof(MirrorSet).GetProperties().Select(p => p.Name).Cast<object>()
                 .Concat(new object[] { 
                     typeof(Avatar),
                     typeof(Avatar).GetProperty(nameof(Avatar.Name))
@@ -36,8 +35,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
                     typeof(Message).GetProperty(nameof(Message.ContentId)),
                     typeof(Message).GetProperty(nameof(Message.SenderId)),
                     typeof(Message).GetProperty(nameof(Message.CreationTimestamp)),
-                    typeof(Message).GetProperty(nameof(Message.LastModificationTimestamp)),
-                    // DEL: typeof(Message).GetProperty(nameof(Message.TempComment))
+                    typeof(Message).GetProperty(nameof(Message.LastModificationTimestamp))
                 })
                 .Concat(new[] {
                     typeof(string),

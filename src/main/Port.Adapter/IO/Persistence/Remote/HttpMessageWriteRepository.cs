@@ -4,7 +4,6 @@ using ei8.Cortex.Coding.d23.neurULization.Persistence;
 using ei8.Cortex.Coding.Persistence;
 using ei8.EventSourcing.Client;
 using neurUL.Common.Domain.Model;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,7 +34,10 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         {
             // TODO: handle updates - message.Version == 0 ? WriteMode.Create : WriteMode.Update
             var watch = System.Diagnostics.Stopwatch.StartNew();
-            var me = await this.neurULizer.neurULizeAsync(message);
+            var me = await this.neurULizer.neurULizeAsync(
+                message,
+                token
+            );
             
             watch.Stop();
             System.Diagnostics.Debug.WriteLine($"neurULization (secs): {watch.Elapsed.TotalSeconds}");

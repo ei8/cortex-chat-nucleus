@@ -27,7 +27,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
                 options.AllowSynchronousIO = true;
             });
             services.AddOptions();
-            services.Configure<List<ExternalReference>>(configuration.GetSection("ExternalReferences"));
+            services.Configure<List<MirrorConfig>>(configuration.GetSection("Mirrors"));
             services.Configure<List<Authority>>(configuration.GetSection("Authorities"));
         }
 

@@ -27,15 +27,15 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                         async (bodyAsObject, bodyAsDictionary, expectedVersion) =>
                         {
                             Guid? regionId = null;
-                            string externalReferenceUrl = null;
+                            string mirrorUrl = null;
                             string[] recipientAvatarIds = null;
 
                             if (bodyAsDictionary.ContainsKey(nameof(CreateMessage.RegionId)))
                                 if (Guid.TryParse(bodyAsObject.RegionId.ToString(), out Guid tempRegionId))
                                     regionId = tempRegionId;
 
-                            if (bodyAsDictionary.ContainsKey(nameof(CreateMessage.ExternalReferenceUrl)))
-                                externalReferenceUrl = bodyAsObject.ExternalReferenceUrl.ToString();
+                            if (bodyAsDictionary.ContainsKey(nameof(CreateMessage.MirrorUrl)))
+                                mirrorUrl = bodyAsObject.MirrorUrl.ToString();
 
                             if (bodyAsDictionary.ContainsKey(nameof(CreateMessage.RecipientAvatarIds)) &&
                                 bodyAsDictionary[nameof(CreateMessage.RecipientAvatarIds)] != null)
@@ -45,7 +45,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                                 Guid.Parse(bodyAsObject.Id.ToString()),
                                 bodyAsObject.Content.ToString(),
                                 regionId,
-                                externalReferenceUrl,
+                                mirrorUrl,
                                 recipientAvatarIds?.Select(dri => Guid.Parse(dri)),
                                 bodyAsObject.UserId.ToString()
                                 )

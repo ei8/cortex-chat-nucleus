@@ -33,9 +33,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services
 
         public string AppUserId => Environment.GetEnvironmentVariable(EnvironmentVariableKeys.AppUserId);
 
-        public bool CreateExternalReferencesIfNotFound => 
+        public bool CreateMirrorsIfNotFound => 
             bool.TryParse(
-                Environment.GetEnvironmentVariable(EnvironmentVariableKeys.CreateExternalReferencesIfNotFound), 
+                Environment.GetEnvironmentVariable(EnvironmentVariableKeys.CreateMirrorsIfNotFound), 
                 out bool create
             ) && 
             create;

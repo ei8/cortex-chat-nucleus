@@ -15,7 +15,6 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         private readonly ITransaction transaction;
         private readonly INetworkTransactionService networkTransactionService;
         private readonly IneurULizer neurULizer;
-        
 
         public HttpAvatarWriteRepository(
             ITransaction transaction,
@@ -35,7 +34,10 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         public async Task Save(Avatar avatar, CancellationToken token = default)
         {
             // TODO: handle updates - message.Version == 0 ? WriteMode.Create : WriteMode.Update
-            var av = await this.neurULizer.neurULizeAsync(avatar);
+            var av = await this.neurULizer.neurULizeAsync(
+                avatar,
+                token
+            );
             await this.networkTransactionService.SaveAsync(this.transaction, av);
         }
     }

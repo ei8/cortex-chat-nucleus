@@ -29,7 +29,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
                             ((string)Request.Query.avatarId.Value.ToString())
                             .Split(',')
                             .Select(s => Guid.Parse(s)) :
-                            Array.Empty<Guid>(),
+                            Enumerable.Empty<Guid>(),
                         MessageModule.GetUserId(Request)
                     );
                     return new TextResponse(JsonConvert.SerializeObject(messages));

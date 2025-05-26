@@ -18,14 +18,12 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Messages
         [neurULClass(typeof(Avatar))]
         public Guid SenderId { get; set; }
 
-        // DEL:public string TempComment { get; set; }
-
         public DateTimeOffset? CreationTimestamp { get; set; }
 
         public DateTimeOffset? LastModificationTimestamp { get; set; }
 
         [neurULNeuronProperty]
-        public string ExternalReferenceUrl { get; set; }
+        public string MirrorUrl { get; set; }
 
         [neurULNeuronProperty]
         public Guid? RegionId { get; set; }

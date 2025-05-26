@@ -1,10 +1,8 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
-using ei8.Cortex.Chat.Nucleus.Domain.Model.Library;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.IdentityAccess.Client.In;
 using neurUL.Common.Domain.Model;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;

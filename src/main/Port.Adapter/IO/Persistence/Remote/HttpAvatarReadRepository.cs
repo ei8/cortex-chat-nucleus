@@ -1,5 +1,6 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Coding;
+using ei8.Cortex.Coding.d23.neurULization;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
 using ei8.Cortex.Coding.Persistence;
 using ei8.Cortex.Library.Common;
@@ -15,26 +16,35 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
     public class HttpAvatarReadRepository : IAvatarReadRepository
     {
         private readonly INetworkRepository networkRepository;
-        private readonly IExternalReferenceRepository externalReferenceRepository;
+        private readonly IMirrorRepository mirrorRepository;
         private readonly IneurULizer neurULizer;
         private readonly IGrannyService grannyService;
+        private readonly IClassInstanceNeuronsRetriever classInstanceNeuronsRetriever;
+        private readonly IIdInstanceNeuronsRetriever idInstanceNeuronsRetriever;
 
         public HttpAvatarReadRepository(
             INetworkRepository networkRepository,
-            IExternalReferenceRepository externalReferenceRepository,
+            IMirrorRepository mirrorRepository,
             IneurULizer neurULizer,
-            IGrannyService grannyService
+            IGrannyService grannyService, 
+            IClassInstanceNeuronsRetriever classInstanceNeuronsRetriever,
+            IIdInstanceNeuronsRetriever idInstanceNeuronsRetriever,
+            IMirrorSet mirrorSet
         )
         {
             AssertionConcern.AssertArgumentNotNull(networkRepository, nameof(networkRepository));
-            AssertionConcern.AssertArgumentNotNull(externalReferenceRepository, nameof(externalReferenceRepository));
+            AssertionConcern.AssertArgumentNotNull(mirrorRepository, nameof(mirrorRepository));
             AssertionConcern.AssertArgumentNotNull(neurULizer, nameof(neurULizer));
             AssertionConcern.AssertArgumentNotNull(grannyService, nameof(grannyService));
-            
+            AssertionConcern.AssertArgumentNotNull(classInstanceNeuronsRetriever, nameof(classInstanceNeuronsRetriever));
+            AssertionConcern.AssertArgumentNotNull(idInstanceNeuronsRetriever, nameof(idInstanceNeuronsRetriever));
+
             this.networkRepository = networkRepository;
-            this.externalReferenceRepository = externalReferenceRepository;
+            this.mirrorRepository = mirrorRepository;
             this.neurULizer = neurULizer;
             this.grannyService = grannyService;
+            this.classInstanceNeuronsRetriever = classInstanceNeuronsRetriever;
+            this.idInstanceNeuronsRetriever = idInstanceNeuronsRetriever;
         }
 
         public async Task<IEnumerable<Avatar>> GetAll(CancellationToken token = default)
@@ -42,7 +52,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             var instantiatesAvatarResult = await this.grannyService.TryGetParseBuildPersistAsync(
                 new InstantiatesClassGrannyInfo(
                     new Coding.d23.neurULization.Processors.Readers.Deductive.InstantiatesClassParameterSet(
-                        await this.externalReferenceRepository.GetByKeyAsync(
+                        await this.mirrorRepository.GetByKeyAsync(
                             typeof(Avatar)
                         )
                     )
@@ -66,30 +76,44 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 }
             );
 
-            return await this.neurULizer.DeneurULizeAsync<Avatar>(queryResult.Network);
+            this.classInstanceNeuronsRetriever.Initialize(
+                await this.mirrorRepository.GetByKeyAsync(
+                    typeof(Avatar)
+                )
+            );
+            return (await this.neurULizer.DeneurULizeAsync<Avatar>(
+                queryResult.Network, 
+                this.classInstanceNeuronsRetriever,
+                token
+            )).Select(dm => dm.Result); 
         }
 
         public async Task<IEnumerable<Avatar>> GetByIds(IEnumerable<Guid> ids, CancellationToken token = default)
         {
             AssertionConcern.AssertArgumentNotNull(ids, nameof(ids));
+            AssertionConcern.AssertArgumentValid(i => i.Any(), ids, $"Specified value cannot be an empty array.", nameof(ids));
 
-            IEnumerable<Avatar> result = Array.Empty<Avatar>();
+            var result = Enumerable.Empty<Avatar>();
 
-            if (ids.Any())
-            {
-                var queryResult = await this.networkRepository.GetByQueryAsync(
-                    new NeuronQuery()
-                    {
-                        Id = ids.Select(i => i.ToString()),
-                        SortBy = SortByValue.NeuronExternalReferenceUrl,
-                        SortOrder = SortOrderValue.Ascending,
-                        Depth = Coding.d23.neurULization.Constants.InstanceToValueInstantiatesClassDepth,
-                        DirectionValues = DirectionValues.Outbound
-                    }
-                );
+            var queryResult = await this.networkRepository.GetByQueryAsync(
+                new NeuronQuery()
+                {
+                    Id = ids.Select(i => i.ToString()),
+                    SortBy = SortByValue.NeuronExternalReferenceUrl,
+                    SortOrder = SortOrderValue.Ascending,
+                    Depth = Coding.d23.neurULization.Constants.InstanceToValueInstantiatesClassDepth,
+                    DirectionValues = DirectionValues.Outbound
+                }
+            );
 
-                result = await this.neurULizer.DeneurULizeAsync<Avatar>(queryResult.Network);
-            }
+            queryResult.Network.ValidateIds(ids);
+
+            this.idInstanceNeuronsRetriever.Initialize(ids);
+            result = (await this.neurULizer.DeneurULizeAsync<Avatar>(
+                queryResult.Network, 
+                this.idInstanceNeuronsRetriever,
+                token
+            )).Select(nr => nr.Result);
 
             return result;
         }

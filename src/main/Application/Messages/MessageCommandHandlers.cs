@@ -80,9 +80,8 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                     ContentId = this.networkTransactionData.GetReplacementIdIfExists(stringValue.Id),
                     RegionId = message.RegionId,
                     SenderId = validationResult.UserNeuronId,
-                    ExternalReferenceUrl = message.ExternalReferenceUrl,
+                    MirrorUrl = message.MirrorUrl,
                     CreationTimestamp = DateTimeOffset.Now,
-                    // DEL: TempComment = "02/25/2025 08:18:42 +00:00",
                     LastModificationTimestamp = DateTimeOffset.Now,
                     Version = message.ExpectedVersion
                 };

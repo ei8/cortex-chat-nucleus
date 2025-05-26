@@ -1,5 +1,4 @@
-﻿using ei8.Cortex.Chat.Common;
-using ei8.Cortex.Chat.Nucleus.Domain.Model;
+﻿using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using neurUL.Common.Domain.Model;
 using System;
 using System.Collections.Generic;
@@ -13,23 +12,43 @@ namespace ei8.Cortex.Chat.Nucleus.Application
     {
         private readonly IAvatarReadRepository avatarRepository;
 
-        public AvatarQueryService(IAvatarReadRepository avatarRepository)
+        public AvatarQueryService(
+            IAvatarReadRepository avatarRepository
+        )
         {
             AssertionConcern.AssertArgumentNotNull(avatarRepository, nameof(avatarRepository));
 
             this.avatarRepository = avatarRepository;
         }
 
-        public async Task<IEnumerable<AvatarResult>> GetAvatars(string userId, CancellationToken token = default)
+        public async Task<IEnumerable<Common.AvatarResult>> GetAvatars(string userId, CancellationToken token = default)
         {
             // TODO:1 validate if user has access to neurons in result using validationClient
-            return (await this.avatarRepository.GetAll(token)).Select(r => r.ToCommon());
+            return (await this.avatarRepository.GetAll(token))
+                .Select(a =>
+                    new Common.AvatarResult()
+                    {
+                        Id = a.Id,
+                        Name = a.Name,
+                        MirrorUrl = a.MirrorUrl,
+                        Url = a.Url
+                    }
+                );
         }
 
-        public async Task<IEnumerable<AvatarResult>> GetAvatarsByIds(IEnumerable<Guid> ids, string userId, CancellationToken token = default)
+        public async Task<IEnumerable<Common.AvatarResult>> GetAvatarsByIds(IEnumerable<Guid> ids, string userId, CancellationToken token = default)
         {
             // TODO:1 validate if user has access to neurons in result using validationClient
-            return (await this.avatarRepository.GetByIds(ids, token)).Select(r => r.ToCommon());
+            return (await this.avatarRepository.GetByIds(ids, token))
+                .Select(a =>
+                    new Common.AvatarResult()
+                    {
+                        Id = a.Id,
+                        Name = a.Name,
+                        MirrorUrl = a.MirrorUrl,
+                        Url = a.Url
+                    }
+                );
         }
     }
 }
