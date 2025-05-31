@@ -7,11 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ei8.Cortex.Chat.Common" Version="0.2.3" />
-    <PackageReference Include="ei8.Cortex.Chat.Nucleus.Client" Version="0.2.7" />
-    <PackageReference Include="ei8.Cortex.Coding" Version="0.0.6" />
-    <PackageReference Include="ei8.Cortex.Coding.d23" Version="0.0.5" />
-    <PackageReference Include="ei8.Cortex.Coding.d23.neurULization.Persistence" Version="0.0.9" />
+    <PackageReference Include="ei8.Cortex.Coding.d23.neurULization.Persistence" Version="0.0.11" />
     <PackageReference Include="ei8.Cortex.IdentityAccess.Client" Version="0.2.3" />
     <PackageReference Include="ei8.Cortex.Library.Client" Version="0.3.16" />
     <PackageReference Include="ei8.Cortex.Library.Common" Version="0.3.11" />

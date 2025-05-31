@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 {
-    // TODO:1 transfer somewhere more apropriate, cortex.chat.nucleus should not be creating Avatars(?)
+    // TODO:0 transfer to ei8.Avatar-Installer(?), cortex.chat.nucleus should not be creating Avatars(?)
     public class HttpAvatarWriteRepository : IAvatarWriteRepository
     {
         private readonly ITransaction transaction;
