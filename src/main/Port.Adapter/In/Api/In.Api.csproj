@@ -10,31 +10,27 @@
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..\..\..</DockerfileContext>
     <DefineConstants>$(DefineConstants);</DefineConstants>
-	 <!--INITAVATAR-->
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CqrsLite" Version="0.18.1" />
     <PackageReference Include="ei8.Cortex.Chat.Common" Version="0.2.4" />
-    <PackageReference Include="ei8.Cortex.Coding.d23.neurULization.Persistence" Version="0.0.11" />
-    <PackageReference Include="ei8.Cortex.Coding.Persistence" Version="0.1.1" />
-    <PackageReference Include="ei8.Cortex.Library.Client" Version="0.3.16" />
+    <PackageReference Include="ei8.Cortex.Library.Client" Version="0.4.0" />
     <PackageReference Include="ei8.Cortex.Subscriptions.Client" Version="0.1.8" />
     <PackageReference Include="ei8.Cortex.Subscriptions.Common" Version="0.1.6" />
     <PackageReference Include="ei8.Data.Aggregate.Common" Version="0.1.1" />
-    <PackageReference Include="ei8.Data.Aggregate.Port.Adapter.In.InProcess" Version="0.1.4" />
-    <PackageReference Include="ei8.Data.ExternalReference.Common" Version="0.1.4" />
-    <PackageReference Include="ei8.Data.ExternalReference.Port.Adapter.In.InProcess" Version="0.1.0" />
+    <PackageReference Include="ei8.Data.Mirror.Common" Version="0.1.0" />
     <PackageReference Include="ei8.Data.Tag.Common" Version="0.1.3" />
-    <PackageReference Include="ei8.Data.Tag.Port.Adapter.In.InProcess" Version="0.1.11" />
-    <PackageReference Include="ei8.EventSourcing.Client" Version="0.2.12" />
-    <PackageReference Include="ei8.Extensions.DependencyInjection" Version="0.0.6" />
-    <PackageReference Include="ei8.Extensions.DependencyInjection.Coding.d23.neurULization" Version="0.0.2" />
-    <PackageReference Include="ei8.Extensions.DependencyInjection.Coding.d23.neurULization.Persistence" Version="0.0.4" />
-    <PackageReference Include="ei8.Extensions.DependencyInjection.Coding.Persistence" Version="0.0.7" />
+    <PackageReference Include="ei8.Extensions.DependencyInjection" Version="0.0.9" />
+    <PackageReference Include="ei8.Extensions.DependencyInjection.Coding.d23.neurULization" Version="0.0.3" />
+    <PackageReference Include="ei8.Extensions.DependencyInjection.Coding.d23.neurULization.Persistence" Version="0.0.6" />
+    <PackageReference Include="ei8.Extensions.DependencyInjection.Coding.Persistence" Version="0.0.8" />
+    <PackageReference Include="ei8.Extensions.DependencyInjection.Cortex" Version="0.0.2" />
+    <PackageReference Include="ei8.Extensions.DependencyInjection.EventSourcing" Version="0.0.2" />
     <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="2.6.0" />
     <PackageReference Include="Microsoft.AspNetCore.Owin" Version="6.0.36" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.0" />
     <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="5.8.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -42,8 +38,8 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
     <PackageReference Include="Nancy" Version="2.0.0-clinteastwood" />
     <PackageReference Include="Nancy.Serialization.JsonNet" Version="2.0.0-clinteastwood" />
-    <PackageReference Include="neurUL.Cortex.Port.Adapter.In.InProcess" Version="0.1.2" />
-    <PackageReference Include="sqlite-net-pcl" Version="1.5.166-beta" />
+    <PackageReference Include="neurUL.Common.CqrsLite" Version="0.1.0" />
+    <PackageReference Include="sqlite-net-pcl" Version="1.7.335" />
     <PackageReference Include="neurUL.Common.Api" Version="0.1.3" />
   </ItemGroup>
   <ItemGroup>

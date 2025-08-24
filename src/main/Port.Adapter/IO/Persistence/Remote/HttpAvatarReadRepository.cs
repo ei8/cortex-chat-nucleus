@@ -2,7 +2,6 @@
 using ei8.Cortex.Coding;
 using ei8.Cortex.Coding.d23.neurULization;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
-using ei8.Cortex.Coding.Persistence;
 using ei8.Cortex.Library.Common;
 using neurUL.Common.Domain.Model;
 using System;

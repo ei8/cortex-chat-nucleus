@@ -1,6 +1,5 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
-using ei8.Cortex.Coding.d23.neurULization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,22 +24,18 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
         public const int PageSize = 20;
         public const int QueryResultLimit = 10;
         public static readonly IEnumerable<object> InitMirrorKeys =
-            typeof(MirrorSet).GetProperties().Select(p => p.Name).Cast<object>()
-                .Concat(new object[] { 
+                new object[] { 
                     typeof(Avatar),
-                    typeof(Avatar).GetProperty(nameof(Avatar.Name))
-                })
+                    typeof(Avatar).GetProperty(nameof(Avatar.Name)),
+                    typeof(Avatar).GetProperty(nameof(Avatar.CreationTimestamp)),
+                    typeof(Avatar).GetProperty(nameof(Avatar.LastModificationTimestamp))
+                }
                 .Concat(new object[] {
                     typeof(Message),
                     typeof(Message).GetProperty(nameof(Message.ContentId)),
                     typeof(Message).GetProperty(nameof(Message.SenderId)),
                     typeof(Message).GetProperty(nameof(Message.CreationTimestamp)),
                     typeof(Message).GetProperty(nameof(Message.LastModificationTimestamp))
-                })
-                .Concat(new[] {
-                    typeof(string),
-                    typeof(Guid),
-                    typeof(DateTimeOffset)
                 });
     }
 }

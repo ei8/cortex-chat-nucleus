@@ -19,6 +19,8 @@ using ei8.Extensions.DependencyInjection;
 using ei8.Extensions.DependencyInjection.Coding.d23.neurULization;
 using ei8.Extensions.DependencyInjection.Coding.d23.neurULization.Persistence;
 using ei8.Extensions.DependencyInjection.Coding.Persistence;
+using ei8.Extensions.DependencyInjection.Cortex;
+using ei8.Extensions.DependencyInjection.EventSourcing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Nancy;

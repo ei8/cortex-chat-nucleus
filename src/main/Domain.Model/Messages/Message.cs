@@ -9,9 +9,6 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Messages
     /// </summary>
     public class Message
     {
-        [neurULNeuronProperty]
-        public Guid Id { get; set; }
-
         [neurULClass]
         public Guid ContentId { get; set; }
         
@@ -21,6 +18,10 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Messages
         public DateTimeOffset? CreationTimestamp { get; set; }
 
         public DateTimeOffset? LastModificationTimestamp { get; set; }
+
+        #region Neuron Properties
+        [neurULNeuronProperty]
+        public Guid Id { get; set; }
 
         [neurULNeuronProperty]
         public string MirrorUrl { get; set; }
@@ -54,5 +55,6 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Messages
 
         [neurULNeuronProperty]
         public int Version { get; set; }
+        #endregion
     }
 }

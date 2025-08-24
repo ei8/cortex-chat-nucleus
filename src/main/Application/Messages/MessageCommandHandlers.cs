@@ -79,6 +79,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                     Id = message.Id,
                     ContentId = this.networkTransactionData.GetReplacementIdIfExists(stringValue.Id),
                     RegionId = message.RegionId,
+                    // TODO:0 support multiple senders per message
                     SenderId = validationResult.UserNeuronId,
                     MirrorUrl = message.MirrorUrl,
                     CreationTimestamp = DateTimeOffset.Now,

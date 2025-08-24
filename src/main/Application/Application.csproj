@@ -9,18 +9,15 @@
   <ItemGroup>
     <PackageReference Include="ei8.Cortex.Chat.Common" Version="0.2.4" />
     <PackageReference Include="ei8.Cortex.Chat.Nucleus.Client" Version="0.2.7" />
-    <PackageReference Include="ei8.Cortex.Coding.d23.neurULization.Persistence" Version="0.0.11" />
+    <PackageReference Include="ei8.Cortex.Coding.Persistence" Version="0.2.2" />
     <PackageReference Include="ei8.Cortex.IdentityAccess.Client" Version="0.2.3" />
-    <PackageReference Include="ei8.Cortex.Library.Client" Version="0.3.16" />
+    <PackageReference Include="ei8.Cortex.Library.Client" Version="0.4.0" />
     <PackageReference Include="ei8.Cortex.Library.Common" Version="0.3.11" />
     <PackageReference Include="ei8.Cortex.Subscriptions.Client" Version="0.1.8" />
     <PackageReference Include="ei8.Cortex.Subscriptions.Common" Version="0.1.6" />
-    <PackageReference Include="ei8.Data.Aggregate.Port.Adapter.In.InProcess" Version="0.1.4" />
-    <PackageReference Include="ei8.Data.Tag.Port.Adapter.In.InProcess" Version="0.1.11" />
-    <PackageReference Include="ei8.EventSourcing.Client" Version="0.2.12" />
-    <PackageReference Include="Neurul.Common" Version="0.1.19" />
+    <PackageReference Include="ei8.EventSourcing.Client" Version="0.3.9" />
+    <PackageReference Include="Neurul.Common" Version="0.2.1" />
     <PackageReference Include="Neurul.Cortex.Common" Version="0.1.4" />
-    <PackageReference Include="neurUL.Cortex.Port.Adapter.In.InProcess" Version="0.1.2" />
     <PackageReference Update="NETStandard.Library" Version="2.0.1" />
   </ItemGroup>
 
