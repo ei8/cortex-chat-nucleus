@@ -3,6 +3,7 @@ using ei8.Cortex.Chat.Nucleus.Client.Out;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Coding;
+using ei8.Cortex.Coding.Persistence.Versioning;
 using ei8.Cortex.Coding.Persistence.Wrappers;
 using ei8.Cortex.IdentityAccess.Client.Out;
 using ei8.Cortex.IdentityAccess.Common;
@@ -23,36 +24,44 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         private readonly IMessageReadRepository messageRepository;
         private readonly IAvatarReadRepository avatarRepository;
         private readonly IStringWrapperRepository stringWrapperRepository;
+        private readonly ICreationReadRepository creationReadRepository;
         private readonly IMessageQueryClient messageQueryClient;
         private readonly IValidationClient validationClient;
         private readonly IHttpClientFactory httpClientFactory;
         private readonly ISettingsService settingsService;
+        private readonly Network readNetworkCache;
 
         public MessageQueryService(
             IMessageReadRepository messageRepository, 
             IAvatarReadRepository avatarRepository,
             IStringWrapperRepository stringWrapperRepository,
+            ICreationReadRepository creationReadRepository,
             IMessageQueryClient messageQueryClient,
             IValidationClient validationClient,
             IHttpClientFactory httpClientFactory,
-            ISettingsService settingsService
+            ISettingsService settingsService,
+            Network readNetworkCache
         )
         {
             AssertionConcern.AssertArgumentNotNull(messageRepository, nameof(messageRepository));
             AssertionConcern.AssertArgumentNotNull(avatarRepository, nameof(avatarRepository));
             AssertionConcern.AssertArgumentNotNull(stringWrapperRepository, nameof(stringWrapperRepository));
+            AssertionConcern.AssertArgumentNotNull(creationReadRepository, nameof(creationReadRepository));
             AssertionConcern.AssertArgumentNotNull(messageQueryClient, nameof(messageQueryClient));
             AssertionConcern.AssertArgumentNotNull(validationClient, nameof(validationClient));
             AssertionConcern.AssertArgumentNotNull(httpClientFactory, nameof(httpClientFactory));
             AssertionConcern.AssertArgumentNotNull(settingsService, nameof(settingsService));
+            AssertionConcern.AssertArgumentNotNull(readNetworkCache, nameof(readNetworkCache));
 
             this.messageRepository = messageRepository;
             this.avatarRepository = avatarRepository;
             this.stringWrapperRepository = stringWrapperRepository;
+            this.creationReadRepository = creationReadRepository;
             this.messageQueryClient = messageQueryClient;
             this.validationClient = validationClient;
             this.httpClientFactory = httpClientFactory;
             this.settingsService = settingsService;
+            this.readNetworkCache = readNetworkCache;
         }
 
         public async Task<IEnumerable<Common.MessageResult>> GetMessages(
@@ -118,20 +127,27 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                 foreach (var pm in pagedMessages.Reverse())
                 {
                     result.Add(
-                        new MessageResult()
-                        {
-                            Id = pm.Id,
-                            ContentId = pm.ContentId,
-                            ContentString = contentStringValues.Single(csv => csv.Id == pm.ContentId).Tag,
-                            RegionTag = pm.RegionTag,
-                            RegionId = pm.RegionId,
-                            SenderId = pm.SenderId,
-                            SenderTag = senderAvatarValues.Single(sav => sav.Id == pm.SenderId).Name,
-                            MirrorUrl = pm.MirrorUrl,
-                            CreationTimestamp = pm.CreationTimestamp,
-                            UnifiedLastModificationTimestamp = pm.UnifiedLastModificationTimestamp,
-                            IsCurrentUserCreationAuthor = pm.SenderId == validationResult.UserNeuronId
-                        }
+                        await this.readNetworkCache.GetValidateNeuronAsync(
+                            pm.Id,
+                            async (n) =>
+                            {
+                                var c = (await this.creationReadRepository.GetBySubjectId(pm.Id)).Single();
+                                return new MessageResult()
+                                {
+                                    Id = pm.Id,
+                                    ContentId = pm.ContentId,
+                                    ContentString = contentStringValues.Single(csv => csv.Id == pm.ContentId).Tag,
+                                    RegionId = pm.RegionId,
+                                    RegionTag = n.RegionTag,
+                                    SenderId = pm.SenderId,
+                                    SenderTag = senderAvatarValues.Single(sav => sav.Id == pm.SenderId).Name,
+                                    MirrorUrl = pm.MirrorUrl,
+                                    CreationTimestamp = c.Timestamp,
+                                    UnifiedLastModificationTimestamp = n.UnifiedLastModificationTimestamp,
+                                    IsCurrentUserCreationAuthor = pm.SenderId == validationResult.UserNeuronId
+                                };
+                            }
+                        )
                     );
                 }
             }
@@ -164,8 +180,12 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                     var aur = string.Empty;
                     var aid = Guid.Empty;
 
+                    var ammu = string.Empty;
+
+                    this.readNetworkCache.GetValidateNeuron(am.Id, n => ammu = n.MirrorUrl);
+
                     AssertionConcern.AssertStateTrue(
-                        !string.IsNullOrEmpty(am.MirrorUrl) && MirrorConfig.TryProcessUrl(am.MirrorUrl, out aur, out aid),
+                        !string.IsNullOrEmpty(ammu) && MirrorConfig.TryProcessUrl(ammu, out aur, out aid),
                         $"MirrorUrl of specified Avatar is invalid. ID: {am.Id.ToString()}"
                     );
 

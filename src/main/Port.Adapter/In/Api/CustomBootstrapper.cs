@@ -8,7 +8,9 @@ using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services;
 using ei8.Cortex.Coding;
 using ei8.Cortex.Coding.d23.neurULization.Implementation;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
+using ei8.Cortex.Coding.d23.neurULization.Persistence.Versioning;
 using ei8.Cortex.Coding.Persistence;
+using ei8.Cortex.Coding.Persistence.Versioning;
 using ei8.Cortex.Coding.Persistence.Wrappers;
 using ei8.Cortex.IdentityAccess.Client.In;
 using ei8.Cortex.IdentityAccess.Client.Out;
@@ -43,7 +45,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
         {
             base.ConfigureApplicationContainer(container);
 
-            // TODO: change IDictionary<string, Network> to NetworkCache
+            // TODO: change IDictionary<string, Network> to NetworkCache,
+            // used by neurULizeAsync.Uniquify
+            // required by constructor of neurULizerOptions
             container.Register<IDictionary<string, Network>>(new Dictionary<string, Network>());
             container.Register(this.serviceProvider.GetService<IOptions<List<MirrorConfig>>>());
             container.Register(this.serviceProvider.GetService<IOptions<List<Authority>>>());
@@ -57,11 +61,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             container.AddRequestProvider();
             container.Register(this.serviceProvider.GetService<IHttpClientFactory>());
             container.Register<IValidationClient, HttpValidationClient>();
-            container.Register<IClassInstanceNeuronsRetriever, ClassInstanceNeuronsRetriever>();
-            container.Register<IIdInstanceNeuronsRetriever, IdInstanceNeuronsRetriever>();
-            container.Register<IAvatarReadRepository, HttpAvatarReadRepository>();
             container.Register<IPermitClient, HttpPermitClient>();
-            container.Register<IRecipientWriteRepository, HttpRecipientWriteRepository>();
             container.Register<INetworkTransactionData, NetworkTransactionData>();
             container.Register<INetworkTransactionService, NetworkTransactionService>();
             container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
@@ -92,10 +92,15 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
 
             if (result)
             {
+                container.Register<IClassInstanceNeuronsRetriever, ClassInstanceNeuronsRetriever>();
+                container.Register<IIdInstanceNeuronsRetriever, IdInstanceNeuronsRetriever>();
+                container.Register<IAvatarReadRepository, HttpAvatarReadRepository>();
                 container.Register<Id23neurULizerOptions, neurULizerOptions>();
                 container.Register<IneurULizer, neurULizer>();
                 container.Register<IStringWrapperRepository, StringWrapperRepository>();
+                container.Register<ICreationWriteRepository, CreationWriteRepository>();
                 container.Register<IMessageWriteRepository, HttpMessageWriteRepository>();
+                container.Register<IRecipientWriteRepository, HttpRecipientWriteRepository>();
                 container.Register<MessageCommandHandlers>();
                 container.AddWriters();
                 container.AddReaders();

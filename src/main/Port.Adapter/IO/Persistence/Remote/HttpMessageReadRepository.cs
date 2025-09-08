@@ -4,7 +4,6 @@ using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Coding;
 using ei8.Cortex.Coding.d23.Grannies;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
-using ei8.Cortex.Coding.Persistence;
 using ei8.Cortex.Library.Common;
 using neurUL.Common.Domain.Model;
 using System;
@@ -24,6 +23,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         private readonly IGrannyService grannyService;
         private readonly IDictionary<string, IGranny> propertyAssociationCache;
         private readonly IClassInstanceNeuronsRetriever classInstanceNeuronsRetriever;
+        private readonly Network readNetworkCache;
 
         public HttpMessageReadRepository(
             INetworkRepository networkRepository,
@@ -32,7 +32,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             IneurULizer neurULizer,
             IGrannyService grannyService,
             IDictionary<string, IGranny> propertyAssociationCache,
-            IClassInstanceNeuronsRetriever classInstanceNeuronsRetriever
+            IClassInstanceNeuronsRetriever classInstanceNeuronsRetriever,
+            Network readNetworkCache
         )
         {
             AssertionConcern.AssertArgumentNotNull(networkRepository, nameof(networkRepository));
@@ -42,6 +43,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             AssertionConcern.AssertArgumentNotNull(grannyService, nameof(grannyService));
             AssertionConcern.AssertArgumentNotNull(propertyAssociationCache, nameof(propertyAssociationCache));
             AssertionConcern.AssertArgumentNotNull(classInstanceNeuronsRetriever, nameof(classInstanceNeuronsRetriever));
+            AssertionConcern.AssertArgumentNotNull(readNetworkCache, nameof(readNetworkCache));
 
             this.networkRepository = networkRepository;
             this.mirrorRepository = mirrorRepository;
@@ -50,6 +52,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             this.grannyService = grannyService;
             this.propertyAssociationCache = propertyAssociationCache;
             this.classInstanceNeuronsRetriever = classInstanceNeuronsRetriever;
+            this.readNetworkCache = readNetworkCache;
         }
 
         public async Task<IEnumerable<Message>> GetAll(DateTimeOffset? maxTimestamp, int? pageSize, IEnumerable<Avatar> avatars, CancellationToken token = default)
@@ -112,11 +115,17 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                         typeof(Message)
                     )
                 );
-                result = (await this.neurULizer.DeneurULizeAsync<Message>(
-                    queryResult.Network, 
+                var dnResult = await this.neurULizer.DeneurULizeAsync<Message>(
+                    queryResult.Network,
                     this.classInstanceNeuronsRetriever,
                     token
-                )).Select(dm => dm.Result);
+                );
+                result = dnResult.Select(dm => dm.Result);
+                dnResult
+                    .Where(dnr => dnr.Success)
+                    .ToList()
+                    .ForEach(dnr => this.readNetworkCache.AddReplace(dnr.InstanceNeuron)
+                    );
                 watch.Stop();
                 System.Diagnostics.Debug.WriteLine($"Local GetAll took (secs): {watch.Elapsed.TotalSeconds}");
             }

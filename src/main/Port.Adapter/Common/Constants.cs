@@ -1,5 +1,6 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
+using ei8.Cortex.Coding.Versioning;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,15 +28,16 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
                 new object[] { 
                     typeof(Avatar),
                     typeof(Avatar).GetProperty(nameof(Avatar.Name)),
-                    typeof(Avatar).GetProperty(nameof(Avatar.CreationTimestamp)),
-                    typeof(Avatar).GetProperty(nameof(Avatar.LastModificationTimestamp))
                 }
                 .Concat(new object[] {
                     typeof(Message),
                     typeof(Message).GetProperty(nameof(Message.ContentId)),
-                    typeof(Message).GetProperty(nameof(Message.SenderId)),
-                    typeof(Message).GetProperty(nameof(Message.CreationTimestamp)),
-                    typeof(Message).GetProperty(nameof(Message.LastModificationTimestamp))
+                    typeof(Message).GetProperty(nameof(Message.SenderId))
+                })
+                .Concat(new object[] {
+                    typeof(Creation),
+                    typeof(Creation).GetProperty(nameof(Creation.SubjectId)),
+                    typeof(Creation).GetProperty(nameof(Creation.Timestamp))
                 });
     }
 }

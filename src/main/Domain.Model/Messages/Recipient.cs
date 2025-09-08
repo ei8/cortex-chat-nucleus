@@ -7,7 +7,10 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Messages
         // TODO:
         // public Guid Id { get; set; }
         public Guid MessageId { get; set; }        
-        // TODO: Added temporarily, to be removed once a separate long-running process is responsible for updating statuses of messages once they are read by recipient avatar
+        // TODO: Added temporarily,
+        // to be removed once a separate long-running process
+        // is responsible for updating statuses of messages
+        // once they are read by recipient avatar
         public Message Message { get; set; }
         public Guid AvatarId { get; set; }
         // TODO:
