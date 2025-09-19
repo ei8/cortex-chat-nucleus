@@ -57,10 +57,6 @@
       "Url": "http://neurul.net/sample/cortex/neurons/eb560ebc-57cd-4368-be30-c76c3f0eaf8b"
     },
     {
-      "Key": "ei8.Cortex.Chat.Nucleus.Domain.Model.Messages.Message:SenderId",
-      "Url": "http://neurul.net/sample/cortex/neurons/80e3ba87-3061-4aa7-9d97-218452510fb7"
-    },
-    {
       "Key": "ei8.Cortex.Chat.Nucleus.Domain.Model.Messages.Message:ContentId",
       "Url": "http://neurul.net/sample/cortex/neurons/c644448a-8aa7-4866-9ea3-61f42ddc512a"
     },
@@ -75,28 +71,32 @@
     {
       "Key": "ei8.Cortex.Coding.Versioning.Creation:Timestamp",
       "Url": "http://neurul.net/sample/cortex/neurons/ceb945d7-8a0c-43f4-b637-8807d651562b"
+    },
+    {
+      "Key": "ei8.Cortex.Chat.Nucleus.Domain.Model.Messages.Sender",
+      "Url": "http://neurul.net/sample/cortex/neurons/80e3ba87-3061-4aa7-9d97-218452510fb7"
+    },
+    {
+      "Key": "ei8.Cortex.Chat.Nucleus.Domain.Model.Messages.Sender:MessageId",
+      "Url": "http://neurul.net/sample/cortex/neurons/ea830bb8-254a-46c1-8293-317756d837cd"
+    },
+    {
+      "Key": "ei8.Cortex.Chat.Nucleus.Domain.Model.Messages.Sender:AvatarId",
+      "Url": "http://neurul.net/sample/cortex/neurons/5aef4479-6cba-42fb-aa43-980b0a06d5b6"
+    },
+    {
+      "Key": "ei8.Cortex.Chat.Nucleus.Domain.Model.Messages.Recipient",
+      "Url": "http://neurul.net/sample/cortex/neurons/573b9770-fb16-4377-9a41-85321c07aa35"
+    },
+    {
+      "Key": "ei8.Cortex.Chat.Nucleus.Domain.Model.Messages.Recipient:MessageId",
+      "Url": "http://neurul.net/sample/cortex/neurons/6998b0e0-673a-441f-a820-c4026cb2ff5c"
+    },
+    {
+      "Key": "ei8.Cortex.Chat.Nucleus.Domain.Model.Messages.Recipient:AvatarId",
+      "Url": "http://neurul.net/sample/cortex/neurons/247a4341-12e5-47ac-b6ae-de2ec6f2e20f"
     }
     // TODO: Repurpose
-    //{
-    //  "Key": "Idea",
-    //  "Url": "http://neurul.net/sample/cortex/neurons/ea830bb8-254a-46c1-8293-317756d837cd"
-    //}
-    // {
-    //   "Key": "ReceiptInfo_MustHaveMessageInstance",
-    //   "Url": "http://neurul.net/sample/cortex/neurons/5aef4479-6cba-42fb-aa43-980b0a06d5b6"
-    // },
-    // {
-    //   "Key": "ReceiptInfo_MustHaveStatus",
-    //   "Url": "http://neurul.net/sample/cortex/neurons/573b9770-fb16-4377-9a41-85321c07aa35"
-    // },
-    // {
-    //   "Key": "Read",
-    //   "Url": "http://neurul.net/sample/cortex/neurons/6998b0e0-673a-441f-a820-c4026cb2ff5c"
-    // },
-    // {
-    //   "Key": "Subordination",
-    //   "Url": "http://neurul.net/sample/cortex/neurons/247a4341-12e5-47ac-b6ae-de2ec6f2e20f"
-    // },
     // {
     //   "Key": "Simple",
     //   "Url": "http://neurul.net/sample/cortex/neurons/4061ade0-f1eb-4137-950b-974bd5cc33bd"

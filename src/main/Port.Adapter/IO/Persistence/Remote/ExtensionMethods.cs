@@ -12,6 +12,6 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             }
             var type = typeof(T);
             return string.Format("{0}.{1}.{2}", type.Namespace, type.Name, Enum.GetName(type, @this));
-        }        
+        }
     }
 }

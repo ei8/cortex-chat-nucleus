@@ -1,9 +1,8 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
+using ei8.Cortex.Coding.Reflection;
 using ei8.Cortex.Coding.Versioning;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
 {
@@ -20,24 +19,20 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
         public const string CreateMirrorsIfNotFound = "CREATE_EXTERNAL_REFERENCES_IF_NOT_FOUND";
     }
 
+    public readonly struct Constants
+    {
+        public static readonly IEnumerable<object> InitMirrorKeys = ReflectionExtensions.GetMirrorKeys(
+            typeof(Avatar),
+            typeof(Message),
+            typeof(Creation),
+            typeof(Sender),
+            typeof(Recipient)
+        );
+    }
+
     public struct Default
     {
         public const int PageSize = 20;
         public const int QueryResultLimit = 10;
-        public static readonly IEnumerable<object> InitMirrorKeys =
-                new object[] { 
-                    typeof(Avatar),
-                    typeof(Avatar).GetProperty(nameof(Avatar.Name)),
-                }
-                .Concat(new object[] {
-                    typeof(Message),
-                    typeof(Message).GetProperty(nameof(Message.ContentId)),
-                    typeof(Message).GetProperty(nameof(Message.SenderId))
-                })
-                .Concat(new object[] {
-                    typeof(Creation),
-                    typeof(Creation).GetProperty(nameof(Creation.SubjectId)),
-                    typeof(Creation).GetProperty(nameof(Creation.Timestamp))
-                });
     }
 }

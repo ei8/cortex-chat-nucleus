@@ -4,27 +4,30 @@ using ei8.Cortex.Coding.d23.neurULization.Persistence;
 using ei8.Cortex.Coding.Persistence;
 using ei8.EventSourcing.Client;
 using neurUL.Common.Domain.Model;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 {
     /// <summary>
-    /// Represents a Message (write-only) Repository.
+    /// Represents a Communicator (write-only) Repository.
     /// </summary>
-    public class HttpMessageWriteRepository : IMessageWriteRepository
+    /// <typeparam name="T"></typeparam>
+    public class HttpCommunicatorWriteRepository<T> : ICommunicatorWriteRepository<T> where T : CommunicatorBase, new()
     {
         private readonly ITransaction transaction;
         private readonly INetworkTransactionService networkTransactionService;
         private readonly IneurULizer neurULizer;
 
         /// <summary>
-        /// Constructs a Message Repository.
+        /// Constructs a Communicator Repository.
         /// </summary>
         /// <param name="transaction"></param>
         /// <param name="networkTransactionService"></param>
         /// <param name="neurULizer"></param>
-        public HttpMessageWriteRepository(
+        public HttpCommunicatorWriteRepository(
             ITransaction transaction,
             INetworkTransactionService networkTransactionService,
             IneurULizer neurULizer
@@ -33,35 +36,33 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             AssertionConcern.AssertArgumentNotNull(transaction, nameof(transaction));
             AssertionConcern.AssertArgumentNotNull(networkTransactionService, nameof(networkTransactionService));
             AssertionConcern.AssertArgumentNotNull(neurULizer, nameof(neurULizer));
-
+            
             this.transaction = transaction;
             this.networkTransactionService = networkTransactionService;
             this.neurULizer = neurULizer;
         }
 
         /// <summary>
-        /// Saves the specified Message.
+        /// Saves all specified Communicator values.
         /// </summary>
-        /// <param name="message"></param>
+        /// <param name="values"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public async Task Save(Message message, CancellationToken token = default)
+        public async Task SaveAll(IEnumerable<T> values, CancellationToken token = default)
         {
-            // TODO: handle updates - message.Version == 0 ? WriteMode.Create : WriteMode.Update
-            var watch = System.Diagnostics.Stopwatch.StartNew();
-            var me = await this.neurULizer.neurULizeAsync(
-                message,
-                token
+            AssertionConcern.AssertArgumentNotNull(values, nameof(values));
+            AssertionConcern.AssertArgumentValid(
+                s => s.Count() > 0,
+                values,
+                $"At least one '{typeof(T).Name}' is required.",
+                nameof(values)
             );
-            
-            watch.Stop();
-            System.Diagnostics.Trace.WriteLine($"neurULization (secs): {watch.Elapsed.TotalSeconds}");
-            watch.Restart();
 
-            await this.networkTransactionService.SaveAsync(this.transaction, me);
-
-            watch.Stop();
-            System.Diagnostics.Trace.WriteLine($"Network save (secs): {watch.Elapsed.TotalSeconds}");
+            foreach (var s in values)
+            {
+                var ns = await this.neurULizer.neurULizeAsync(s, token);
+                await this.networkTransactionService.SaveAsync(this.transaction, ns);
+            }
         }
     }
 }

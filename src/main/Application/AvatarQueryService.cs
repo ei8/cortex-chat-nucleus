@@ -9,31 +9,40 @@ using System.Threading.Tasks;
 
 namespace ei8.Cortex.Chat.Nucleus.Application
 {
+    /// <summary>
+    /// Represents a query service for Avatars.
+    /// </summary>
     public class AvatarQueryService : IAvatarQueryService
     {
         private readonly IAvatarReadRepository avatarRepository;
-        private readonly Network readNetworkCache;
+        private readonly INetworkDictionary<CacheKey> readWriteCache;
 
         public AvatarQueryService(
             IAvatarReadRepository avatarRepository,
-            Network readNetworkCache
+            INetworkDictionary<CacheKey> readWriteCache
         )
         {
             AssertionConcern.AssertArgumentNotNull(avatarRepository, nameof(avatarRepository));
-            AssertionConcern.AssertArgumentNotNull(readNetworkCache, nameof(readNetworkCache));
+            AssertionConcern.AssertArgumentNotNull(readWriteCache, nameof(readWriteCache));
 
             this.avatarRepository = avatarRepository;
-            this.readNetworkCache = readNetworkCache;
+            this.readWriteCache = readWriteCache;
         }
 
-        public async Task<IEnumerable<Common.AvatarResult>> GetAvatars(string userId, CancellationToken token = default)
+        /// <summary>
+        /// Get all Avatars using the specified userId.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<Common.AvatarInfo>> GetAvatars(string userId, CancellationToken token = default)
         {
             // TODO:1 validate if user has access to neurons in result using validationClient
             return (await this.avatarRepository.GetAll(token))
-                .Select(a => 
-                    this.readNetworkCache.GetValidateNeuron(
+                .Select(a =>
+                    this.readWriteCache[CacheKey.Read].GetValidateNeuron(
                         a.Id,
-                        n => new Common.AvatarResult()
+                        n => new Common.AvatarInfo()
                         {
                             Id = a.Id,
                             Name = a.Name,
@@ -44,14 +53,23 @@ namespace ei8.Cortex.Chat.Nucleus.Application
                 );
         }
 
-        public async Task<IEnumerable<Common.AvatarResult>> GetAvatarsByIds(IEnumerable<Guid> ids, string userId, CancellationToken token = default)
+        /// <summary>
+        /// Gets Avatars using the specified IDs and userId.
+        /// </summary>
+        /// <param name="ids"></param>
+        /// <param name="userId"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<Common.AvatarInfo>> GetAvatarsByIds(IEnumerable<Guid> ids, string userId, CancellationToken token = default)
         {
+            ids.ValidateIds();
+
             // TODO:1 validate if user has access to neurons in result using validationClient
             return (await this.avatarRepository.GetByIds(ids, token))
                 .Select(a =>
-                    this.readNetworkCache.GetValidateNeuron(
+                    this.readWriteCache[CacheKey.Read].GetValidateNeuron(
                         a.Id,
-                        n => new Common.AvatarResult()
+                        n => new Common.AvatarInfo()
                         {
                             Id = a.Id,
                             Name = a.Name,

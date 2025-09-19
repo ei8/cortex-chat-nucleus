@@ -1,9 +1,9 @@
 ﻿namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Messages
 {
     /// <summary>
-    /// Represents a Recipient.
+    /// Represents a Sender.
     /// </summary>
-    public class Recipient : CommunicatorBase
+    public class Sender : CommunicatorBase
     {
     }
 }

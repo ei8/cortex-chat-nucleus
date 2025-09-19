@@ -1,4 +1,5 @@
-﻿using ei8.Cortex.Chat.Nucleus.Domain.Model;
+﻿using ei8.Cortex.Chat.Nucleus.Application;
+using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Coding;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
 using ei8.Cortex.Library.Common;
@@ -11,6 +12,9 @@ using System.Threading.Tasks;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 {
+    /// <summary>
+    /// Represents an Avatar (read-only) Repository.
+    /// </summary>
     public class HttpAvatarReadRepository : IAvatarReadRepository
     {
         private readonly INetworkRepository networkRepository;
@@ -19,8 +23,18 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         private readonly IGrannyService grannyService;
         private readonly IClassInstanceNeuronsRetriever classInstanceNeuronsRetriever;
         private readonly IIdInstanceNeuronsRetriever idInstanceNeuronsRetriever;
-        private readonly Network readNetworkCache;
+        private readonly INetworkDictionary<CacheKey> readWriteCache;
 
+        /// <summary>
+        /// Constructs an Avatar (read-only) Repository.
+        /// </summary>
+        /// <param name="networkRepository"></param>
+        /// <param name="mirrorRepository"></param>
+        /// <param name="neurULizer"></param>
+        /// <param name="grannyService"></param>
+        /// <param name="classInstanceNeuronsRetriever"></param>
+        /// <param name="idInstanceNeuronsRetriever"></param>
+        /// <param name="readWriteCache"></param>
         public HttpAvatarReadRepository(
             INetworkRepository networkRepository,
             IMirrorRepository mirrorRepository,
@@ -28,7 +42,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             IGrannyService grannyService, 
             IClassInstanceNeuronsRetriever classInstanceNeuronsRetriever,
             IIdInstanceNeuronsRetriever idInstanceNeuronsRetriever,
-            Network readNetworkCache
+            INetworkDictionary<CacheKey> readWriteCache
         )
         {
             AssertionConcern.AssertArgumentNotNull(networkRepository, nameof(networkRepository));
@@ -37,7 +51,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             AssertionConcern.AssertArgumentNotNull(grannyService, nameof(grannyService));
             AssertionConcern.AssertArgumentNotNull(classInstanceNeuronsRetriever, nameof(classInstanceNeuronsRetriever));
             AssertionConcern.AssertArgumentNotNull(idInstanceNeuronsRetriever, nameof(idInstanceNeuronsRetriever));
-            AssertionConcern.AssertArgumentNotNull(readNetworkCache, nameof(readNetworkCache));
+            AssertionConcern.AssertArgumentNotNull(readWriteCache, nameof(readWriteCache));
 
             this.networkRepository = networkRepository;
             this.mirrorRepository = mirrorRepository;
@@ -45,9 +59,14 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             this.grannyService = grannyService;
             this.classInstanceNeuronsRetriever = classInstanceNeuronsRetriever;
             this.idInstanceNeuronsRetriever = idInstanceNeuronsRetriever;
-            this.readNetworkCache = readNetworkCache;
+            this.readWriteCache = readWriteCache;
         }
 
+        /// <summary>
+        /// Gets all Avatars.
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
         public async Task<IEnumerable<Avatar>> GetAll(CancellationToken token = default)
         {
             var instantiatesAvatarResult = await this.grannyService.TryGetParseBuildPersistAsync(
@@ -62,14 +81,14 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             );
 
             AssertionConcern.AssertStateTrue(
-                instantiatesAvatarResult.Item1,
+                instantiatesAvatarResult.Success,
                 $"'Instantiates^Avatar' is required to invoke {nameof(HttpAvatarReadRepository.GetAll)}"
             );
-                       
+
             var queryResult = await this.networkRepository.GetByQueryAsync(
                 new NeuronQuery()
                 {
-                    Postsynaptic = new string[] { instantiatesAvatarResult.Item2.Neuron.Id.ToString() },
+                    Postsynaptic = new string[] { instantiatesAvatarResult.Granny.Neuron.Id.ToString() },
                     SortBy = SortByValue.NeuronExternalReferenceUrl,
                     SortOrder = SortOrderValue.Ascending,
                     Depth = Coding.d23.neurULization.Constants.InstanceToValueInstantiatesClassDepth,
@@ -82,25 +101,24 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                     typeof(Avatar)
                 )
             );
-            var dnResult = await this.neurULizer.DeneurULizeAsync<Avatar>(
+
+            return await this.neurULizer.DeneurULizeCacheAsync<Avatar>(
                 queryResult.Network, 
                 this.classInstanceNeuronsRetriever,
+                this.readWriteCache[CacheKey.Read],
                 token
             );
-
-            dnResult
-                .Where(dnr => dnr.Success)
-                .ToList()
-                .ForEach(dnr => this.readNetworkCache.AddReplace(dnr.InstanceNeuron)
-                );
-
-            return dnResult.Select(dm => dm.Result);
         }
 
+        /// <summary>
+        /// Gets Avatars using the specified IDs.
+        /// </summary>
+        /// <param name="ids"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
         public async Task<IEnumerable<Avatar>> GetByIds(IEnumerable<Guid> ids, CancellationToken token = default)
         {
-            AssertionConcern.AssertArgumentNotNull(ids, nameof(ids));
-            AssertionConcern.AssertArgumentValid(i => i.Any(), ids, $"Specified value cannot be an empty array.", nameof(ids));
+            ids.ValidateIds();
 
             var result = Enumerable.Empty<Avatar>();
 
@@ -118,13 +136,12 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             queryResult.Network.ValidateIds(ids);
 
             this.idInstanceNeuronsRetriever.Initialize(ids);
-            result = (await this.neurULizer.DeneurULizeAsync<Avatar>(
-                queryResult.Network, 
+            return await this.neurULizer.DeneurULizeCacheAsync<Avatar>(
+                queryResult.Network,
                 this.idInstanceNeuronsRetriever,
+                this.readWriteCache[CacheKey.Read],
                 token
-            )).Select(nr => nr.Result);
-
-            return result;
+            );
         }
     }
 }

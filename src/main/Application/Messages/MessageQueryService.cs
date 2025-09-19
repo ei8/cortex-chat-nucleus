@@ -19,9 +19,14 @@ using System.Threading.Tasks;
 
 namespace ei8.Cortex.Chat.Nucleus.Application.Messages
 {
+    /// <summary>
+    /// Represents a query service for Messages.
+    /// </summary>
     public class MessageQueryService : IMessageQueryService
     {
         private readonly IMessageReadRepository messageRepository;
+        private readonly ICommunicatorReadRepository<Sender> senderReadRepository;
+        private readonly ICommunicatorReadRepository<Recipient> recipientReadRepository;
         private readonly IAvatarReadRepository avatarRepository;
         private readonly IStringWrapperRepository stringWrapperRepository;
         private readonly ICreationReadRepository creationReadRepository;
@@ -29,10 +34,26 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         private readonly IValidationClient validationClient;
         private readonly IHttpClientFactory httpClientFactory;
         private readonly ISettingsService settingsService;
-        private readonly Network readNetworkCache;
+        private readonly INetworkDictionary<CacheKey> readWriteCache;
 
+        /// <summary>
+        /// Constructs a MessageQueryService.
+        /// </summary>
+        /// <param name="messageRepository"></param>
+        /// <param name="senderReadRepository"></param>
+        /// <param name="recipientReadRepository"></param>
+        /// <param name="avatarRepository"></param>
+        /// <param name="stringWrapperRepository"></param>
+        /// <param name="creationReadRepository"></param>
+        /// <param name="messageQueryClient"></param>
+        /// <param name="validationClient"></param>
+        /// <param name="httpClientFactory"></param>
+        /// <param name="settingsService"></param>
+        /// <param name="readWriteCache"></param>
         public MessageQueryService(
             IMessageReadRepository messageRepository, 
+            ICommunicatorReadRepository<Sender> senderReadRepository,
+            ICommunicatorReadRepository<Recipient> recipientReadRepository,
             IAvatarReadRepository avatarRepository,
             IStringWrapperRepository stringWrapperRepository,
             ICreationReadRepository creationReadRepository,
@@ -40,10 +61,12 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             IValidationClient validationClient,
             IHttpClientFactory httpClientFactory,
             ISettingsService settingsService,
-            Network readNetworkCache
+            INetworkDictionary<CacheKey> readWriteCache
         )
         {
             AssertionConcern.AssertArgumentNotNull(messageRepository, nameof(messageRepository));
+            AssertionConcern.AssertArgumentNotNull(senderReadRepository, nameof(senderReadRepository));
+            AssertionConcern.AssertArgumentNotNull(recipientReadRepository, nameof(recipientReadRepository));
             AssertionConcern.AssertArgumentNotNull(avatarRepository, nameof(avatarRepository));
             AssertionConcern.AssertArgumentNotNull(stringWrapperRepository, nameof(stringWrapperRepository));
             AssertionConcern.AssertArgumentNotNull(creationReadRepository, nameof(creationReadRepository));
@@ -51,9 +74,11 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             AssertionConcern.AssertArgumentNotNull(validationClient, nameof(validationClient));
             AssertionConcern.AssertArgumentNotNull(httpClientFactory, nameof(httpClientFactory));
             AssertionConcern.AssertArgumentNotNull(settingsService, nameof(settingsService));
-            AssertionConcern.AssertArgumentNotNull(readNetworkCache, nameof(readNetworkCache));
+            AssertionConcern.AssertArgumentNotNull(readWriteCache, nameof(readWriteCache));
 
             this.messageRepository = messageRepository;
+            this.senderReadRepository = senderReadRepository;
+            this.recipientReadRepository = recipientReadRepository;
             this.avatarRepository = avatarRepository;
             this.stringWrapperRepository = stringWrapperRepository;
             this.creationReadRepository = creationReadRepository;
@@ -61,9 +86,18 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             this.validationClient = validationClient;
             this.httpClientFactory = httpClientFactory;
             this.settingsService = settingsService;
-            this.readNetworkCache = readNetworkCache;
+            this.readWriteCache = readWriteCache;
         }
 
+        /// <summary>
+        /// Gets Messages using the specified parameters.
+        /// </summary>
+        /// <param name="maxTimestamp"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="avatarIds"></param>
+        /// <param name="userId"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
         public async Task<IEnumerable<Common.MessageResult>> GetMessages(
             DateTimeOffset? maxTimestamp, 
             int? pageSize, 
@@ -75,83 +109,142 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             AssertionConcern.AssertArgumentNotNull(avatarIds, nameof(avatarIds));
 
             var result = new List<Common.MessageResult>();
-            var avatars = await this.avatarRepository.GetByIds(avatarIds);
 
-            var localMessages = await this.messageRepository.GetAll(
-                maxTimestamp,
-                pageSize,
-                avatars,
-                token
-            );
+            var senders = await this.senderReadRepository.GetByAvatarIds(avatarIds, token);
 
-            if (localMessages.Any())
+            if (senders.Any())
             {
-                IEnumerable<Message> pagedMessages = localMessages.Take(
-                    pageSize.HasValue ? 
-                    pageSize.Value : 
-                    this.settingsService.PageSize
-                );
-
-                var messageIds = pagedMessages.Select(m => m.Id).Distinct();
-                var stringIds = pagedMessages.Select(m => m.ContentId).Distinct();
-                var instanceAvatarIds = pagedMessages.Select(m => m.SenderId).Distinct();
-
-                var validationResult = await this.validationClient.ReadNeurons(
-                    this.settingsService.IdentityAccessOutBaseUrl + "/",
-                    MessageQueryService.Concatenate(
-                        messageIds,
-                        stringIds,
-                        instanceAvatarIds
-                    ).Distinct(),
-                    userId,
+                var localMessages = await this.messageRepository.GetByIds(
+                    senders.Select(s => s.MessageId),
+                    maxTimestamp,
+                    pageSize,
                     token
                 );
 
-                AssertionConcern.AssertStateFalse(
-                    validationResult.HasErrors,
-                    $"Encountered error(s) while retrieving Neurons: " +
-                    $"Errors - '{string.Join("', '", validationResult.Errors.Select(e => e.Description))}'; " +
-                    $"Neuron Errors - '{MessageQueryService.ToString(validationResult)}'"
-                );
-
-                var contentStringValues = await this.stringWrapperRepository.GetByIds(
-                    stringIds,
-                    token
-                );
-                var senderAvatarValues = await
-                    this.avatarRepository.GetByIds(
-                    instanceAvatarIds,
-                    token
-                );
-                
-                foreach (var pm in pagedMessages.Reverse())
+                if (localMessages.Any())
                 {
-                    result.Add(
-                        await this.readNetworkCache.GetValidateNeuronAsync(
-                            pm.Id,
-                            async (n) =>
-                            {
-                                var c = (await this.creationReadRepository.GetBySubjectId(pm.Id)).Single();
-                                return new MessageResult()
-                                {
-                                    Id = pm.Id,
-                                    ContentId = pm.ContentId,
-                                    ContentString = contentStringValues.Single(csv => csv.Id == pm.ContentId).Tag,
-                                    RegionId = pm.RegionId,
-                                    RegionTag = n.RegionTag,
-                                    SenderId = pm.SenderId,
-                                    SenderTag = senderAvatarValues.Single(sav => sav.Id == pm.SenderId).Name,
-                                    MirrorUrl = pm.MirrorUrl,
-                                    CreationTimestamp = c.Timestamp,
-                                    UnifiedLastModificationTimestamp = n.UnifiedLastModificationTimestamp,
-                                    IsCurrentUserCreationAuthor = pm.SenderId == validationResult.UserNeuronId
-                                };
-                            }
-                        )
+                    IEnumerable<Message> pagedMessages = localMessages.Take(
+                        pageSize.HasValue ?
+                        pageSize.Value :
+                        this.settingsService.PageSize
                     );
+
+                    var messageIds = pagedMessages.Select(m => m.Id).Distinct();
+                    var stringIds = pagedMessages.Select(m => m.ContentId).Distinct();
+
+                    var validationResult = await this.validationClient.ReadNeurons(
+                        this.settingsService.IdentityAccessOutBaseUrl + "/",
+                        MessageQueryService.Concatenate(
+                            messageIds,
+                            stringIds
+                        ).Distinct(),
+                        userId,
+                        token
+                    );
+
+                    AssertionConcern.AssertStateFalse(
+                        validationResult.HasErrors,
+                        $"Encountered error(s) while retrieving Neurons: " +
+                        $"Errors - '{string.Join("', '", validationResult.Errors.Select(e => e.Description))}'; " +
+                        $"Neuron Errors - '{MessageQueryService.ToString(validationResult)}'"
+                    );
+
+                    var contentStrings = await this.stringWrapperRepository.GetByIds(
+                        stringIds,
+                        token
+                    );
+
+                    var senderAvatars = await this.avatarRepository.GetByIds(
+                        senders.Select(ls => ls.AvatarId).Distinct(),
+                        token
+                    );
+
+                    var recipients = await this.recipientReadRepository.GetByMessageIds(
+                        pagedMessages.Select(pm => pm.Id).Distinct(),
+                        token
+                    );
+
+                    var recipientAvatars = await this.avatarRepository.GetByIds(
+                        recipients.Select(ls => ls.AvatarId).Distinct(),
+                        token
+                    );
+
+                    foreach (var pm in pagedMessages.Reverse())
+                    {
+                        result.Add(
+                            await this.readWriteCache[CacheKey.Read].GetValidateNeuronAsync(
+                                pm.Id,
+                                async (n) =>
+                                {
+                                    var c = (await this.creationReadRepository.GetBySubjectId(pm.Id)).Single();
+                                    var mSenders = senders.Where(ls => ls.MessageId == pm.Id).Select(lsm =>
+                                        this.readWriteCache[CacheKey.Read].GetValidateNeuron(
+                                            lsm.AvatarId,
+                                            (an) =>
+                                            {
+                                                var senderAvatar = senderAvatars.Single(a => a.Id == lsm.AvatarId);
+                                                return new CommunicatorInfo()
+                                                {
+                                                    Id = lsm.Id,
+                                                    Avatar = new AvatarInfo()
+                                                    {
+                                                        Id = lsm.AvatarId,
+                                                        Name = senderAvatar.Name,
+                                                        MirrorUrl = an.MirrorUrl,
+                                                        Url = an.Url
+                                                    }
+                                                };
+                                            }
+                                        )
+                                    );
+                                    var mRecipients = recipients.Where(ls => ls.MessageId == pm.Id).Select(lsm =>
+                                        this.readWriteCache[CacheKey.Read].GetValidateNeuron(
+                                            lsm.AvatarId,
+                                            (an) =>
+                                            {
+                                                var recipientAvatar = recipientAvatars.Single(a => a.Id == lsm.AvatarId);
+                                                return new CommunicatorInfo()
+                                                {
+                                                    Id = lsm.Id,
+                                                    Avatar = new AvatarInfo()
+                                                    {
+                                                        Id = lsm.AvatarId,
+                                                        Name = recipientAvatar.Name,
+                                                        MirrorUrl = an.MirrorUrl,
+                                                        Url = an.Url
+                                                    }
+                                                };
+                                            }
+                                        )
+                                    );
+                                    return new MessageResult()
+                                    {
+                                        Id = pm.Id,
+                                        Content = new StringInfo()
+                                        {
+                                            Id = pm.ContentId,
+                                            Value = contentStrings.Single(csv => csv.Id == pm.ContentId).Tag
+                                        },
+                                        Region = n.RegionId.HasValue ? new NeuronInfo()
+                                        {
+                                            Id = n.RegionId.Value,
+                                            Tag = n.RegionTag
+                                        } : null,
+                                        Senders = mSenders,
+                                        Recipients = mRecipients,
+                                        MirrorUrl = n.MirrorUrl,
+                                        CreationTimestamp = c.Timestamp,
+                                        UnifiedLastModificationTimestamp = n.UnifiedLastModificationTimestamp,
+                                        IsCurrentUserCreationAuthor = mSenders.Any(ms => ms.Avatar.Id == validationResult.UserNeuronId)
+                                    };
+                                }
+                            )
+                        );
+                    }
                 }
             }
 
+            var avatars = await this.avatarRepository.GetByIds(avatarIds);
             result.AddRange(
                 await this.GetRemoteMessages(
                     avatars, 
@@ -182,7 +275,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
 
                     var ammu = string.Empty;
 
-                    this.readNetworkCache.GetValidateNeuron(am.Id, n => ammu = n.MirrorUrl);
+                    this.readWriteCache[CacheKey.Read].GetValidateNeuron(am.Id, n => ammu = n.MirrorUrl);
 
                     AssertionConcern.AssertStateTrue(
                         !string.IsNullOrEmpty(ammu) && MirrorConfig.TryProcessUrl(ammu, out aur, out aid),
