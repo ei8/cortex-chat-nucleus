@@ -1,5 +1,4 @@
-﻿using ei8.Cortex.Chat.Nucleus.Application;
-using ei8.Cortex.Chat.Nucleus.Domain.Model;
+﻿using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Coding;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
 using ei8.Cortex.Library.Common;
@@ -120,8 +119,6 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         {
             ids.ValidateIds();
 
-            var result = Enumerable.Empty<Avatar>();
-
             var queryResult = await this.networkRepository.GetByQueryAsync(
                 new NeuronQuery()
                 {
@@ -136,12 +133,14 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             queryResult.Network.ValidateIds(ids);
 
             this.idInstanceNeuronsRetriever.Initialize(ids);
-            return await this.neurULizer.DeneurULizeCacheAsync<Avatar>(
+            var result = await this.neurULizer.DeneurULizeCacheAsync<Avatar>(
                 queryResult.Network,
                 this.idInstanceNeuronsRetriever,
                 this.readWriteCache[CacheKey.Read],
                 token
             );
+
+            return result;
         }
     }
 }

@@ -11,14 +11,35 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
     public interface IMessageQueryService
     {
         /// <summary>
+        /// Gets Messages of Senders matching specified Avatar IDs.
+        /// </summary>
+        /// <param name="senderAvatarIds">Avatar IDs of Message Senders.</param>
+        /// <param name="maxTimestamp"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="userId"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        Task<IEnumerable<Common.MessageResult>> GetMessages(
+            IEnumerable<Guid> senderAvatarIds, 
+            DateTimeOffset? maxTimestamp, 
+            int? pageSize, 
+            string userId, 
+            CancellationToken token = default
+        );
+
+        /// <summary>
         /// Gets Messages using the specified parameters.
         /// </summary>
         /// <param name="maxTimestamp"></param>
         /// <param name="pageSize"></param>
-        /// <param name="avatarIds"></param>
         /// <param name="userId"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        Task<IEnumerable<Common.MessageResult>> GetMessages(DateTimeOffset? maxTimestamp, int? pageSize, IEnumerable<Guid> avatarIds, string userId, CancellationToken token = default);
+        Task<IEnumerable<Common.MessageResult>> GetMessages(
+            DateTimeOffset? maxTimestamp,
+            int? pageSize,
+            string userId,
+            CancellationToken token = default
+        );
     }
 }

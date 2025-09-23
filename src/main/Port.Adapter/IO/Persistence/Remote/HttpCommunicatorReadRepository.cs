@@ -1,4 +1,5 @@
-﻿using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
+﻿using ei8.Cortex.Chat.Nucleus.Domain.Model;
+using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Coding;
 using ei8.Cortex.Coding.d23.Grannies;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
@@ -74,6 +75,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         /// <returns></returns>
         public async Task<IEnumerable<T>> GetByAvatarIds(IEnumerable<Guid> ids, CancellationToken token = default)
         {
+            ids.ValidateIds();
+
             (
                 GrannyResult instantiatesCommunicatorResult,
                 IEnumerable<GrannyResult> communicatorHasAvatarIdsResults
@@ -137,6 +140,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         /// <returns></returns>
         public async Task<IEnumerable<T>> GetByMessageIds(IEnumerable<Guid> ids, CancellationToken token = default)
         {
+            ids.ValidateIds();
+
             (
                 GrannyResult instantiatesCommunicatorResult, 
                 IEnumerable<GrannyResult> communicatorHasAvatarIdsResults

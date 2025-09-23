@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 
-namespace ei8.Cortex.Chat.Nucleus.Application
+namespace ei8.Cortex.Chat.Nucleus.Domain.Model
 {
     public static class EnumerableExtensions
     {

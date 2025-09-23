@@ -1,4 +1,5 @@
-﻿using ei8.Cortex.Chat.Nucleus.Application.Messages;
+﻿using ei8.Cortex.Chat.Common;
+using ei8.Cortex.Chat.Nucleus.Application.Messages;
 using Nancy;
 using Nancy.Helpers;
 using Nancy.Responses;
@@ -18,23 +19,34 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
             {
                 return await MessageModule.ProcessRequest(async () =>
                 {
-                    var messages = await messageQueryService.GetMessages(
-                        Request.Query.maxTimestamp.HasValue ?
-                            DateTimeOffset.Parse(HttpUtility.UrlDecode(Request.Query.maxTimestamp.Value)) :
-                            null,
-                        Request.Query.pageSize.HasValue ?
-                            int.Parse(Request.Query.pageSize.Value) :
-                            null,
-                        Request.Query.avatarId.HasValue ?
-                            ((string)Request.Query.avatarId.Value.ToString())
-                            .Split(',')
-                            .Select(s => Guid.Parse(s)) :
-                            Enumerable.Empty<Guid>(),
-                        MessageModule.GetUserId(Request)
-                    );
+                    var messages = Enumerable.Empty<MessageResult>();
+                    
+                    if (Request.Query.avatarId.HasValue)
+                        messages = await messageQueryService.GetMessages(
+                                ((string)Request.Query.avatarId.Value.ToString())
+                                .Split(',')
+                                .Select(s => Guid.Parse(s)),
+                            Request.Query.maxTimestamp.HasValue ?
+                                DateTimeOffset.Parse(HttpUtility.UrlDecode(Request.Query.maxTimestamp.Value)) :
+                                null,
+                            Request.Query.pageSize.HasValue ?
+                                int.Parse(Request.Query.pageSize.Value) :
+                                null,
+                            MessageModule.GetUserId(Request)
+                        );
+                    else
+                        messages = await messageQueryService.GetMessages(
+                            Request.Query.maxTimestamp.HasValue ?
+                                DateTimeOffset.Parse(HttpUtility.UrlDecode(Request.Query.maxTimestamp.Value)) :
+                                null,
+                            Request.Query.pageSize.HasValue ?
+                                int.Parse(Request.Query.pageSize.Value) :
+                                null,
+                            MessageModule.GetUserId(Request)
+                        );
+
                     return new TextResponse(JsonConvert.SerializeObject(messages));
-                }
-                );
+                });
             }
             );
         }

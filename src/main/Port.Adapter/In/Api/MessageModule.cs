@@ -1,7 +1,6 @@
 ﻿using CQRSlite.Commands;
 using CQRSlite.Domain.Exception;
 using ei8.Cortex.Chat.Nucleus.Application.Messages.Commands;
-using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using Nancy;
 using neurUL.Common.Api;
 using Newtonsoft.Json.Linq;

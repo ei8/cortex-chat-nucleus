@@ -11,17 +11,26 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Messages
     public interface IMessageReadRepository
     {
         /// <summary>
-        /// Gets Messages using the specified parameters.
+        /// Gets Messages using the specified IDs.
         /// </summary>
-        /// <param name="ids"></param>
-        /// <param name="maxTimestamp"></param>
-        /// <param name="pageSize"></param>
+        /// <param name="ids">IDs of the Messages to be retrieved.</param>
+        /// <param name="query">Query parameters used during retrieval.</param>
         /// <param name="token"></param>
         /// <returns></returns>
         Task<IEnumerable<Message>> GetByIds(
             IEnumerable<Guid> ids,
-            DateTimeOffset? maxTimestamp = default, 
-            int? pageSize = default,
+            MessageQuery query,
+            CancellationToken token = default
+        );
+
+        /// <summary>
+        /// Gets Messages using the specified parameters.
+        /// </summary>
+        /// <param name="query">Query parameters used during retrieval.</param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        Task<IEnumerable<Message>> GetByQuery(
+            MessageQuery query,
             CancellationToken token = default
         );
     }
