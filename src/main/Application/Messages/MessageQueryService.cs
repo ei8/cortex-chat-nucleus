@@ -223,7 +223,6 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             if (localMessages.Any())
             {
                 results = await MessageQueryService.CreateMessageResults(
-                    query,
                     userId,
                     senders,
                     localMessages,
@@ -242,7 +241,6 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         }
 
         private static async Task<IEnumerable<MessageResult>> CreateMessageResults(
-            MessageQuery query, 
             string userId, 
             IEnumerable<Sender> senders, 
             IEnumerable<Message> localMessages, 
@@ -258,10 +256,8 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         {
             var results = new List<MessageResult>();
 
-            var pagedMessages = localMessages.Take(query.PageSize.Value);
-
-            var messageIds = pagedMessages.Select(m => m.Id).Distinct();
-            var stringIds = pagedMessages.Select(m => m.ContentId).Distinct();
+            var messageIds = localMessages.Select(m => m.Id).Distinct();
+            var stringIds = localMessages.Select(m => m.ContentId).Distinct();
 
             var validationResult = await validationClient.ReadNeurons(
                 settingsService.IdentityAccessOutBaseUrl + "/",
@@ -291,7 +287,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             );
 
             var recipients = await recipientReadRepository.GetByMessageIds(
-                pagedMessages.Select(pm => pm.Id).Distinct(),
+                localMessages.Select(pm => pm.Id).Distinct(),
                 token
             );
 
@@ -300,7 +296,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                 token
             );
 
-            foreach (var pm in pagedMessages.Reverse())
+            foreach (var pm in localMessages.Reverse())
             {
                 results.Add(
                     await readCache.GetValidateNeuronAsync(

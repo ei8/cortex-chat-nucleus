@@ -32,7 +32,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         private readonly IValidationClient validationClient;
         private readonly ISettingsService settingsService;
         private readonly INetworkTransactionData networkTransactionData;
-        private readonly INetworkDictionary<CacheKey> readWriteCache;
+        private readonly IWriteCacheService writeCacheService;
 
         /// <summary>
         /// Constructs a MessageCommandHandler.
@@ -46,7 +46,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         /// <param name="validationClient"></param>
         /// <param name="settingsService"></param>
         /// <param name="networkTransactionData"></param>
-        /// <param name="readWriteCache"></param>
+        /// <param name="writeCacheService"></param>
         public MessageCommandHandlers(
             ITransaction transaction,
             IMessageWriteRepository messageRepository,
@@ -57,7 +57,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             IValidationClient validationClient,
             ISettingsService settingsService,
             INetworkTransactionData networkTransactionData,
-            INetworkDictionary<CacheKey> readWriteCache
+            IWriteCacheService writeCacheService
         )
         {
             AssertionConcern.AssertArgumentNotNull(transaction, nameof(transaction));
@@ -69,7 +69,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             AssertionConcern.AssertArgumentNotNull(validationClient, nameof(validationClient));
             AssertionConcern.AssertArgumentNotNull(settingsService, nameof(settingsService));
             AssertionConcern.AssertArgumentNotNull(networkTransactionData, nameof(networkTransactionData));
-            AssertionConcern.AssertArgumentNotNull(readWriteCache, nameof(readWriteCache));
+            AssertionConcern.AssertArgumentNotNull(writeCacheService, nameof(writeCacheService));
 
             this.transaction = transaction;
             this.messageRepository = messageRepository;
@@ -80,7 +80,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             this.validationClient = validationClient;
             this.settingsService = settingsService;
             this.networkTransactionData = networkTransactionData;
-            this.readWriteCache = readWriteCache;
+            this.writeCacheService = writeCacheService;
         }
 
         /// <summary>
@@ -111,79 +111,72 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                 var stringValue = new StringWrapper(message.Content);
 
                 await this.stringWrapperRepository.Save(stringValue);
-
-                var dMessage = new Message()
-                {
-                    Id = message.Id,
-                    ContentId = this.networkTransactionData.GetReplacementIdIfExists(stringValue.Id)
-                };
-
-                this.readWriteCache[CacheKey.Write].AddReplace(
-                    Neuron.CreateTransient(
-                        message.Id,
+                await this.writeCacheService.SaveAsync(
+                    new Message()
+                    {
+                        Id = message.Id,
+                        ContentId = this.networkTransactionData.GetReplacementIdIfExists(stringValue.Id)
+                    },
+                    token,
+                    (m) => Neuron.CreateTransient(
+                        m.Id,
                         null,
                         message.MirrorUrl,
                         message.RegionId
-                    )
+                    ),
+                    this.messageRepository.Save
                 );
 
-                await this.messageRepository.Save(dMessage);
-
-                var messageCreation = new Creation()
-                {
-                    Id = Guid.NewGuid(),
-                    SubjectId = message.Id,
-                    Timestamp = DateTimeOffset.Now
-                };
-
-                await this.creationWriteRepository.Save(messageCreation);
+                await this.creationWriteRepository.Save(
+                    new Creation()
+                    {
+                        Id = Guid.NewGuid(),
+                        SubjectId = message.Id,
+                        Timestamp = DateTimeOffset.Now
+                    }
+                );
                 #endregion
 
                 #region Senders
-                var senders = new Sender[]
-                {
-                    new Sender()
+                await this.writeCacheService.SaveAllAsync(
+                    new Sender[]
                     {
-                        Id = Guid.NewGuid(),
-                        AvatarId = validationResult.UserNeuronId,
-                        MessageId = message.Id
-                    }
-                };
-
-                senders.ToList().ForEach(s =>
-                    this.readWriteCache[CacheKey.Write].AddReplace(
-                        Neuron.CreateTransient(
-                            s.Id,
-                            null,
-                            null,
-                            message.RegionId
-                        )
-                    )
+                        new Sender()
+                        {
+                            Id = Guid.NewGuid(),
+                            AvatarId = validationResult.UserNeuronId,
+                            MessageId = message.Id
+                        }
+                    },
+                    token,
+                    (s) => Neuron.CreateTransient(
+                        s.Id,
+                        null,
+                        null,
+                        message.RegionId
+                    ),
+                    this.senderWriteRepository.SaveAll
                 );
-
-                await this.senderWriteRepository.SaveAll(senders);
                 #endregion
 
                 #region Recipients
-                var recipients = message.RecipientAvatarIds.Select(rai => new Recipient()
-                {
-                    Id = Guid.NewGuid(),
-                    AvatarId = rai,
-                    MessageId = message.Id
-                });
-                
-                recipients.ToList().ForEach(r =>
-                    this.readWriteCache[CacheKey.Write].AddReplace(
-                        Neuron.CreateTransient(
-                            r.Id,
-                            null,
-                            null,
-                            message.RegionId
-                        )
-                    )
+                await this.writeCacheService.SaveAllAsync(
+                    message.RecipientAvatarIds.Select(rai => new Recipient()
+                    {
+                        Id = Guid.NewGuid(),
+                        AvatarId = rai,
+                        MessageId = message.Id
+                    }
+                    ),
+                    token,
+                    r => Neuron.CreateTransient(
+                        r.Id,
+                        null,
+                        null,
+                        message.RegionId
+                    ),
+                    this.recipientWriteRepository.SaveAll
                 );
-
-                await this.recipientWriteRepository.SaveAll(recipients);
                 #endregion
                 
                 // TODO:1 using validationClient, validate transient neurons against userId in network prior to commit?

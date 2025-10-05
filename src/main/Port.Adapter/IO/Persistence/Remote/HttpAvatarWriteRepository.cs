@@ -1,4 +1,4 @@
-﻿using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
+﻿using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Coding;
 using ei8.Cortex.Coding.Persistence;
 using ei8.EventSourcing.Client;
@@ -6,17 +6,17 @@ using ei8.EventSourcing.Client;
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
 {
     /// <summary>
-    /// Represents a Message (write-only) Repository.
+    /// Represents an Avatar (write-only) Repository.
     /// </summary>
-    public class HttpMessageWriteRepository : WriteRepositoryBase<Message>, IMessageWriteRepository
-    {
+    public class HttpAvatarWriteRepository : WriteRepositoryBase<Avatar>, IAvatarWriteRepository
+    {        
         /// <summary>
-        /// Constructs a Message Repository.
+        /// Constructs an Avatar Repository.
         /// </summary>
         /// <param name="transaction"></param>
         /// <param name="networkTransactionService"></param>
         /// <param name="neurULizer"></param>
-        public HttpMessageWriteRepository(
+        public HttpAvatarWriteRepository(
             ITransaction transaction,
             INetworkTransactionService networkTransactionService,
             IneurULizer neurULizer
