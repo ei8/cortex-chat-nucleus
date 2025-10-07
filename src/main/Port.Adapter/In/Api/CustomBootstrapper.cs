@@ -100,6 +100,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                 container.Register<IMessageWriteRepository, HttpMessageWriteRepository>();
                 container.Register<ICommunicatorWriteRepository<Sender>, HttpCommunicatorWriteRepository<Sender>>();
                 container.Register<ICommunicatorWriteRepository<Recipient>, HttpCommunicatorWriteRepository<Recipient>>();
+                container.Register<IWriteCacheService, WriteCacheService>();
                 container.Register<MessageCommandHandlers>();
                 container.AddWriters();
                 container.AddReaders();
