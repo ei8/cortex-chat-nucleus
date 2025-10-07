@@ -89,7 +89,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
                 async () => (await this.networkRepository.GetByQueryAsync(
                     new NeuronQuery()
                     {
-                        Postsynaptic = new[] { instantiatesMessageResult.ToString() },
+                        Postsynaptic = new[] { instantiatesMessageResult.Granny.Neuron.Id.ToString() },
                         SortBy = SortByValue.NeuronCreationTimestamp,
                         SortOrder = SortOrderValue.Descending,
                         Depth = Coding.d23.neurULization.Constants.InstanceToValueInstantiatesClassDepth,

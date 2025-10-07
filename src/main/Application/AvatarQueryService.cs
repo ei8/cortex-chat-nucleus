@@ -1,5 +1,6 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Coding;
+using ei8.Cortex.Coding.d23.neurULization.Persistence;
 using neurUL.Common.Domain.Model;
 using System;
 using System.Collections.Generic;

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace ei8.Cortex.Chat.Nucleus.Domain.Model
 {
     /// <summary>
-    /// Provides functionality for writing Mesages.
+    /// Provides functionality for writing Avatars.
     /// </summary>
     public interface IAvatarWriteRepository
     {
