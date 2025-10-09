@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ei8.Cortex.Chat.Nucleus.Application
+namespace ei8.Cortex.Chat.Nucleus.Application.Avatars
 {
     /// <summary>
     /// Represents a query service for Avatars.
@@ -39,9 +39,9 @@ namespace ei8.Cortex.Chat.Nucleus.Application
         public async Task<IEnumerable<Common.AvatarInfo>> GetAvatars(string userId, CancellationToken token = default)
         {
             // TODO:1 validate if user has access to neurons in result using validationClient
-            return (await this.avatarRepository.GetAll(token))
+            return (await avatarRepository.GetAll(token))
                 .Select(a =>
-                    this.readWriteCache[CacheKey.Read].GetValidateNeuron(
+                    readWriteCache[CacheKey.Read].GetValidateNeuron(
                         a.Id,
                         n => new Common.AvatarInfo()
                         {
@@ -66,9 +66,9 @@ namespace ei8.Cortex.Chat.Nucleus.Application
             ids.ValidateIds();
 
             // TODO:1 validate if user has access to neurons in result using validationClient
-            return (await this.avatarRepository.GetByIds(ids, token))
+            return (await avatarRepository.GetByIds(ids, token))
                 .Select(a =>
-                    this.readWriteCache[CacheKey.Read].GetValidateNeuron(
+                    readWriteCache[CacheKey.Read].GetValidateNeuron(
                         a.Id,
                         n => new Common.AvatarInfo()
                         {

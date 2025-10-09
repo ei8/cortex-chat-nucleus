@@ -1,4 +1,5 @@
-﻿using ei8.Cortex.Coding.Properties;
+﻿using ei8.Cortex.Chat.Nucleus.Domain.Model.Avatars;
+using ei8.Cortex.Coding.Properties;
 using System;
 
 namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Messages
@@ -9,7 +10,7 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Messages
     public abstract class CommunicatorBase
     {
         /// <summary>
-        /// Gets or sets the Id of the Communicator.
+        /// Gets or sets the ID of the Communicator.
         /// </summary>
         [neurULNeuronProperty]
         public Guid Id { get; set; }

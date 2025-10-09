@@ -45,11 +45,11 @@
       "Url": "http://neurul.net/sample/cortex/neurons/4061ade3-f1eb-4137-950b-974bd5cc33be"
     },
     {
-      "Key": "ei8.Cortex.Chat.Nucleus.Domain.Model.Avatar",
+      "Key": "ei8.Cortex.Chat.Nucleus.Domain.Model.Avatars.Avatar",
       "Url": "http://neurul.net/sample/cortex/neurons/3fdf7e54-3387-49b2-83f5-4cdcadb8cda0"
     },
     {
-      "Key": "ei8.Cortex.Chat.Nucleus.Domain.Model.Avatar:Name",
+      "Key": "ei8.Cortex.Chat.Nucleus.Domain.Model.Avatars.Avatar:Name",
       "Url": "http://neurul.net/sample/cortex/neurons/075522a1-5f54-4e05-b0f7-3a3cb4a1b79b"
     },
     {

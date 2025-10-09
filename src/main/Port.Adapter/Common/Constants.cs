@@ -1,4 +1,4 @@
-﻿using ei8.Cortex.Chat.Nucleus.Domain.Model;
+﻿using ei8.Cortex.Chat.Nucleus.Domain.Model.Avatars;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Coding.Reflection;
 using ei8.Cortex.Coding.Versioning;

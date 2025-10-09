@@ -1,4 +1,5 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Application;
+using ei8.Cortex.Chat.Nucleus.Application.Avatars;
 using ei8.Cortex.Chat.Nucleus.Application.Messages;
 using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
@@ -102,6 +103,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                 container.Register<ICommunicatorWriteRepository<Recipient>, HttpCommunicatorWriteRepository<Recipient>>();
                 container.Register<IWriteCacheService, WriteCacheService>();
                 container.Register<MessageCommandHandlers>();
+                container.Register<IAvatarWriteRepository, HttpAvatarWriteRepository>();
+                container.Register<AvatarCommandHandlers>();
                 container.AddWriters();
                 container.AddReaders();
             }

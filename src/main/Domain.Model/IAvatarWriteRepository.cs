@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using ei8.Cortex.Chat.Nucleus.Domain.Model.Avatars;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ei8.Cortex.Chat.Nucleus.Domain.Model

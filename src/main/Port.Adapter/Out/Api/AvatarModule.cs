@@ -5,7 +5,7 @@ using Nancy.Responses;
 using Newtonsoft.Json;
 using System.Linq;
 using System;
-using ei8.Cortex.Chat.Nucleus.Application;
+using ei8.Cortex.Chat.Nucleus.Application.Avatars;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
 {

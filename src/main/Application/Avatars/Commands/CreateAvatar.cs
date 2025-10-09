@@ -1,30 +1,27 @@
 ﻿using CQRSlite.Commands;
 using neurUL.Common.Domain.Model;
 using System;
-using System.Collections.Generic;
 
-namespace ei8.Cortex.Chat.Nucleus.Application.Messages.Commands
+namespace ei8.Cortex.Chat.Nucleus.Application.Avatars.Commands
 {
     /// <summary>
-    /// Represents the CreateMessage command.
+    /// Represents a CreateAvatar command.
     /// </summary>
-    public class CreateMessage : ICommand
+    public class CreateAvatar : ICommand
     {
         /// <summary>
-        /// Constructs a CreateMessage command.
+        /// Contructs a CreateAvatar command.
         /// </summary>
         /// <param name="id"></param>
-        /// <param name="content"></param>
+        /// <param name="name"></param>
         /// <param name="regionId"></param>
         /// <param name="mirrorUrl"></param>
-        /// <param name="recipientAvatarIds"></param>
         /// <param name="userId"></param>
-        public CreateMessage(
+        public CreateAvatar(
             Guid id, 
-            string content, 
+            string name, 
             Guid? regionId, 
             string mirrorUrl, 
-            IEnumerable<Guid> recipientAvatarIds, 
             string userId
         )
         {
@@ -33,8 +30,8 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages.Commands
                 id,
                 Constants.Exception.InvalidId,
                 nameof(id)
-                );
-            AssertionConcern.AssertArgumentNotNull(content, nameof(content));
+            );
+            AssertionConcern.AssertArgumentNotNull(name, nameof(name));
             AssertionConcern.AssertArgumentValid(
                 g => g != Guid.Empty,
                 regionId,
@@ -44,10 +41,9 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages.Commands
             AssertionConcern.AssertArgumentNotEmpty(userId, Constants.Exception.InvalidUserId, nameof(userId));
 
             this.Id = id;
-            this.Content = content;
+            this.Name = name;
             this.RegionId = regionId;
             this.MirrorUrl = mirrorUrl;
-            this.RecipientAvatarIds = recipientAvatarIds;
             this.UserId = userId;
         }
 
@@ -57,9 +53,9 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages.Commands
         public Guid Id { get; private set; }
 
         /// <summary>
-        /// Gets the Content.
+        /// Gets the Name.
         /// </summary>
-        public string Content { get; private set; }
+        public string Name { get; private set; }
 
         /// <summary>
         /// Gets the RegionId.
@@ -72,17 +68,12 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages.Commands
         public string MirrorUrl { get; private set; }
 
         /// <summary>
-        /// Gets the RecipientAvatarIds.
-        /// </summary>
-        public IEnumerable<Guid> RecipientAvatarIds { get; private set; }
-
-        /// <summary>
         /// Gets the UserId.
         /// </summary>
         public string UserId { get; private set; }
 
         /// <summary>
-        /// Gest the ExpectedVersion.
+        /// Gets the ExpectedVersion.
         /// </summary>
         public int ExpectedVersion { get; private set; }
     }

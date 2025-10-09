@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ei8.Cortex.Chat.Nucleus.Application
+namespace ei8.Cortex.Chat.Nucleus.Application.Avatars
 {
     /// <summary>
     /// Provides functionality to query Avatars.
