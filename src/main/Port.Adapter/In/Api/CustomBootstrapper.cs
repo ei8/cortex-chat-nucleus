@@ -28,6 +28,7 @@ using Nancy;
 using Nancy.TinyIoc;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -72,7 +73,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
 
             // TODO:1 currently using appuserid to invoke getquery of networkrepository.GetByQueryAsync
             // update IMirrorRepository so all Get methods return UserNeuronId so it can be used to initialize mirrors
-            var result = Task.Run(() => {
+            var result = Task.Run(async () => 
+            {
                 var queryResult = container.Resolve<INetworkRepository>().GetByQueryAsync(
                     new Library.Common.NeuronQuery()
                     {
@@ -81,22 +83,29 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                     },
                     false
                 ).Result;
-                return container.AddMirrors(
+
+                return await container.AddMirrorsAsync(
                     Common.Constants.InitMirrorKeys,
-                    ss.CreateMirrorsIfNotFound,
+                    ss.InitializeMissingMirrors,
                     queryResult.UserNeuronId
                 );
             }).Result;
 
-            if (result)
+            if (result.initialized)
             {
+                Trace.WriteLine("Mirrors initialized successfully. Shutting down application...");
+                Environment.Exit(0);
+            }
+            else if (result.registered)
+            {
+
                 container.Register<IClassInstanceNeuronsRetriever, ClassInstanceNeuronsRetriever>();
                 container.Register<IIdInstanceNeuronsRetriever, IdInstanceNeuronsRetriever>();
                 container.Register<IAvatarReadRepository, HttpAvatarReadRepository>();
                 container.Register<INetworkDictionary<string>>(new NetworkDictionary<string>());
                 container.Register<Id23neurULizerOptions, neurULizerOptions>();
                 container.Register<IneurULizer, neurULizer>();
-                container.Register<IStringWrapperRepository, StringWrapperRepository>();
+                container.Register<IStringWrapperWriteRepository, StringWrapperWriteRepository>();
                 container.Register<ICreationWriteRepository, CreationWriteRepository>();
                 container.Register<IMessageWriteRepository, HttpMessageWriteRepository>();
                 container.Register<ICommunicatorWriteRepository<Sender>, HttpCommunicatorWriteRepository<Sender>>();

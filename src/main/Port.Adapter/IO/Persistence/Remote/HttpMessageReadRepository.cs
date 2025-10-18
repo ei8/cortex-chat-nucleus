@@ -13,7 +13,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
     /// <summary>
     /// Represents a Message (read-only) repository.
     /// </summary>
-    public class HttpMessageReadRepository : ReadRepositoryBase<Message>, IMessageReadRepository
+    public class HttpMessageReadRepository : 
+        ClassReadRepositoryBase<Message>, 
+        IMessageReadRepository
     {
         /// <summary>
         /// Constructs a Message (read-only) Repository.
@@ -22,22 +24,22 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         /// <param name="mirrorRepository"></param>
         /// <param name="neurULizer"></param>
         /// <param name="grannyService"></param>
-        /// <param name="classInstanceNeuronsRetriever"></param>
         /// <param name="readWriteCache"></param>
+        /// <param name="classInstanceNeuronsRetriever"></param>
         public HttpMessageReadRepository(
             INetworkRepository networkRepository,
             IMirrorRepository mirrorRepository,
             IneurULizer neurULizer,
             IGrannyService grannyService,
-            IClassInstanceNeuronsRetriever classInstanceNeuronsRetriever,
-            INetworkDictionary<CacheKey> readWriteCache
+            INetworkDictionary<CacheKey> readWriteCache,
+            IClassInstanceNeuronsRetriever classInstanceNeuronsRetriever
         ) : base(
             networkRepository,
             mirrorRepository,
             neurULizer,
             grannyService,
-            classInstanceNeuronsRetriever,
-            readWriteCache
+            readWriteCache,
+            classInstanceNeuronsRetriever
         )
         {
         }
@@ -79,7 +81,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
             CancellationToken token = default
         )
         {
-            GrannyResult instantiatesMessageResult = await ReadRepositoryBase<Message>.GetInstantiates(
+            GrannyResult instantiatesMessageResult = await ClassReadRepositoryBase<Message>.GetInstantiates(
                 this.grannyService,
                 this.mirrorRepository,
                 token

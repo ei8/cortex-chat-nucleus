@@ -71,13 +71,11 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
             container.AddDataAdapters();
             container.Register<IMirrorRepository, MirrorRepository>();
 
-            var result = Task.Run(() => container.AddMirrors(
-                Common.Constants.InitMirrorKeys,
-                false,
-                Guid.Empty
+            var result = Task.Run(async () => await container.AddMirrorsAsync(
+                Common.Constants.InitMirrorKeys
             )).Result;
 
-            if (result)
+            if (result.registered)
             {
                 container.Register<IClassInstanceNeuronsRetriever, ClassInstanceNeuronsRetriever>();
                 container.Register<IIdInstanceNeuronsRetriever, IdInstanceNeuronsRetriever>();
@@ -85,7 +83,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
                 container.Register<INetworkDictionary<string>>(new NetworkDictionary<string>());
                 container.Register<Id23neurULizerOptions, neurULizerOptions>();
                 container.Register<IneurULizer, neurULizer>();
-                container.Register<IStringWrapperRepository, StringWrapperRepository>();
+                container.Register<IStringWrapperReadRepository, StringWrapperReadRepository>();
                 container.Register<ICreationReadRepository, CreationReadRepository>();
                 container.Register<IMessageQueryClient, HttpMessageQueryClient>();
                 container.Register<IMessageReadRepository, HttpMessageReadRepository>();

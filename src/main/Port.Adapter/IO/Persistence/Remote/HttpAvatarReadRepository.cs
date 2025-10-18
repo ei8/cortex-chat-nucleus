@@ -14,7 +14,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
     /// <summary>
     /// Represents an Avatar (read-only) Repository.
     /// </summary>
-    public class HttpAvatarReadRepository : ReadRepositoryBase<Avatar>, IAvatarReadRepository
+    public class HttpAvatarReadRepository : ClassReadRepositoryBase<Avatar>, IAvatarReadRepository
     {
         /// <summary>
         /// Constructs an Avatar (read-only) Repository.
@@ -23,23 +23,22 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         /// <param name="mirrorRepository"></param>
         /// <param name="neurULizer"></param>
         /// <param name="grannyService"></param>
-        /// <param name="classInstanceNeuronsRetriever"></param>
-        /// <param name="idInstanceNeuronsRetriever"></param>
         /// <param name="readWriteCache"></param>
+        /// <param name="classInstanceNeuronsRetriever"></param>
         public HttpAvatarReadRepository(
             INetworkRepository networkRepository,
             IMirrorRepository mirrorRepository,
             IneurULizer neurULizer,
             IGrannyService grannyService, 
-            IClassInstanceNeuronsRetriever classInstanceNeuronsRetriever,
-            INetworkDictionary<CacheKey> readWriteCache
+            INetworkDictionary<CacheKey> readWriteCache,
+            IClassInstanceNeuronsRetriever classInstanceNeuronsRetriever
         ) : base(
             networkRepository,
             mirrorRepository,
             neurULizer,
             grannyService,
-            classInstanceNeuronsRetriever,
-            readWriteCache
+            readWriteCache,
+            classInstanceNeuronsRetriever
         )
         {
         }

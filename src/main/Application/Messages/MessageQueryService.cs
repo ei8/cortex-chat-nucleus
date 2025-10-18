@@ -12,13 +12,10 @@ using ei8.Cortex.IdentityAccess.Common;
 using IdentityModel.Client;
 using neurUL.Common.Domain.Model;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,7 +30,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         private readonly ICommunicatorReadRepository<Sender> senderReadRepository;
         private readonly ICommunicatorReadRepository<Recipient> recipientReadRepository;
         private readonly IAvatarReadRepository avatarReadRepository;
-        private readonly IStringWrapperRepository stringWrapperRepository;
+        private readonly IStringWrapperReadRepository stringWrapperReadRepository;
         private readonly ICreationReadRepository creationReadRepository;
         private readonly IMessageQueryClient messageQueryClient;
         private readonly IValidationClient validationClient;
@@ -48,7 +45,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         /// <param name="senderReadRepository"></param>
         /// <param name="recipientReadRepository"></param>
         /// <param name="avatarReadRepository"></param>
-        /// <param name="stringWrapperRepository"></param>
+        /// <param name="stringWrapperReadRepository"></param>
         /// <param name="creationReadRepository"></param>
         /// <param name="messageQueryClient"></param>
         /// <param name="validationClient"></param>
@@ -60,7 +57,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             ICommunicatorReadRepository<Sender> senderReadRepository,
             ICommunicatorReadRepository<Recipient> recipientReadRepository,
             IAvatarReadRepository avatarReadRepository,
-            IStringWrapperRepository stringWrapperRepository,
+            IStringWrapperReadRepository stringWrapperReadRepository,
             ICreationReadRepository creationReadRepository,
             IMessageQueryClient messageQueryClient,
             IValidationClient validationClient,
@@ -73,7 +70,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             AssertionConcern.AssertArgumentNotNull(senderReadRepository, nameof(senderReadRepository));
             AssertionConcern.AssertArgumentNotNull(recipientReadRepository, nameof(recipientReadRepository));
             AssertionConcern.AssertArgumentNotNull(avatarReadRepository, nameof(avatarReadRepository));
-            AssertionConcern.AssertArgumentNotNull(stringWrapperRepository, nameof(stringWrapperRepository));
+            AssertionConcern.AssertArgumentNotNull(stringWrapperReadRepository, nameof(stringWrapperReadRepository));
             AssertionConcern.AssertArgumentNotNull(creationReadRepository, nameof(creationReadRepository));
             AssertionConcern.AssertArgumentNotNull(messageQueryClient, nameof(messageQueryClient));
             AssertionConcern.AssertArgumentNotNull(validationClient, nameof(validationClient));
@@ -85,7 +82,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             this.senderReadRepository = senderReadRepository;
             this.recipientReadRepository = recipientReadRepository;
             this.avatarReadRepository = avatarReadRepository;
-            this.stringWrapperRepository = stringWrapperRepository;
+            this.stringWrapperReadRepository = stringWrapperReadRepository;
             this.creationReadRepository = creationReadRepository;
             this.messageQueryClient = messageQueryClient;
             this.validationClient = validationClient;
@@ -229,7 +226,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                     senders,
                     localMessages,
                     this.settingsService,
-                    this.stringWrapperRepository,
+                    this.stringWrapperReadRepository,
                     this.avatarReadRepository,
                     this.recipientReadRepository,
                     this.creationReadRepository,
@@ -247,7 +244,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             IEnumerable<Sender> senders, 
             IEnumerable<Message> localMessages, 
             ISettingsService settingsService,
-            IStringWrapperRepository stringWrapperRepository,
+            IStringWrapperReadRepository stringWrapperReadRepository,
             IAvatarReadRepository avatarReadRepository,
             ICommunicatorReadRepository<Recipient> recipientReadRepository,
             ICreationReadRepository creationReadRepository,
@@ -278,7 +275,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                 $"Neuron Errors - '{MessageQueryService.ToString(validationResult)}'"
             );
 
-            var contentStrings = await stringWrapperRepository.GetByIds(
+            var contentStrings = await stringWrapperReadRepository.GetByIds(
                 stringIds,
                 token
             );

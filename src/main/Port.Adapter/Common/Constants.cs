@@ -16,7 +16,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
         public const string PageSize = "PAGE_SIZE";
         public const string QueryResultLimit = "QUERY_RESULT_LIMIT";
         public const string AppUserId = "APP_USER_ID";
-        public const string CreateMirrorsIfNotFound = "CREATE_EXTERNAL_REFERENCES_IF_NOT_FOUND";
+        public const string InitializeMissingMirrors = "INITIALIZE_MISSING_MIRRORS";
     }
 
     public readonly struct Constants

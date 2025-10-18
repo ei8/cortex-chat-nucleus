@@ -15,7 +15,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public class HttpCommunicatorReadRepository<T> : 
-        ReadRepositoryBase<T>, 
+        ClassReadRepositoryBase<T>, 
         ICommunicatorReadRepository<T> where T : CommunicatorBase, new()
     {
         private readonly IDictionary<string, IGranny> propertyAssociationCache;
@@ -28,23 +28,23 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Persistence.Remote
         /// <param name="neurULizer"></param>
         /// <param name="grannyService"></param>
         /// <param name="propertyAssociationCache"></param>
-        /// <param name="classInstanceNeuronsRetriever"></param>
         /// <param name="readWriteCache"></param>
+        /// <param name="classInstanceNeuronsRetriever"></param>
         public HttpCommunicatorReadRepository(
             INetworkRepository networkRepository,
             IMirrorRepository mirrorRepository,
             IneurULizer neurULizer,
             IGrannyService grannyService,
             IDictionary<string, IGranny> propertyAssociationCache,
-            IClassInstanceNeuronsRetriever classInstanceNeuronsRetriever,
-            INetworkDictionary<CacheKey> readWriteCache
+            INetworkDictionary<CacheKey> readWriteCache,
+            IClassInstanceNeuronsRetriever classInstanceNeuronsRetriever
         ) : base(
             networkRepository,
             mirrorRepository,
             neurULizer,
             grannyService,
-            classInstanceNeuronsRetriever,
-            readWriteCache
+            readWriteCache,
+            classInstanceNeuronsRetriever
         )
         {
             AssertionConcern.AssertArgumentNotNull(propertyAssociationCache, nameof(propertyAssociationCache));

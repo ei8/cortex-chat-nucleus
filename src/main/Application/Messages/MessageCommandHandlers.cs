@@ -25,7 +25,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
     {
         private readonly ITransaction transaction;
         private readonly IMessageWriteRepository messageRepository;
-        private readonly IStringWrapperRepository stringWrapperRepository;
+        private readonly IStringWrapperWriteRepository stringWrapperWriteRepository;
         private readonly ICreationWriteRepository creationWriteRepository;
         private readonly ICommunicatorWriteRepository<Sender> senderWriteRepository;
         private readonly ICommunicatorWriteRepository<Recipient> recipientWriteRepository;
@@ -39,7 +39,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         /// </summary>
         /// <param name="transaction"></param>
         /// <param name="messageRepository"></param>
-        /// <param name="stringWrapperRepository"></param>
+        /// <param name="stringWrapperWriteRepository"></param>
         /// <param name="creationWriteRepository"></param>
         /// <param name="senderWriteRepository"></param>
         /// <param name="recipientWriteRepository"></param>
@@ -50,7 +50,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         public MessageCommandHandlers(
             ITransaction transaction,
             IMessageWriteRepository messageRepository,
-            IStringWrapperRepository stringWrapperRepository,
+            IStringWrapperWriteRepository stringWrapperWriteRepository,
             ICreationWriteRepository creationWriteRepository,
             ICommunicatorWriteRepository<Sender> senderWriteRepository,
             ICommunicatorWriteRepository<Recipient> recipientWriteRepository,
@@ -62,7 +62,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         {
             AssertionConcern.AssertArgumentNotNull(transaction, nameof(transaction));
             AssertionConcern.AssertArgumentNotNull(messageRepository, nameof(messageRepository));
-            AssertionConcern.AssertArgumentNotNull(stringWrapperRepository, nameof(stringWrapperRepository));
+            AssertionConcern.AssertArgumentNotNull(stringWrapperWriteRepository, nameof(stringWrapperWriteRepository));
             AssertionConcern.AssertArgumentNotNull(creationWriteRepository, nameof(creationWriteRepository));
             AssertionConcern.AssertArgumentNotNull(senderWriteRepository, nameof(senderWriteRepository));
             AssertionConcern.AssertArgumentNotNull(recipientWriteRepository, nameof(recipientWriteRepository));
@@ -73,7 +73,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
 
             this.transaction = transaction;
             this.messageRepository = messageRepository;
-            this.stringWrapperRepository = stringWrapperRepository;
+            this.stringWrapperWriteRepository = stringWrapperWriteRepository;
             this.creationWriteRepository = creationWriteRepository;
             this.senderWriteRepository = senderWriteRepository;
             this.recipientWriteRepository = recipientWriteRepository;
@@ -110,7 +110,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                 #region Message
                 var stringValue = new StringWrapper(message.Content);
 
-                await this.stringWrapperRepository.Save(stringValue);
+                await this.stringWrapperWriteRepository.Save(stringValue);
                 await this.writeCacheService.SaveAsync(
                     new Message()
                     {
