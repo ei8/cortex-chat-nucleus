@@ -5,7 +5,6 @@ using ei8.Cortex.Chat.Nucleus.Domain.Model.Avatars;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Coding;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
-using ei8.Cortex.Coding.Persistence.Versioning;
 using ei8.Cortex.Coding.Persistence.Wrappers;
 using ei8.Cortex.IdentityAccess.Client.Out;
 using ei8.Cortex.IdentityAccess.Common;
@@ -31,7 +30,6 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         private readonly ICommunicatorReadRepository<Recipient> recipientReadRepository;
         private readonly IAvatarReadRepository avatarReadRepository;
         private readonly IStringWrapperReadRepository stringWrapperReadRepository;
-        private readonly ICreationReadRepository creationReadRepository;
         private readonly IMessageQueryClient messageQueryClient;
         private readonly IValidationClient validationClient;
         private readonly IHttpClientFactory httpClientFactory;
@@ -46,7 +44,6 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         /// <param name="recipientReadRepository"></param>
         /// <param name="avatarReadRepository"></param>
         /// <param name="stringWrapperReadRepository"></param>
-        /// <param name="creationReadRepository"></param>
         /// <param name="messageQueryClient"></param>
         /// <param name="validationClient"></param>
         /// <param name="httpClientFactory"></param>
@@ -58,7 +55,6 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             ICommunicatorReadRepository<Recipient> recipientReadRepository,
             IAvatarReadRepository avatarReadRepository,
             IStringWrapperReadRepository stringWrapperReadRepository,
-            ICreationReadRepository creationReadRepository,
             IMessageQueryClient messageQueryClient,
             IValidationClient validationClient,
             IHttpClientFactory httpClientFactory,
@@ -71,7 +67,6 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             AssertionConcern.AssertArgumentNotNull(recipientReadRepository, nameof(recipientReadRepository));
             AssertionConcern.AssertArgumentNotNull(avatarReadRepository, nameof(avatarReadRepository));
             AssertionConcern.AssertArgumentNotNull(stringWrapperReadRepository, nameof(stringWrapperReadRepository));
-            AssertionConcern.AssertArgumentNotNull(creationReadRepository, nameof(creationReadRepository));
             AssertionConcern.AssertArgumentNotNull(messageQueryClient, nameof(messageQueryClient));
             AssertionConcern.AssertArgumentNotNull(validationClient, nameof(validationClient));
             AssertionConcern.AssertArgumentNotNull(httpClientFactory, nameof(httpClientFactory));
@@ -83,7 +78,6 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             this.recipientReadRepository = recipientReadRepository;
             this.avatarReadRepository = avatarReadRepository;
             this.stringWrapperReadRepository = stringWrapperReadRepository;
-            this.creationReadRepository = creationReadRepository;
             this.messageQueryClient = messageQueryClient;
             this.validationClient = validationClient;
             this.httpClientFactory = httpClientFactory;
@@ -229,7 +223,6 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                     this.stringWrapperReadRepository,
                     this.avatarReadRepository,
                     this.recipientReadRepository,
-                    this.creationReadRepository,
                     this.validationClient,
                     this.readWriteCache[CacheKey.Read],
                     token
@@ -247,7 +240,6 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             IStringWrapperReadRepository stringWrapperReadRepository,
             IAvatarReadRepository avatarReadRepository,
             ICommunicatorReadRepository<Recipient> recipientReadRepository,
-            ICreationReadRepository creationReadRepository,
             IValidationClient validationClient,
             Network readCache,
             CancellationToken token
@@ -300,9 +292,8 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                 results.Add(
                     await readCache.GetValidateNeuronAsync(
                         pm.Id,
-                        async (n) =>
+                        (n) =>
                         {
-                            var c = (await creationReadRepository.GetBySubjectId(pm.Id)).Single();
                             var mSenders = MessageQueryService.GetCommunicatorInfos(
                                 readCache,
                                 senders,
@@ -315,26 +306,28 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                                 recipientAvatars, 
                                 pm
                             );
-                            return new MessageResult()
-                            {
-                                Id = pm.Id,
-                                Content = new StringInfo()
+                            return Task.FromResult(
+                                new MessageResult()
                                 {
-                                    Id = pm.ContentId,
-                                    Value = contentStrings.Single(csv => csv.Id == pm.ContentId).Tag
-                                },
-                                Region = n.RegionId.HasValue ? new NeuronInfo()
-                                {
-                                    Id = n.RegionId.Value,
-                                    Tag = n.RegionTag
-                                } : null,
-                                Senders = mSenders,
-                                Recipients = mRecipients,
-                                MirrorUrl = n.MirrorUrl,
-                                CreationTimestamp = c.Timestamp,
-                                UnifiedLastModificationTimestamp = n.UnifiedLastModificationTimestamp,
-                                IsCurrentUserCreationAuthor = mSenders.Any(ms => ms.Avatar.Id == validationResult.UserNeuronId)
-                            };
+                                    Id = pm.Id,
+                                    Content = new StringInfo()
+                                    {
+                                        Id = pm.ContentId,
+                                        Value = contentStrings.Single(csv => csv.Id == pm.ContentId).Tag
+                                    },
+                                    Region = n.RegionId.HasValue ? new NeuronInfo()
+                                    {
+                                        Id = n.RegionId.Value,
+                                        Tag = n.RegionTag
+                                    } : null,
+                                    Senders = mSenders,
+                                    Recipients = mRecipients,
+                                    MirrorUrl = n.MirrorUrl,
+                                    CreationTimestamp = pm.CreationTimestamp,
+                                    UnifiedLastModificationTimestamp = n.UnifiedLastModificationTimestamp,
+                                    IsCurrentUserCreationAuthor = mSenders.Any(ms => ms.Avatar.Id == validationResult.UserNeuronId)
+                                }
+                            );
                         }
                     )
                 );

@@ -11,6 +11,7 @@ using ei8.Cortex.Coding.d23.Grannies;
 using ei8.Cortex.Coding.d23.neurULization.Implementation;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
 using ei8.Cortex.Coding.d23.neurULization.Persistence.Versioning;
+using ei8.Cortex.Coding.Model.Reflection;
 using ei8.Cortex.Coding.Persistence;
 using ei8.Cortex.Coding.Persistence.Versioning;
 using ei8.Cortex.Coding.Persistence.Wrappers;
@@ -66,13 +67,15 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
             container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
             var ss = container.Resolve<ISettingsService>();
             container.AddNetworkRepository(ss.CortexLibraryOutBaseUrl + "/", ss.QueryResultLimit, ss.AppUserId);
-            container.AddGrannyService(ss.IdentityAccessOutBaseUrl + "/", ss.AppUserId);
+            container.Register<IGrannyService, GrannyService>();
             container.AddTransactions(ss.EventSourcingInBaseUrl + "/", ss.EventSourcingOutBaseUrl + "/");
             container.AddDataAdapters();
             container.Register<IMirrorRepository, MirrorRepository>();
 
             var result = Task.Run(async () => await container.AddMirrorsAsync(
-                Common.Constants.InitMirrorKeys
+                ReflectionExtensions.GetMirrorKeys(
+                    Common.Constants.InitMirrorKeyTypes
+                )
             )).Result;
 
             if (result.registered)
@@ -84,7 +87,6 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
                 container.Register<Id23neurULizerOptions, neurULizerOptions>();
                 container.Register<IneurULizer, neurULizer>();
                 container.Register<IStringWrapperReadRepository, StringWrapperReadRepository>();
-                container.Register<ICreationReadRepository, CreationReadRepository>();
                 container.Register<IMessageQueryClient, HttpMessageQueryClient>();
                 container.Register<IMessageReadRepository, HttpMessageReadRepository>();
                 container.Register<ICommunicatorReadRepository<Sender>, HttpCommunicatorReadRepository<Sender>>();

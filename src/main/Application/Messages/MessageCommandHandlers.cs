@@ -2,11 +2,9 @@ using CQRSlite.Commands;
 using ei8.Cortex.Chat.Nucleus.Application.Messages.Commands;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Coding;
+using ei8.Cortex.Coding.Model.Wrappers;
 using ei8.Cortex.Coding.Persistence;
-using ei8.Cortex.Coding.Persistence.Versioning;
 using ei8.Cortex.Coding.Persistence.Wrappers;
-using ei8.Cortex.Coding.Versioning;
-using ei8.Cortex.Coding.Wrappers;
 using ei8.Cortex.IdentityAccess.Client.Out;
 using ei8.EventSourcing.Client;
 using neurUL.Common.Domain.Model;
@@ -26,7 +24,6 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         private readonly ITransaction transaction;
         private readonly IMessageWriteRepository messageRepository;
         private readonly IStringWrapperWriteRepository stringWrapperWriteRepository;
-        private readonly ICreationWriteRepository creationWriteRepository;
         private readonly ICommunicatorWriteRepository<Sender> senderWriteRepository;
         private readonly ICommunicatorWriteRepository<Recipient> recipientWriteRepository;
         private readonly IValidationClient validationClient;
@@ -40,7 +37,6 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         /// <param name="transaction"></param>
         /// <param name="messageRepository"></param>
         /// <param name="stringWrapperWriteRepository"></param>
-        /// <param name="creationWriteRepository"></param>
         /// <param name="senderWriteRepository"></param>
         /// <param name="recipientWriteRepository"></param>
         /// <param name="validationClient"></param>
@@ -51,7 +47,6 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             ITransaction transaction,
             IMessageWriteRepository messageRepository,
             IStringWrapperWriteRepository stringWrapperWriteRepository,
-            ICreationWriteRepository creationWriteRepository,
             ICommunicatorWriteRepository<Sender> senderWriteRepository,
             ICommunicatorWriteRepository<Recipient> recipientWriteRepository,
             IValidationClient validationClient,
@@ -63,7 +58,6 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             AssertionConcern.AssertArgumentNotNull(transaction, nameof(transaction));
             AssertionConcern.AssertArgumentNotNull(messageRepository, nameof(messageRepository));
             AssertionConcern.AssertArgumentNotNull(stringWrapperWriteRepository, nameof(stringWrapperWriteRepository));
-            AssertionConcern.AssertArgumentNotNull(creationWriteRepository, nameof(creationWriteRepository));
             AssertionConcern.AssertArgumentNotNull(senderWriteRepository, nameof(senderWriteRepository));
             AssertionConcern.AssertArgumentNotNull(recipientWriteRepository, nameof(recipientWriteRepository));
             AssertionConcern.AssertArgumentNotNull(validationClient, nameof(validationClient));
@@ -74,7 +68,6 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             this.transaction = transaction;
             this.messageRepository = messageRepository;
             this.stringWrapperWriteRepository = stringWrapperWriteRepository;
-            this.creationWriteRepository = creationWriteRepository;
             this.senderWriteRepository = senderWriteRepository;
             this.recipientWriteRepository = recipientWriteRepository;
             this.validationClient = validationClient;
@@ -115,7 +108,8 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                     new Message()
                     {
                         Id = message.Id,
-                        ContentId = this.networkTransactionData.GetReplacementIdIfExists(stringValue.Id)
+                        ContentId = this.networkTransactionData.GetReplacementIdIfExists(stringValue.Id),
+                        CreationTimestamp = DateTimeOffset.Now
                     },
                     token,
                     (m) => Neuron.CreateTransient(
@@ -125,15 +119,6 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                         message.RegionId
                     ),
                     this.messageRepository.Save
-                );
-
-                await this.creationWriteRepository.Save(
-                    new Creation()
-                    {
-                        Id = Guid.NewGuid(),
-                        SubjectId = message.Id,
-                        Timestamp = DateTimeOffset.Now
-                    }
                 );
                 #endregion
 

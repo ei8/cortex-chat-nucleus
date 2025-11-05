@@ -8,9 +8,8 @@ using ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services;
 using ei8.Cortex.Coding;
 using ei8.Cortex.Coding.d23.neurULization.Implementation;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
-using ei8.Cortex.Coding.d23.neurULization.Persistence.Versioning;
+using ei8.Cortex.Coding.Model.Reflection;
 using ei8.Cortex.Coding.Persistence;
-using ei8.Cortex.Coding.Persistence.Versioning;
 using ei8.Cortex.Coding.Persistence.Wrappers;
 using ei8.Cortex.IdentityAccess.Client.In;
 using ei8.Cortex.IdentityAccess.Client.Out;
@@ -66,28 +65,33 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
             var ss = container.Resolve<ISettingsService>();
             container.AddNetworkRepository(ss.CortexLibraryOutBaseUrl + "/", ss.QueryResultLimit, ss.AppUserId);
-            container.AddGrannyService(ss.IdentityAccessOutBaseUrl + "/", ss.AppUserId);
+            container.Register<IGrannyService, GrannyService>();
             container.AddTransactions(ss.EventSourcingInBaseUrl + "/", ss.EventSourcingOutBaseUrl + "/");
             container.AddDataAdapters(typeof(MessageCommandHandlers));
             container.Register<IMirrorRepository, MirrorRepository>();
+
+            Guid? appUserNeuronId = null;
 
             // TODO:1 currently using appuserid to invoke getquery of networkrepository.GetByQueryAsync
             // update IMirrorRepository so all Get methods return UserNeuronId so it can be used to initialize mirrors
             var result = Task.Run(async () => 
             {
-                var queryResult = container.Resolve<INetworkRepository>().GetByQueryAsync(
+                var queryResult = await container.Resolve<INetworkRepository>().GetByQueryAsync(
                     new Library.Common.NeuronQuery()
                     {
                         PageSize = 1,
                         Page = 1
                     },
                     false
-                ).Result;
+                );
+                appUserNeuronId = queryResult.UserNeuronId;
 
                 return await container.AddMirrorsAsync(
-                    Common.Constants.InitMirrorKeys,
+                    ReflectionExtensions.GetMirrorKeys(
+                        Common.Constants.InitMirrorKeyTypes
+                    ),
                     ss.InitializeMissingMirrors,
-                    queryResult.UserNeuronId
+                    appUserNeuronId
                 );
             }).Result;
 
@@ -98,15 +102,21 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             }
             else if (result.registered)
             {
+                container.Register<INetworkDictionary<string>>(new NetworkDictionary<string>());
+                container.AddWriters();
+                container.AddReaders();
+
+                var grannyResults = Task.Run(async () => await container.AddInstantiatiesClassGranniesAsync(
+                    appUserNeuronId,
+                    Common.Constants.InitMirrorKeyTypes
+                )).Result;
 
                 container.Register<IClassInstanceNeuronsRetriever, ClassInstanceNeuronsRetriever>();
                 container.Register<IIdInstanceNeuronsRetriever, IdInstanceNeuronsRetriever>();
                 container.Register<IAvatarReadRepository, HttpAvatarReadRepository>();
-                container.Register<INetworkDictionary<string>>(new NetworkDictionary<string>());
                 container.Register<Id23neurULizerOptions, neurULizerOptions>();
                 container.Register<IneurULizer, neurULizer>();
                 container.Register<IStringWrapperWriteRepository, StringWrapperWriteRepository>();
-                container.Register<ICreationWriteRepository, CreationWriteRepository>();
                 container.Register<IMessageWriteRepository, HttpMessageWriteRepository>();
                 container.Register<ICommunicatorWriteRepository<Sender>, HttpCommunicatorWriteRepository<Sender>>();
                 container.Register<ICommunicatorWriteRepository<Recipient>, HttpCommunicatorWriteRepository<Recipient>>();
@@ -114,8 +124,6 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                 container.Register<MessageCommandHandlers>();
                 container.Register<IAvatarWriteRepository, HttpAvatarWriteRepository>();
                 container.Register<AvatarCommandHandlers>();
-                container.AddWriters();
-                container.AddReaders();
             }
         }
     }

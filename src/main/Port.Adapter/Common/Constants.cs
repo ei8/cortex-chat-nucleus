@@ -1,8 +1,6 @@
 ﻿using ei8.Cortex.Chat.Nucleus.Domain.Model.Avatars;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
-using ei8.Cortex.Coding.Reflection;
-using ei8.Cortex.Coding.Versioning;
-using System.Collections.Generic;
+using System;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
 {
@@ -21,13 +19,12 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
 
     public readonly struct Constants
     {
-        public static readonly IEnumerable<object> InitMirrorKeys = ReflectionExtensions.GetMirrorKeys(
+        public static readonly Type[] InitMirrorKeyTypes = new Type[] {
             typeof(Avatar),
             typeof(Message),
-            typeof(Creation),
             typeof(Sender),
             typeof(Recipient)
-        );
+        };
     }
 
     public struct Default

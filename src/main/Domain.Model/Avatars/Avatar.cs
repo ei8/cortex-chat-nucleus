@@ -1,19 +1,12 @@
-﻿using ei8.Cortex.Coding.Properties;
-using System;
+﻿using ei8.Cortex.Coding.Model;
 
 namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Avatars
 {
     /// <summary>
     /// Represents an Avatar.
     /// </summary>
-    public class Avatar
+    public class Avatar : CreatedInstanceBase
     {
-        /// <summary>
-        /// Gets or sets the ID.
-        /// </summary>
-        [neurULNeuronProperty]
-        public Guid Id { get; set; }
-
         /// <summary>
         /// Gets or sets the Name.
         /// </summary>
