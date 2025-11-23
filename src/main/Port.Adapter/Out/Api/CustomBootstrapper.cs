@@ -10,10 +10,8 @@ using ei8.Cortex.Coding;
 using ei8.Cortex.Coding.d23.Grannies;
 using ei8.Cortex.Coding.d23.neurULization.Implementation;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
-using ei8.Cortex.Coding.d23.neurULization.Persistence.Versioning;
 using ei8.Cortex.Coding.Model.Reflection;
 using ei8.Cortex.Coding.Persistence;
-using ei8.Cortex.Coding.Persistence.Versioning;
 using ei8.Cortex.Coding.Persistence.Wrappers;
 using ei8.Cortex.IdentityAccess.Client.Out;
 using ei8.Cortex.Library.Client.Out;
@@ -30,15 +28,15 @@ using Nancy;
 using Nancy.TinyIoc;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.Http;
-using System.Threading.Tasks;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
 {
     public class CustomBootstrapper : DefaultNancyBootstrapper
     {
         private readonly IServiceProvider serviceProvider;
-        
+
         public CustomBootstrapper(IServiceProvider serviceProvider)
         {
             this.serviceProvider = serviceProvider;
@@ -47,6 +45,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
         protected override void ConfigureApplicationContainer(TinyIoCContainer container)
         {
             base.ConfigureApplicationContainer(container);
+
+            Trace.Listeners.Add(new ConsoleTraceListener());
 
             container.AddReadWriteCache();
             container.Register<IDictionary<string, IGranny>>(new Dictionary<string, IGranny>());
@@ -67,35 +67,48 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
             container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
             var ss = container.Resolve<ISettingsService>();
             container.AddNetworkRepository(ss.CortexLibraryOutBaseUrl + "/", ss.QueryResultLimit, ss.AppUserId);
+            Guid? appUserNeuronId = container.GetAppUserNeuronId();
+
             container.Register<IGrannyService, GrannyService>();
             container.AddTransactions(ss.EventSourcingInBaseUrl + "/", ss.EventSourcingOutBaseUrl + "/");
             container.AddDataAdapters();
             container.Register<IMirrorRepository, MirrorRepository>();
 
-            var result = Task.Run(async () => await container.AddMirrorsAsync(
-                ReflectionExtensions.GetMirrorKeys(
-                    Common.Constants.InitMirrorKeyTypes
+            container.RegisterStagedAppMirrors(
+                false,
+                appUserNeuronId,
+                ss.InitializeRetryCount,
+                ss.InitializeRetryDelay,
+                "Dependencies registration",
+                MirrorRepositoryExtensions.ConvertToStringKeys(
+                    ReflectionExtensions.GetMirrorKeys(
+                        Common.Constants.InitMirrorKeyTypes
+                    )
+                ),
+                (cpc) => cpc.PreRegisterAppMirrorSet(
+                    () => CustomBootstrapper.RegisterCore(cpc)
                 )
-            )).Result;
+            );
+        }
 
-            if (result.registered)
-            {
-                container.Register<IClassInstanceNeuronsRetriever, ClassInstanceNeuronsRetriever>();
-                container.Register<IIdInstanceNeuronsRetriever, IdInstanceNeuronsRetriever>();
-                container.Register<IAvatarReadRepository, HttpAvatarReadRepository>();
-                container.Register<INetworkDictionary<string>>(new NetworkDictionary<string>());
-                container.Register<Id23neurULizerOptions, neurULizerOptions>();
-                container.Register<IneurULizer, neurULizer>();
-                container.Register<IStringWrapperReadRepository, StringWrapperReadRepository>();
-                container.Register<IMessageQueryClient, HttpMessageQueryClient>();
-                container.Register<IMessageReadRepository, HttpMessageReadRepository>();
-                container.Register<ICommunicatorReadRepository<Sender>, HttpCommunicatorReadRepository<Sender>>();
-                container.Register<ICommunicatorReadRepository<Recipient>, HttpCommunicatorReadRepository<Recipient>>();
-                container.Register<IMessageQueryService, MessageQueryService>();
-                container.Register<IAvatarQueryService, AvatarQueryService>();
-                container.AddWriters();
-                container.AddReaders();
-            }
+        private static void RegisterCore(TinyIoCContainer container)
+        {
+            container.Register<INetworkDictionary<string>>(new NetworkDictionary<string>());
+            container.AddWriters();
+            container.AddReaders();
+
+            container.Register<IClassInstanceNeuronsRetriever, ClassInstanceNeuronsRetriever>();
+            container.Register<IIdInstanceNeuronsRetriever, IdInstanceNeuronsRetriever>();
+            container.Register<IAvatarReadRepository, HttpAvatarReadRepository>();
+            container.Register<Id23neurULizerOptions, neurULizerOptions>();
+            container.Register<IneurULizer, neurULizer>();
+            container.Register<IStringWrapperReadRepository, StringWrapperReadRepository>();
+            container.Register<IMessageQueryClient, HttpMessageQueryClient>();
+            container.Register<IMessageReadRepository, HttpMessageReadRepository>();
+            container.Register<ICommunicatorReadRepository<Sender>, HttpCommunicatorReadRepository<Sender>>();
+            container.Register<ICommunicatorReadRepository<Recipient>, HttpCommunicatorReadRepository<Recipient>>();
+            container.Register<IMessageQueryService, MessageQueryService>();
+            container.Register<IAvatarQueryService, AvatarQueryService>();
         }
     }
 }

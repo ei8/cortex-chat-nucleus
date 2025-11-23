@@ -39,5 +39,25 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.IO.Process.Services
                 out bool create
             ) && 
             create;
+
+        /// <summary>
+        /// Gets the number of initialization retries 
+        /// </summary>
+        public int InitializeRetryCount => int.TryParse(
+            Environment.GetEnvironmentVariable(EnvironmentVariableKeys.InitializeRetryCount), 
+            out int retryCount
+        ) ? 
+            retryCount : 
+            Default.InitializeRetryCount;
+
+        /// <summary>
+        /// Gets the number of seconds to wait between initialization retries.
+        /// </summary>
+        public int InitializeRetryDelay => int.TryParse(
+            Environment.GetEnvironmentVariable(EnvironmentVariableKeys.InitializeRetryDelay),
+            out int retryDelay
+        ) ?
+            retryDelay :
+            Default.InitializeRetryDelay;
     }
 }

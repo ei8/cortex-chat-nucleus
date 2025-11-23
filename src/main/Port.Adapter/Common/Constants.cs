@@ -15,6 +15,16 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
         public const string QueryResultLimit = "QUERY_RESULT_LIMIT";
         public const string AppUserId = "APP_USER_ID";
         public const string InitializeMissingMirrors = "INITIALIZE_MISSING_MIRRORS";
+
+        /// <summary>
+        /// Key for InitializeRetryCount.
+        /// </summary>
+        public const string InitializeRetryCount = "INITIALIZE_RETRY_COUNT";
+
+        /// <summary>
+        /// Key for InitializeRetryDelay.
+        /// </summary>
+        public const string InitializeRetryDelay = "INITIALIZE_RETRY_DELAY";
     }
 
     public readonly struct Constants
@@ -31,5 +41,15 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Common
     {
         public const int PageSize = 20;
         public const int QueryResultLimit = 10;
+
+        /// <summary>
+        /// Default value for InitializeRetryCount.
+        /// </summary>
+        public const int InitializeRetryCount = 5;
+
+        /// <summary>
+        /// Default value for InitializeRetryDelay.
+        /// </summary>
+        public const int InitializeRetryDelay = 5;
     }
 }

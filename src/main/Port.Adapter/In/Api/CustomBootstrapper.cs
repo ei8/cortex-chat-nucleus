@@ -46,6 +46,8 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
         {
             base.ConfigureApplicationContainer(container);
 
+            Trace.Listeners.Add(new ConsoleTraceListener());
+
             container.AddReadWriteCache();
             container.Register(this.serviceProvider.GetService<IOptions<List<MirrorConfig>>>());
             container.Register(this.serviceProvider.GetService<IOptions<List<Authority>>>());
@@ -65,66 +67,54 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
             container.Register<INeuronQueryClient, HttpNeuronQueryClient>();
             var ss = container.Resolve<ISettingsService>();
             container.AddNetworkRepository(ss.CortexLibraryOutBaseUrl + "/", ss.QueryResultLimit, ss.AppUserId);
+            Guid? appUserNeuronId = container.GetAppUserNeuronId();
+
             container.Register<IGrannyService, GrannyService>();
             container.AddTransactions(ss.EventSourcingInBaseUrl + "/", ss.EventSourcingOutBaseUrl + "/");
             container.AddDataAdapters(typeof(MessageCommandHandlers));
             container.Register<IMirrorRepository, MirrorRepository>();
 
-            Guid? appUserNeuronId = null;
-
-            // TODO:1 currently using appuserid to invoke getquery of networkrepository.GetByQueryAsync
-            // update IMirrorRepository so all Get methods return UserNeuronId so it can be used to initialize mirrors
-            var result = Task.Run(async () => 
-            {
-                var queryResult = await container.Resolve<INetworkRepository>().GetByQueryAsync(
-                    new Library.Common.NeuronQuery()
-                    {
-                        PageSize = 1,
-                        Page = 1
-                    },
-                    false
-                );
-                appUserNeuronId = queryResult.UserNeuronId;
-
-                return await container.AddMirrorsAsync(
+            container.RegisterStagedAppMirrors(
+                ss.InitializeMissingMirrors, 
+                appUserNeuronId, 
+                ss.InitializeRetryCount, 
+                ss.InitializeRetryDelay,
+                "Dependencies registration",
+                MirrorRepositoryExtensions.ConvertToStringKeys(
                     ReflectionExtensions.GetMirrorKeys(
                         Common.Constants.InitMirrorKeyTypes
-                    ),
-                    ss.InitializeMissingMirrors,
-                    appUserNeuronId
-                );
-            }).Result;
+                    )
+                ),
+                (cpc) => cpc.PreRegisterAppMirrorSet(
+                    () => CustomBootstrapper.RegisterCore(cpc, appUserNeuronId)
+                )
+            );
+        }
 
-            if (result.initialized)
-            {
-                Trace.WriteLine("Mirrors initialized successfully. Shutting down application...");
-                Environment.Exit(0);
-            }
-            else if (result.registered)
-            {
-                container.Register<INetworkDictionary<string>>(new NetworkDictionary<string>());
-                container.AddWriters();
-                container.AddReaders();
+        private static void RegisterCore(TinyIoCContainer container, Guid? appUserNeuronId)
+        {
+            container.Register<INetworkDictionary<string>>(new NetworkDictionary<string>());
+            container.AddWriters();
+            container.AddReaders();
 
-                var grannyResults = Task.Run(async () => await container.AddInstantiatiesClassGranniesAsync(
-                    appUserNeuronId,
-                    Common.Constants.InitMirrorKeyTypes
-                )).Result;
+            var grannyResults = Task.Run(async () => await container.AddInstantiatiesClassGranniesAsync(
+                appUserNeuronId,
+                Common.Constants.InitMirrorKeyTypes
+            )).Result;
 
-                container.Register<IClassInstanceNeuronsRetriever, ClassInstanceNeuronsRetriever>();
-                container.Register<IIdInstanceNeuronsRetriever, IdInstanceNeuronsRetriever>();
-                container.Register<IAvatarReadRepository, HttpAvatarReadRepository>();
-                container.Register<Id23neurULizerOptions, neurULizerOptions>();
-                container.Register<IneurULizer, neurULizer>();
-                container.Register<IStringWrapperWriteRepository, StringWrapperWriteRepository>();
-                container.Register<IMessageWriteRepository, HttpMessageWriteRepository>();
-                container.Register<ICommunicatorWriteRepository<Sender>, HttpCommunicatorWriteRepository<Sender>>();
-                container.Register<ICommunicatorWriteRepository<Recipient>, HttpCommunicatorWriteRepository<Recipient>>();
-                container.Register<IWriteCacheService, WriteCacheService>();
-                container.Register<MessageCommandHandlers>();
-                container.Register<IAvatarWriteRepository, HttpAvatarWriteRepository>();
-                container.Register<AvatarCommandHandlers>();
-            }
+            container.Register<IClassInstanceNeuronsRetriever, ClassInstanceNeuronsRetriever>();
+            container.Register<IIdInstanceNeuronsRetriever, IdInstanceNeuronsRetriever>();
+            container.Register<IAvatarReadRepository, HttpAvatarReadRepository>();
+            container.Register<Id23neurULizerOptions, neurULizerOptions>();
+            container.Register<IneurULizer, neurULizer>();
+            container.Register<IStringWrapperWriteRepository, StringWrapperWriteRepository>();
+            container.Register<IMessageWriteRepository, HttpMessageWriteRepository>();
+            container.Register<ICommunicatorWriteRepository<Sender>, HttpCommunicatorWriteRepository<Sender>>();
+            container.Register<ICommunicatorWriteRepository<Recipient>, HttpCommunicatorWriteRepository<Recipient>>();
+            container.Register<IWriteCacheService, WriteCacheService>();
+            container.Register<MessageCommandHandlers>();
+            container.Register<IAvatarWriteRepository, HttpAvatarWriteRepository>();
+            container.Register<AvatarCommandHandlers>();
         }
     }
 }

@@ -20,10 +20,9 @@
     <PackageReference Include="ei8.Data.Aggregate.Common" Version="0.1.1" />
     <PackageReference Include="ei8.Data.Mirror.Common" Version="0.1.0" />
     <PackageReference Include="ei8.Data.Tag.Common" Version="0.1.3" />
-    <PackageReference Include="ei8.Extensions.DependencyInjection" Version="0.0.9" />
-    <PackageReference Include="ei8.Extensions.DependencyInjection.Coding" Version="0.0.4" />
+    <PackageReference Include="ei8.Extensions.DependencyInjection.Coding" Version="0.0.7" />
     <PackageReference Include="ei8.Extensions.DependencyInjection.Coding.d23.neurULization" Version="0.0.6" />
-    <PackageReference Include="ei8.Extensions.DependencyInjection.Coding.d23.neurULization.Persistence" Version="0.1.4" />
+    <PackageReference Include="ei8.Extensions.DependencyInjection.Coding.d23.neurULization.Persistence" Version="0.1.5" />
     <PackageReference Include="ei8.Extensions.DependencyInjection.Coding.Persistence" Version="0.1.2" />
     <PackageReference Include="ei8.Extensions.DependencyInjection.Cortex" Version="0.0.2" />
     <PackageReference Include="ei8.Extensions.DependencyInjection.EventSourcing" Version="0.0.2" />
