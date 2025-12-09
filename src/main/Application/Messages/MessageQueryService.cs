@@ -125,12 +125,41 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
 
                     return (localMessages, senders);
                 },
-                async (t) => await this.avatarReadRepository.GetByIds(senderAvatarIds),
+                async (t) =>
+                {
+                    var avatars = await this.avatarReadRepository.GetByIds(senderAvatarIds);
+                    // remove owner avatar from 
+                    var avatarsList = avatars.ToList();
+                    var invalidAvatarIds = avatarsList.Where(
+                        a => MessageQueryService.HasInvalidMirrorUrl(
+                            a, 
+                            this.readWriteCache[CacheKey.Read]
+                        )
+                    ).Select(a => a.Id);
+
+                    AssertionConcern.AssertArgumentValid(
+                        ids => !ids.Any(),
+                        invalidAvatarIds,
+                        $"The specifed Avatar IDs do not have valid mirror URLs: '{string.Join("', '", invalidAvatarIds)}'",
+                        nameof(invalidAvatarIds)
+                    );
+
+                    return avatars;
+                },
                 maxTimestamp,
                 pageSize,
                 userId,
                 token
             );
+        }
+
+        private static bool HasInvalidMirrorUrl(Avatar avatar, Network readCache)
+        {
+            AssertionConcern.AssertArgumentTrue(
+                readCache.TryGetById(avatar.Id, out Neuron avatarNeuron),
+                "Avatar neuron was not found in readCache."
+            );
+            return string.IsNullOrWhiteSpace(avatarNeuron.MirrorUrl);
         }
 
         /// <summary>
@@ -153,10 +182,18 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                 {
                     // if no avatars are specified, return all messages
                     var localMessages = await this.messageRepository.GetByQuery(q, t);
-                    var senders = await this.senderReadRepository.GetByMessageIds(localMessages.Select(m => m.Id).Distinct(), t);
+                    var senders = localMessages.Any() ?
+                        await this.senderReadRepository.GetByMessageIds(localMessages.Select(m => m.Id).Distinct(), t) :
+                        Enumerable.Empty<Sender>();
                     return (localMessages, senders);
                 },
-                async (t) => await this.avatarReadRepository.GetAll(token),
+                async (t) =>
+                {
+                    var avatars = await this.avatarReadRepository.GetAll(token);
+                    var avatarsList = avatars.ToList();
+                    avatarsList.RemoveAll(a => MessageQueryService.HasInvalidMirrorUrl(a, this.readWriteCache[CacheKey.Read]));
+                    return avatarsList.ToArray();
+                },
                 maxTimestamp, 
                 pageSize, 
                 userId, 
@@ -191,6 +228,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             );
 
             var avatars = await remoteAvatarsRetriever(token);
+
             result.AddRange(
                 await this.GetRemoteMessages(
                     avatars,
