@@ -456,6 +456,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                             tokenResponse.AccessToken,
                             null,
                             pageSize,
+                            false,
                             new[] { remoteAvatarId },
                             token
                         ));
