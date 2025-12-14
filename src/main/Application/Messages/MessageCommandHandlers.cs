@@ -143,23 +143,24 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                 #endregion
 
                 #region Recipients
-                await this.writeCacheService.SaveAllAsync(
-                    message.RecipientAvatarIds.Select(rai => 
-                        new Recipient(
-                            Guid.NewGuid(),
-                            rai,
-                            message.Id
-                        )
-                    ),
-                    token,
-                    r => Neuron.CreateTransient(
-                        r.Id,
-                        null,
-                        null,
-                        message.RegionId
-                    ),
-                    this.recipientWriteRepository.SaveAll
-                );
+                if (message.RecipientAvatarIds.Any())
+                    await this.writeCacheService.SaveAllAsync(
+                        message.RecipientAvatarIds.Select(rai => 
+                            new Recipient(
+                                Guid.NewGuid(),
+                                rai,
+                                message.Id
+                            )
+                        ),
+                        token,
+                        r => Neuron.CreateTransient(
+                            r.Id,
+                            null,
+                            null,
+                            message.RegionId
+                        ),
+                        this.recipientWriteRepository.SaveAll
+                    );
                 #endregion
                 
                 // TODO:1 using validationClient, validate transient neurons against userId in network prior to commit?
