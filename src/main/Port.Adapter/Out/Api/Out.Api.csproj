@@ -19,7 +19,7 @@
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.0" />
     <PackageReference Include="CqrsLite" Version="0.18.1" />
     <PackageReference Include="ei8.Cortex.Chat.Common" Version="0.2.5" />
-    <PackageReference Include="ei8.Cortex.Chat.Nucleus.Client" Version="0.2.7" />
+    <PackageReference Include="ei8.Cortex.Chat.Nucleus.Client" Version="0.2.9" />
     <PackageReference Include="ei8.Cortex.IdentityAccess.Client" Version="0.2.3" />
     <PackageReference Include="ei8.Cortex.Library.Client" Version="0.4.0" />
     <PackageReference Include="ei8.Data.Aggregate.Common" Version="0.1.1" />
@@ -33,7 +33,7 @@
     <PackageReference Include="ei8.Extensions.DependencyInjection.Cortex" Version="0.0.2" />
     <PackageReference Include="ei8.Extensions.DependencyInjection.EventSourcing" Version="0.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Owin" Version="6.0.36" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.8" />
     <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="5.8.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
