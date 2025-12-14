@@ -41,6 +41,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages.Commands
                 Domain.Model.Constants.Exception.InvalidId,
                 nameof(regionId)
                 );
+            AssertionConcern.AssertArgumentNotNull(recipientAvatarIds, nameof(recipientAvatarIds));
             AssertionConcern.AssertArgumentNotEmpty(userId, Constants.Exception.InvalidUserId, nameof(userId));
 
             this.Id = id;

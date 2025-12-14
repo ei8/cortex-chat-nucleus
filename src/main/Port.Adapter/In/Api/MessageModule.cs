@@ -27,7 +27,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                         {
                             Guid? regionId = null;
                             string mirrorUrl = null;
-                            string[] recipientAvatarIds = null;
+                            string[] recipientAvatarIds = Array.Empty<string>();
 
                             if (bodyAsDictionary.ContainsKey(nameof(CreateMessage.RegionId)))
                                 if (Guid.TryParse(bodyAsObject.RegionId.ToString(), out Guid tempRegionId))
@@ -40,13 +40,14 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.In.Api
                                 bodyAsDictionary[nameof(CreateMessage.RecipientAvatarIds)] != null)
                                 recipientAvatarIds = ((JArray) bodyAsDictionary[nameof(CreateMessage.RecipientAvatarIds)]).ToObject<string[]>();
 
-                            await commandSender.Send(new CreateMessage(
-                                Guid.Parse(bodyAsObject.Id.ToString()),
-                                bodyAsObject.Content.ToString(),
-                                regionId,
-                                mirrorUrl,
-                                recipientAvatarIds?.Select(dri => Guid.Parse(dri)),
-                                bodyAsObject.UserId.ToString()
+                            await commandSender.Send(
+                                new CreateMessage(
+                                    Guid.Parse(bodyAsObject.Id.ToString()),
+                                    bodyAsObject.Content.ToString(),
+                                    regionId,
+                                    mirrorUrl,
+                                    recipientAvatarIds.Select(dri => Guid.Parse(dri)),
+                                    bodyAsObject.UserId.ToString()
                                 )
                             );
                         },
