@@ -8,14 +8,7 @@ namespace ei8.Cortex.Chat.Nucleus.Domain.Model.Messages
     public class MessageQuery
     {
         /// <summary>
-        /// Constructs a MessageQuery using default parameter values;
-        /// </summary>
-        public MessageQuery() : this(null, null)
-        {
-        }
-
-        /// <summary>
-        /// Constructs a MessageQuery using the specified parameters.
+        /// Constructs a MessageQuery.
         /// </summary>
         /// <param name="maxTimestamp"></param>
         /// <param name="pageSize"></param>

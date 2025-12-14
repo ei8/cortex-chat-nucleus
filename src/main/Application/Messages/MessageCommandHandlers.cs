@@ -105,12 +105,11 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
 
                 await this.stringWrapperWriteRepository.Save(stringValue);
                 await this.writeCacheService.SaveAsync(
-                    new Message()
-                    {
-                        Id = message.Id,
-                        ContentId = this.networkTransactionData.GetReplacementIdIfExists(stringValue.Id),
-                        CreationTimestamp = DateTimeOffset.Now
-                    },
+                    new Message(
+                        message.Id,
+                        this.networkTransactionData.GetReplacementIdIfExists(stringValue.Id),
+                        DateTimeOffset.Now
+                    ),
                     token,
                     (m) => Neuron.CreateTransient(
                         m.Id,
@@ -126,12 +125,11 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                 await this.writeCacheService.SaveAllAsync(
                     new Sender[]
                     {
-                        new Sender()
-                        {
-                            Id = Guid.NewGuid(),
-                            AvatarId = validationResult.UserNeuronId,
-                            MessageId = message.Id
-                        }
+                        new Sender(
+                            Guid.NewGuid(),
+                            validationResult.UserNeuronId,
+                            message.Id
+                        )
                     },
                     token,
                     (s) => Neuron.CreateTransient(
@@ -146,12 +144,12 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
 
                 #region Recipients
                 await this.writeCacheService.SaveAllAsync(
-                    message.RecipientAvatarIds.Select(rai => new Recipient()
-                    {
-                        Id = Guid.NewGuid(),
-                        AvatarId = rai,
-                        MessageId = message.Id
-                    }
+                    message.RecipientAvatarIds.Select(rai => 
+                        new Recipient(
+                            Guid.NewGuid(),
+                            rai,
+                            message.Id
+                        )
                     ),
                     token,
                     r => Neuron.CreateTransient(

@@ -23,6 +23,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             IEnumerable<Guid> senderAvatarIds, 
             DateTimeOffset? maxTimestamp, 
             int? pageSize, 
+            bool includeRemote,
             string userId, 
             CancellationToken token = default
         );
@@ -38,6 +39,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         Task<IEnumerable<Common.MessageResult>> GetMessages(
             DateTimeOffset? maxTimestamp,
             int? pageSize,
+            bool includeRemote,
             string userId,
             CancellationToken token = default
         );

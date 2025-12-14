@@ -20,10 +20,10 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
                 return await MessageModule.ProcessRequest(async () =>
                 {
                     var messages = Enumerable.Empty<MessageResult>();
-                    
+
                     if (Request.Query.avatarId.HasValue)
                         messages = await messageQueryService.GetMessages(
-                                ((string)Request.Query.avatarId.Value.ToString())
+                            ((string)Request.Query.avatarId.Value.ToString())
                                 .Split(',')
                                 .Select(s => Guid.Parse(s)),
                             Request.Query.maxTimestamp.HasValue ?
@@ -32,6 +32,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
                             Request.Query.pageSize.HasValue ?
                                 int.Parse(Request.Query.pageSize.Value) :
                                 null,
+                            bool.TryParse(Request.Query.includeRemote, out bool ir) ?
+                                ir :
+                                true,
                             MessageModule.GetUserId(Request)
                         );
                     else
@@ -42,6 +45,9 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
                             Request.Query.pageSize.HasValue ?
                                 int.Parse(Request.Query.pageSize.Value) :
                                 null,
+                            bool.TryParse(Request.Query.includeRemote, out bool ir) ?
+                                ir :
+                                true,
                             MessageModule.GetUserId(Request)
                         );
 

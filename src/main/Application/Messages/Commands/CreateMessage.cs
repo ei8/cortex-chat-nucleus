@@ -31,14 +31,14 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages.Commands
             AssertionConcern.AssertArgumentValid(
                 g => g != Guid.Empty,
                 id,
-                Constants.Exception.InvalidId,
+                Domain.Model.Constants.Exception.InvalidId,
                 nameof(id)
                 );
             AssertionConcern.AssertArgumentNotNull(content, nameof(content));
             AssertionConcern.AssertArgumentValid(
                 g => g != Guid.Empty,
                 regionId,
-                Constants.Exception.InvalidId,
+                Domain.Model.Constants.Exception.InvalidId,
                 nameof(regionId)
                 );
             AssertionConcern.AssertArgumentNotEmpty(userId, Constants.Exception.InvalidUserId, nameof(userId));

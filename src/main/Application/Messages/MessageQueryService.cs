@@ -98,6 +98,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             IEnumerable<Guid> senderAvatarIds, 
             DateTimeOffset? maxTimestamp, 
             int? pageSize, 
+            bool includeRemote,
             string userId, 
             CancellationToken token = default
         )
@@ -148,6 +149,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                 },
                 maxTimestamp,
                 pageSize,
+                includeRemote,
                 userId,
                 token
             );
@@ -173,6 +175,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         public async Task<IEnumerable<MessageResult>> GetMessages(
             DateTimeOffset? maxTimestamp, 
             int? pageSize, 
+            bool includeRemote,
             string userId, 
             CancellationToken token = default
         )
@@ -195,7 +198,8 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                     return avatarsList.ToArray();
                 },
                 maxTimestamp, 
-                pageSize, 
+                pageSize,
+                includeRemote,
                 userId, 
                 token
             );
@@ -206,15 +210,13 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             Func<CancellationToken, Task<IEnumerable<Avatar>>> remoteAvatarsRetriever,
             DateTimeOffset? maxTimestamp, 
             int? pageSize, 
+            bool includeRemote,
             string userId, 
             CancellationToken token
         )
         {
-            var query = new MessageQuery
-            {
-                MaxTimestamp = maxTimestamp,
-                PageSize = pageSize,
-            }.Initialize(this.settingsService);
+            var query = new MessageQuery(maxTimestamp, pageSize)
+                .Initialize(this.settingsService);
 
             var result = new List<Common.MessageResult>();
 
@@ -227,15 +229,18 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                 )
             );
 
-            var avatars = await remoteAvatarsRetriever(token);
+            if (includeRemote)
+            {
+                var avatars = await remoteAvatarsRetriever(token);
 
-            result.AddRange(
-                await this.GetRemoteMessages(
-                    avatars,
-                    pageSize,
-                    token
-                )
-            );
+                result.AddRange(
+                    await this.GetRemoteMessages(
+                        avatars,
+                        pageSize,
+                        token
+                    )
+                );
+            }
 
             return result;
         }

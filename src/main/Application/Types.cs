@@ -11,11 +11,6 @@
         public struct Exception
         {
             /// <summary>
-            /// Exception message for Invalid ID value.
-            /// </summary>
-            public const string InvalidId = "Id must not be equal to '00000000-0000-0000-0000-000000000000'.";
-
-            /// <summary>
             /// Exception message for Invalid UserId value.
             /// </summary>
             public const string InvalidUserId = "User Id must not be null or empty.";

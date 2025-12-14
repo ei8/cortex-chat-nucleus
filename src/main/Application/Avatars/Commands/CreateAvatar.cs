@@ -28,14 +28,14 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Avatars.Commands
             AssertionConcern.AssertArgumentValid(
                 g => g != Guid.Empty,
                 id,
-                Constants.Exception.InvalidId,
+                Domain.Model.Constants.Exception.InvalidId,
                 nameof(id)
             );
             AssertionConcern.AssertArgumentNotNull(name, nameof(name));
             AssertionConcern.AssertArgumentValid(
                 g => g != Guid.Empty,
                 regionId,
-                Constants.Exception.InvalidId,
+                Domain.Model.Constants.Exception.InvalidId,
                 nameof(regionId)
                 );
             AssertionConcern.AssertArgumentNotEmpty(userId, Constants.Exception.InvalidUserId, nameof(userId));

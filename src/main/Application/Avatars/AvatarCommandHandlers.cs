@@ -6,6 +6,7 @@ using ei8.Cortex.Coding;
 using ei8.Cortex.IdentityAccess.Client.Out;
 using ei8.EventSourcing.Client;
 using neurUL.Common.Domain.Model;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -77,13 +78,11 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Avatars
                 await this.transaction.BeginAsync(validationResult.UserNeuronId);
 ;
                 await this.writeCacheService.SaveAsync(
-                    new Avatar()
-                    {
-                        Id = avatar.Id,
-                        // TODO:0 Is StringWrapper necessary?
-                        // Or is this sufficient?
-                        Name = avatar.Name
-                    },
+                    new Avatar(
+                        avatar.Id,
+                        avatar.Name,
+                        DateTimeOffset.Now 
+                    ),
                     token,
                     (a) => Neuron.CreateTransient(
                         a.Id,
