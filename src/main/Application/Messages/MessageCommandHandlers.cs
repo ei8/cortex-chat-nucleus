@@ -127,8 +127,8 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                     {
                         new Sender(
                             Guid.NewGuid(),
-                            validationResult.UserNeuronId,
-                            message.Id
+                            message.Id,
+                            validationResult.UserNeuronId
                         )
                     },
                     token,
@@ -148,8 +148,8 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                         message.RecipientAvatarIds.Select(rai => 
                             new Recipient(
                                 Guid.NewGuid(),
-                                rai,
-                                message.Id
+                                message.Id,
+                                rai
                             )
                         ),
                         token,
