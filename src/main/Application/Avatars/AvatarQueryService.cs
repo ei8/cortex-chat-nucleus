@@ -48,6 +48,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Avatars
                             Id = a.Id,
                             Name = a.Name,
                             MirrorUrl = n.MirrorUrl,
+                            MirrorState = MirrorHelper.GetState(n.MirrorUrl),
                             Url = n.Url
                         }
                     )
@@ -75,6 +76,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Avatars
                             Id = a.Id,
                             Name = a.Name,
                             MirrorUrl = n.MirrorUrl,
+                            MirrorState = MirrorHelper.GetState(n.MirrorUrl),
                             Url = n.Url
                         }
                     )

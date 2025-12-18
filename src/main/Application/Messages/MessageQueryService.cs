@@ -368,6 +368,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                                     Senders = mSenders,
                                     Recipients = mRecipients,
                                     MirrorUrl = n.MirrorUrl,
+                                    MirrorState = MirrorHelper.GetState(n.MirrorUrl),
                                     CreationTimestamp = pm.CreationTimestamp,
                                     UnifiedLastModificationTimestamp = n.UnifiedLastModificationTimestamp,
                                     IsCurrentUserCreationAuthor = mSenders.Any(ms => ms.Avatar.Id == validationResult.UserNeuronId)
@@ -469,6 +470,10 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                     }
                 }
             }
+
+            result.ForEach(
+                mr => mr.MirrorState = MirrorHelper.GetState(mr.MirrorUrl)
+            );
 
             return result;
         }
