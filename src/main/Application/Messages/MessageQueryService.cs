@@ -325,10 +325,12 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                 token
             );
 
-            var recipientAvatars = await avatarReadRepository.GetByIds(
-                recipients.Select(ls => ls.AvatarId).Distinct(),
-                token
-            );
+            var recipientAvatars = recipients.Any() ?
+                await avatarReadRepository.GetByIds(
+                    recipients.Select(ls => ls.AvatarId).Distinct(),
+                    token
+                ) : 
+                Enumerable.Empty<Avatar>();
 
             foreach (var pm in localMessages.Reverse())
             {
