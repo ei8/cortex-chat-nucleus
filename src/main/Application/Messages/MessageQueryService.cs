@@ -5,6 +5,7 @@ using ei8.Cortex.Chat.Nucleus.Domain.Model.Avatars;
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Messages;
 using ei8.Cortex.Coding;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
+using ei8.Cortex.Coding.Mirrors;
 using ei8.Cortex.Coding.Persistence.Wrappers;
 using ei8.Cortex.IdentityAccess.Client.Out;
 using ei8.Cortex.IdentityAccess.Common;
@@ -258,7 +259,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             
             if (localMessages.Any())
             {
-                results = await MessageQueryService.CreateMessageResults(
+                results = await MessageQueryService.CreateLocalMessageResults(
                     userId,
                     senders,
                     localMessages,
@@ -275,7 +276,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             return results;
         }
 
-        private static async Task<IEnumerable<MessageResult>> CreateMessageResults(
+        private static async Task<IEnumerable<MessageResult>> CreateLocalMessageResults(
             string userId, 
             IEnumerable<Sender> senders, 
             IEnumerable<Message> localMessages, 
@@ -367,11 +368,11 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                                     } : null,
                                     Senders = mSenders,
                                     Recipients = mRecipients,
-                                    MirrorUrl = n.MirrorUrl,
-                                    MirrorState = MirrorHelper.GetState(n.MirrorUrl),
+                                    Mirror = new MirrorInfo(n.MirrorUrl),
                                     CreationTimestamp = pm.CreationTimestamp,
                                     UnifiedLastModificationTimestamp = n.UnifiedLastModificationTimestamp,
-                                    IsCurrentUserCreationAuthor = mSenders.Any(ms => ms.Avatar.Id == validationResult.UserNeuronId)
+                                    IsCurrentUserCreationAuthor = mSenders.Any(ms => ms.Avatar.Id == validationResult.UserNeuronId),
+                                    Url = n.Url
                                 }
                             );
                         }
@@ -404,7 +405,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                                 {
                                     Id = c.AvatarId,
                                     Name = communicatorAvatar.Name,
-                                    MirrorUrl = an.MirrorUrl,
+                                    Mirror = new MirrorInfo(an.MirrorUrl),
                                     Url = an.Url
                                 }
                             };
@@ -414,8 +415,8 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         }
 
         private async Task<IEnumerable<MessageResult>> GetRemoteMessages(
-            IEnumerable<Avatar> avatars, 
-            int? pageSize, 
+            IEnumerable<Avatar> avatars,
+            int? pageSize,
             CancellationToken token = default
         )
         {
@@ -470,10 +471,6 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                     }
                 }
             }
-
-            result.ForEach(
-                mr => mr.MirrorState = MirrorHelper.GetState(mr.MirrorUrl)
-            );
 
             return result;
         }

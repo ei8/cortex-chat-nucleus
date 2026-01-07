@@ -1,6 +1,8 @@
-﻿using ei8.Cortex.Chat.Nucleus.Domain.Model;
+﻿using ei8.Cortex.Chat.Common;
+using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Coding;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
+using ei8.Cortex.Coding.Mirrors;
 using neurUL.Common.Domain.Model;
 using System;
 using System.Collections.Generic;
@@ -47,8 +49,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Avatars
                         {
                             Id = a.Id,
                             Name = a.Name,
-                            MirrorUrl = n.MirrorUrl,
-                            MirrorState = MirrorHelper.GetState(n.MirrorUrl),
+                            Mirror = new MirrorInfo(n.MirrorUrl),
                             Url = n.Url
                         }
                     )
@@ -75,8 +76,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Avatars
                         {
                             Id = a.Id,
                             Name = a.Name,
-                            MirrorUrl = n.MirrorUrl,
-                            MirrorState = MirrorHelper.GetState(n.MirrorUrl),
+                            Mirror = new MirrorInfo(n.MirrorUrl),
                             Url = n.Url
                         }
                     )

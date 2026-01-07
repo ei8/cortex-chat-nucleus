@@ -2,6 +2,7 @@
 using ei8.Cortex.Chat.Nucleus.Domain.Model.Avatars;
 using ei8.Cortex.Coding;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
+using ei8.Cortex.Coding.Mirrors;
 using ei8.Cortex.Library.Common;
 using System;
 using System.Collections.Generic;
