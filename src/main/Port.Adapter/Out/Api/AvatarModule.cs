@@ -1,11 +1,9 @@
-﻿using ei8.Cortex.Chat.Nucleus.Application.Messages;
-using ei8.Cortex.Chat.Nucleus.Domain.Model;
+﻿using ei8.Cortex.Chat.Nucleus.Application.Avatars;
 using Nancy;
 using Nancy.Responses;
 using Newtonsoft.Json;
-using System.Linq;
 using System;
-using ei8.Cortex.Chat.Nucleus.Application.Avatars;
+using System.Linq;
 
 namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
 {
