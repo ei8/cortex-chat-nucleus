@@ -1,5 +1,4 @@
-﻿using ei8.Cortex.Chat.Common;
-using ei8.Cortex.Chat.Nucleus.Domain.Model;
+﻿using ei8.Cortex.Chat.Nucleus.Domain.Model;
 using ei8.Cortex.Coding;
 using ei8.Cortex.Coding.d23.neurULization.Persistence;
 using ei8.Cortex.Coding.Mirrors;
@@ -38,20 +37,24 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Avatars
         /// <param name="userId"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<Common.AvatarInfo>> GetAvatars(string userId, CancellationToken token = default)
+        public async Task<IEnumerable<IMirrorImageSeries<Common.AvatarInfo>>> GetAvatars(string userId, CancellationToken token = default)
         {
             // TODO:1 validate if user has access to neurons in result using validationClient
             return (await avatarRepository.GetAll(token))
                 .Select(a =>
                     readWriteCache[CacheKey.Read].GetValidateNeuron(
                         a.Id,
-                        n => new Common.AvatarInfo()
-                        {
-                            Id = a.Id,
-                            Name = a.Name,
-                            Mirror = new MirrorInfo(n.MirrorUrl),
-                            Url = n.Url
-                        }
+                        n => new Coding.Mirrors.MirrorImageSeries<Common.AvatarInfo>(
+                            new[] {
+                                new Common.AvatarInfo()
+                                {
+                                    Id = a.Id,
+                                    Name = a.Name,
+                                    Mirror = new MirrorInfo(n.MirrorUrl),
+                                    Url = n.Url
+                                } 
+                            }
+                        )
                     )
                 );
         }
@@ -63,7 +66,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Avatars
         /// <param name="userId"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<Common.AvatarInfo>> GetAvatarsByIds(IEnumerable<Guid> ids, string userId, CancellationToken token = default)
+        public async Task<IEnumerable<IMirrorImageSeries<Common.AvatarInfo>>> GetAvatarsByIds(IEnumerable<Guid> ids, string userId, CancellationToken token = default)
         {
             ids.ValidateIds();
 
@@ -72,13 +75,17 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Avatars
                 .Select(a =>
                     readWriteCache[CacheKey.Read].GetValidateNeuron(
                         a.Id,
-                        n => new Common.AvatarInfo()
-                        {
-                            Id = a.Id,
-                            Name = a.Name,
-                            Mirror = new MirrorInfo(n.MirrorUrl),
-                            Url = n.Url
-                        }
+                        n => new Coding.Mirrors.MirrorImageSeries<Common.AvatarInfo>(
+                            new[] {
+                                new Common.AvatarInfo()
+                                {
+                                    Id = a.Id,
+                                    Name = a.Name,
+                                    Mirror = new MirrorInfo(n.MirrorUrl),
+                                    Url = n.Url
+                                }
+                            }
+                        )
                     )
                 );
         }

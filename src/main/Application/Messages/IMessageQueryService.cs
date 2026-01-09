@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ei8.Cortex.Coding.Mirrors;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +20,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         /// <param name="userId"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        Task<IEnumerable<Common.MessageResult>> GetMessages(
+        Task<IEnumerable<IMirrorImageSeries<Common.MessageResult>>> GetMessages(
             IEnumerable<Guid> senderAvatarIds, 
             DateTimeOffset? maxTimestamp, 
             int? pageSize, 
@@ -36,7 +37,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         /// <param name="userId"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        Task<IEnumerable<Common.MessageResult>> GetMessages(
+        Task<IEnumerable<IMirrorImageSeries<Common.MessageResult>>> GetMessages(
             DateTimeOffset? maxTimestamp,
             int? pageSize,
             bool includeRemote,

@@ -95,7 +95,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         /// <param name="userId"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<Common.MessageResult>> GetMessages(
+        public async Task<IEnumerable<IMirrorImageSeries<MessageResult>>> GetMessages(
             IEnumerable<Guid> senderAvatarIds, 
             DateTimeOffset? maxTimestamp, 
             int? pageSize, 
@@ -173,7 +173,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
         /// <param name="userId"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public async Task<IEnumerable<MessageResult>> GetMessages(
+        public async Task<IEnumerable<IMirrorImageSeries<MessageResult>>> GetMessages(
             DateTimeOffset? maxTimestamp, 
             int? pageSize, 
             bool includeRemote,
@@ -206,7 +206,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             );
         }
 
-        private async Task<IEnumerable<MessageResult>> GetMessagesCore(
+        private async Task<IEnumerable<IMirrorImageSeries<MessageResult>>> GetMessagesCore(
             Func<MessageQuery, CancellationToken, Task<(IEnumerable<Message>, IEnumerable<Sender>)>> messagesRetriever,
             Func<CancellationToken, Task<IEnumerable<Avatar>>> remoteAvatarsRetriever,
             DateTimeOffset? maxTimestamp, 
@@ -219,7 +219,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             var query = new MessageQuery(maxTimestamp, pageSize)
                 .Initialize(this.settingsService);
 
-            var result = new List<Common.MessageResult>();
+            var result = new List<IMirrorImageSeries<Common.MessageResult>>();
 
             result.AddRange(
                 await this.GetLocalMessages(
@@ -246,14 +246,14 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             return result;
         }
 
-        private async Task<IEnumerable<MessageResult>> GetLocalMessages(
+        private async Task<IEnumerable<IMirrorImageSeries<MessageResult>>> GetLocalMessages(
             Func<MessageQuery, CancellationToken, Task<(IEnumerable<Message>, IEnumerable<Sender>)>> messagesRetriever,
             MessageQuery query,
             string userId, 
             CancellationToken token
         )
         {
-            var results = Enumerable.Empty<MessageResult>();
+            var results = Enumerable.Empty<IMirrorImageSeries<MessageResult>>();
 
             (IEnumerable<Message> localMessages, IEnumerable<Sender> senders) = await messagesRetriever(query, token);
             
@@ -276,7 +276,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             return results;
         }
 
-        private static async Task<IEnumerable<MessageResult>> CreateLocalMessageResults(
+        private static async Task<IEnumerable<IMirrorImageSeries<MessageResult>>> CreateLocalMessageResults(
             string userId, 
             IEnumerable<Sender> senders, 
             IEnumerable<Message> localMessages, 
@@ -289,7 +289,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
             CancellationToken token
         )
         {
-            var results = new List<MessageResult>();
+            var results = new List<IMirrorImageSeries<MessageResult>>();
 
             var messageIds = localMessages.Select(m => m.Id).Distinct();
             var stringIds = localMessages.Select(m => m.ContentId).Distinct();
@@ -353,27 +353,31 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                                 pm
                             );
                             return Task.FromResult(
-                                new MessageResult()
-                                {
-                                    Id = pm.Id,
-                                    Content = new StringInfo()
-                                    {
-                                        Id = pm.ContentId,
-                                        Value = contentStrings.Single(csv => csv.Id == pm.ContentId).Tag
-                                    },
-                                    Region = n.RegionId.HasValue ? new NeuronInfo()
-                                    {
-                                        Id = n.RegionId.Value,
-                                        Tag = n.RegionTag
-                                    } : null,
-                                    Senders = mSenders,
-                                    Recipients = mRecipients,
-                                    Mirror = new MirrorInfo(n.MirrorUrl),
-                                    CreationTimestamp = pm.CreationTimestamp,
-                                    UnifiedLastModificationTimestamp = n.UnifiedLastModificationTimestamp,
-                                    IsCurrentUserCreationAuthor = mSenders.Any(ms => ms.Avatar.Id == validationResult.UserNeuronId),
-                                    Url = n.Url
-                                }
+                                new Coding.Mirrors.MirrorImageSeries<Common.MessageResult>(
+                                    new[] {
+                                        new MessageResult()
+                                        {
+                                            Id = pm.Id,
+                                            Content = new StringInfo()
+                                            {
+                                                Id = pm.ContentId,
+                                                Value = contentStrings.Single(csv => csv.Id == pm.ContentId).Tag
+                                            },
+                                            Region = n.RegionId.HasValue ? new NeuronInfo()
+                                            {
+                                                Id = n.RegionId.Value,
+                                                Tag = n.RegionTag
+                                            } : null,
+                                            Senders = mSenders,
+                                            Recipients = mRecipients,
+                                            Mirror = new MirrorInfo(n.MirrorUrl),
+                                            CreationTimestamp = pm.CreationTimestamp,
+                                            UnifiedLastModificationTimestamp = n.UnifiedLastModificationTimestamp,
+                                            IsCurrentUserCreationAuthor = mSenders.Any(ms => ms.Avatar.Id == validationResult.UserNeuronId),
+                                            Url = n.Url
+                                        }
+                                    }
+                                )
                             );
                         }
                     )
@@ -414,13 +418,13 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                 );
         }
 
-        private async Task<IEnumerable<MessageResult>> GetRemoteMessages(
+        private async Task<IEnumerable<IMirrorImageSeries<MessageResult>>> GetRemoteMessages(
             IEnumerable<Avatar> avatars,
             int? pageSize,
             CancellationToken token = default
         )
         {
-            var result = new List<MessageResult>();
+            var result = new List<IMirrorImageSeries<MessageResult>>();
 
             if (avatars.Any())
             {

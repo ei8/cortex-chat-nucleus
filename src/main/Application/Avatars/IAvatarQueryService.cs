@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ei8.Cortex.Coding.Mirrors;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Avatars
         /// <param name="userId"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        Task<IEnumerable<Common.AvatarInfo>> GetAvatars(string userId, CancellationToken token = default);
+        Task<IEnumerable<IMirrorImageSeries<Common.AvatarInfo>>> GetAvatars(string userId, CancellationToken token = default);
 
         /// <summary>
         /// Gets Avatars using the specified IDs and userId.
@@ -25,6 +26,6 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Avatars
         /// <param name="userId"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        Task<IEnumerable<Common.AvatarInfo>> GetAvatarsByIds(IEnumerable<Guid> ids, string userId, CancellationToken token = default);
+        Task<IEnumerable<IMirrorImageSeries<Common.AvatarInfo>>> GetAvatarsByIds(IEnumerable<Guid> ids, string userId, CancellationToken token = default);
     }
 }
