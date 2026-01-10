@@ -1,5 +1,6 @@
 ﻿using ei8.Cortex.Chat.Common;
 using ei8.Cortex.Chat.Nucleus.Application.Messages;
+using ei8.Cortex.Coding.Mirrors;
 using Nancy;
 using Nancy.Helpers;
 using Nancy.Responses;
@@ -19,7 +20,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
             {
                 return await MessageModule.ProcessRequest(async () =>
                 {
-                    var messages = Enumerable.Empty<MessageResult>();
+                    var messages = Enumerable.Empty<IMirrorImageSeries<MessageResult>>();
 
                     if (Request.Query.avatarId.HasValue)
                         messages = await messageQueryService.GetMessages(
