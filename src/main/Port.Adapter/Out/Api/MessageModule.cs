@@ -52,7 +52,15 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
                             MessageModule.GetUserId(Request)
                         );
 
-                    return new TextResponse(JsonConvert.SerializeObject(messages));
+                    return new TextResponse(
+                        JsonConvert.SerializeObject(
+                            messages,
+                            new JsonSerializerSettings()
+                            {
+                                TypeNameHandling = TypeNameHandling.Auto
+                            }
+                        )
+                    );
                 });
             }
             );
