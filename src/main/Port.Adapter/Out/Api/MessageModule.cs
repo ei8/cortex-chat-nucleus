@@ -5,7 +5,6 @@ using Nancy;
 using Nancy.Helpers;
 using Nancy.Responses;
 using neurUL.Common.Domain.Model;
-using Newtonsoft.Json;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -52,15 +51,7 @@ namespace ei8.Cortex.Chat.Nucleus.Port.Adapter.Out.Api
                             MessageModule.GetUserId(Request)
                         );
 
-                    return new TextResponse(
-                        JsonConvert.SerializeObject(
-                            messages,
-                            new JsonSerializerSettings()
-                            {
-                                TypeNameHandling = TypeNameHandling.Auto
-                            }
-                        )
-                    );
+                    return messages.ToJson();
                 });
             }
             );
