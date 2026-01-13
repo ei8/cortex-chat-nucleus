@@ -1,5 +1,6 @@
 ﻿using ei8.Cortex.Chat.Common;
 using ei8.Cortex.Chat.Nucleus.Application.Messages;
+using ei8.Cortex.Coding.Client;
 using ei8.Cortex.Coding.Mirrors;
 using Nancy;
 using Nancy.Helpers;
