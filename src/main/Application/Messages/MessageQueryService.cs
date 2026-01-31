@@ -129,24 +129,16 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                 },
                 async (t) =>
                 {
-                    var avatars = await this.avatarReadRepository.GetByIds(senderAvatarIds);
+                    var avatars = await this.avatarReadRepository.GetByIds(senderAvatarIds, t);
                     // remove owner avatar from 
-                    var avatarsList = avatars.ToList();
-                    var invalidAvatarIds = avatarsList.Where(
-                        a => MessageQueryService.HasInvalidMirrorUrl(
+                    var remoteAvatars = avatars.Where(
+                        a => !MessageQueryService.HasInvalidMirrorUrl(
                             a, 
                             this.readWriteCache[CacheKey.Read]
                         )
-                    ).Select(a => a.Id);
-
-                    AssertionConcern.AssertArgumentValid(
-                        ids => !ids.Any(),
-                        invalidAvatarIds,
-                        $"The specifed Avatar IDs do not have valid mirror URLs: '{string.Join("', '", invalidAvatarIds)}'",
-                        nameof(invalidAvatarIds)
                     );
 
-                    return avatars;
+                    return remoteAvatars;
                 },
                 maxTimestamp,
                 pageSize,
