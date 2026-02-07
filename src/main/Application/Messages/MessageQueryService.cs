@@ -463,7 +463,7 @@ namespace ei8.Cortex.Chat.Nucleus.Application.Messages
                     }
                     catch (Exception ex)
                     {
-                        throw new ApplicationException($"An error occurred while sending a request to Avatar '{remoteAvatarUrl}'", ex);
+                        throw new ApplicationException($"An error occurred while sending a request to Avatar '{remoteAvatarUrl}': {ex.ToString()}", ex);
                     }
                 }
             }
