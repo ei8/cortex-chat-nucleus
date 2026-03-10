@@ -119,21 +119,25 @@
     //   "Url": "http://neurul.net/sample/cortex/neurons/1753e83e-e81c-4220-930a-4253e32239cb"
     // },
   ],
+  // 1. When retrieving remote messages
   "Authorities": [
     {
-      "Address": "https://192.168.1.110.nip.io:65102",
-      "ClientId": "ei8.Cortex.Chat.Nucleus-sample2",
+      // 3. Authenticate with this Identity Provider
+      "Address": "https://192.168.50.183.nip.io:65300",
+      // 4. Using these Client Credentials
+      "ClientId": "ei8.Cortex.Chat.Nucleus-remo2",
       "ClientSecret": "SuperSecretPassword",
       "Avatars": [
-        "http://192.168.1.110:64111"
+        // 2. If connecting to this remote Avatar
+        "http://192.168.50.183:65202"
       ]
     },
     {
-      "Address": "https://192.168.1.110.nip.io:65102",
-      "ClientId": "ei8.Cortex.Chat.Nucleus-sample",
+      "Address": "https://192.168.50.183.nip.io:65300",
+      "ClientId": "ei8.Cortex.Chat.Nucleus-remo1",
       "ClientSecret": "SuperSecretPassword",
       "Avatars": [
-        "http://192.168.1.110:65111"
+        "http://192.168.50.183:65212"
       ]
     }
   ]
